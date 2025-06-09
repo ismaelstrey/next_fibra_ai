@@ -46,6 +46,11 @@ const mapOptions = {
   streetViewControl: false,
   mapTypeControl: true,
   fullscreenControl: true,
+  zoom: 13,
+  clickableIcons: false, // Desabilita os ícones clicáveis
+  mapTypeId: 'roadmap', // Tipo de mapa
+  
+
   mapId: 'advanced-markers-map', // ID necessário para AdvancedMarkerElement
 };
 
