@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Círculo externo representando a capa do cabo de fibra -->
+  <circle cx="100" cy="100" r="90" fill="#0f172a" />
+  
+  <!-- Círculo interno representando o núcleo da fibra -->
+  <circle cx="100" cy="100" r="70" fill="#1e293b" />
+  
+  <!-- Linhas representando os feixes de fibra óptica -->
+  <path d="M100 30 L100 170" stroke="#38bdf8" stroke-width="4" stroke-linecap="round" />
+  <path d="M70 40 L130 160" stroke="#0ea5e9" stroke-width="4" stroke-linecap="round" />
+  <path d="M130 40 L70 160" stroke="#0284c7" stroke-width="4" stroke-linecap="round" />
+  
+  <!-- Pontos de luz representando a transmissão de dados -->
+  <circle cx="100" cy="60" r="5" fill="#7dd3fc" />
+  <circle cx="100" cy="100" r="5" fill="#7dd3fc" />
+  <circle cx="100" cy="140" r="5" fill="#7dd3fc" />
+  
+  <circle cx="85" cy="70" r="3" fill="#7dd3fc" />
+  <circle cx="115" cy="130" r="3" fill="#7dd3fc" />
+  
+  <circle cx="115" cy="70" r="3" fill="#7dd3fc" />
+  <circle cx="85" cy="130" r="3" fill="#7dd3fc" />
+  
+  <!-- Texto "FIBRA" na parte inferior -->
+  <text x="100" y="190" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#38bdf8" text-anchor="middle">FIBRA</text>
+</svg>

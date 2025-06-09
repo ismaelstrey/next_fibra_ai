@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Serviço do banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: next-fibra-postgres
+    restart: always
+    ports:
+      # Mapeamento das portas conforme configuração no .env
+      # Porta principal
+      - "${POSTGRES_PORT}:5432"
+      # Porta para banco de dados shadow do Prisma
+      - "${POSTGRES_SHADOW_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - next-fibra-network
+
+  # Serviço do PgAdmin para gerenciamento do banco de dados (opcional)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: next-fibra-pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - next-fibra-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    name: next-fibra-postgres-data
+  pgadmin_data:
+    name: next-fibra-pgadmin-data
+
+networks:
+  next-fibra-network:
+    name: next-fibra-network

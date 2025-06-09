@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo de usuário para autenticação
+model Usuario {
+  id            String    @id @default(cuid())
+  nome          String
+  email         String    @unique
+  senha         String?
+  cargo         String    // Engenheiro, Técnico, Gerente
+  imagem        String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  cidades       Cidade[]  // Cidades que o usuário tem acesso
+  logs          Log[]     // Logs de atividades do usuário
+  comentarios   Comentario[]
+}
+
+// Modelo de cidade para gerenciamento geográfico
+model Cidade {
+  id            String    @id @default(cuid())
+  nome          String
+  estado        String
+  coordenadas   Json?     // Coordenadas geográficas da cidade {lat, lng}
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  usuarios      Usuario[] // Usuários com acesso a esta cidade
+  rotas         Rota[]    // Rotas de cabos nesta cidade
+  caixas        Caixa[]   // Caixas (CTO e CEO) nesta cidade
+}
+
+// Modelo de rota de cabo de fibra óptica
+model Rota {
+  id            String    @id @default(cuid())
+  nome          String
+  tipoCabo      String    // 6, 12, 24, 48, 96 vias
+  fabricante    String?
+  distancia     Float?    // Distância em metros
+  profundidade  Float?    // Profundidade em metros (se aplicável)
+  tipoPassagem  String    // Posteado, Subterrâneo, Aéreo
+  coordenadas   Json      // Array de coordenadas {lat, lng}[]
+  cor           String?   // Cor para representação visual
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  cidadeId      String
+  cidade        Cidade    @relation(fields: [cidadeId], references: [id])
+  caixas        Caixa[]   // Caixas associadas a esta rota
+  fusoes        Fusao[]   // Fusões associadas a esta rota
+  comentarios   Comentario[]
+  arquivos      Arquivo[]
+}
+
+// Modelo de caixa (CTO - Caixa Terminal Óptica ou CEO - Caixa de Emenda Óptica)
+model Caixa {
+  id            String    @id @default(cuid())
+  nome          String
+  tipo          String    // CTO ou CEO
+  modelo        String
+  capacidade    Int       // Número de portas ou bandejas
+  coordenadas   Json      // Coordenadas geográficas {lat, lng}
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  cidadeId      String
+  cidade        Cidade    @relation(fields: [cidadeId], references: [id])
+  rotaId        String
+  rota          Rota      @relation(fields: [rotaId], references: [id])
+  fusoes        Fusao[]   // Fusões associadas a esta caixa
+  portas        Porta[]   // Portas da caixa (para CTO)
+  bandejas      Bandeja[] // Bandejas da caixa (para CEO)
+  comentarios   Comentario[]
+  arquivos      Arquivo[]
+  manutencoes   Manutencao[]
+}
+
+// Modelo de porta para CTO
+model Porta {
+  id            String    @id @default(cuid())
+  numero        Int
+  status        String    // Livre, Ocupada, Reservada, Defeito
+  clienteNome   String?
+  clienteId     String?
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  caixaId       String
+  caixa         Caixa     @relation(fields: [caixaId], references: [id])
+}
+
+// Modelo de bandeja para CEO
+model Bandeja {
+  id            String    @id @default(cuid())
+  numero        Int
+  capacidade    Int       // Número de fibras que a bandeja suporta
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  caixaId       String
+  caixa         Caixa     @relation(fields: [caixaId], references: [id])
+  fusoes        Fusao[]   // Fusões nesta bandeja
+}
+
+// Modelo de fusão de fibras
+model Fusao {
+  id            String    @id @default(cuid())
+  fibraOrigem   Int       // Número da fibra de origem
+  fibraDestino  Int       // Número da fibra de destino
+  tuboOrigem    String?   // Identificação do tubo de origem
+  tuboDestino   String?   // Identificação do tubo de destino
+  status        String    // Ativo, Reserva, Programada
+  cor           String?   // Cor para representação visual
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  rotaOrigemId  String
+  rotaOrigem    Rota      @relation(fields: [rotaOrigemId], references: [id])
+  caixaId       String
+  caixa         Caixa     @relation(fields: [caixaId], references: [id])
+  bandejaId     String?
+  bandeja       Bandeja?  @relation(fields: [bandejaId], references: [id])
+}
+
+// Modelo de manutenção
+model Manutencao {
+  id            String    @id @default(cuid())
+  dataInicio    DateTime
+  dataFim       DateTime?
+  tipo          String    // Preventiva, Corretiva, Emergencial
+  descricao     String
+  status        String    // Agendada, Em Andamento, Concluída, Cancelada
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  caixaId       String
+  caixa         Caixa     @relation(fields: [caixaId], references: [id])
+  arquivos      Arquivo[]
+}
+
+// Modelo de comentário
+model Comentario {
+  id            String    @id @default(cuid())
+  texto         String
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  usuarioId     String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  rotaId        String?
+  rota          Rota?     @relation(fields: [rotaId], references: [id])
+  caixaId       String?
+  caixa         Caixa?    @relation(fields: [caixaId], references: [id])
+}
+
+// Modelo de arquivo (fotos, documentos, etc.)
+model Arquivo {
+  id            String    @id @default(cuid())
+  nome          String
+  tipo          String    // Foto, Documento, Projeto, Relatório
+  url           String
+  criadoEm      DateTime  @default(now())
+  rotaId        String?
+  rota          Rota?     @relation(fields: [rotaId], references: [id])
+  caixaId       String?
+  caixa         Caixa?    @relation(fields: [caixaId], references: [id])
+  manutencaoId  String?
+  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id])
+}
+
+// Modelo de log para auditoria
+model Log {
+  id            String    @id @default(cuid())
+  acao          String    // Criação, Edição, Exclusão
+  entidade      String    // Nome da entidade (Rota, Caixa, etc.)
+  entidadeId    String    // ID da entidade
+  detalhes      Json?     // Detalhes da ação
+  criadoEm      DateTime  @default(now())
+  usuarioId     String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+}
