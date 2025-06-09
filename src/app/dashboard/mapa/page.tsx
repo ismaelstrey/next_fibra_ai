@@ -3,29 +3,43 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { MapIcon, SearchIcon, LayersIcon, FilterIcon } from 'lucide-react';
+import { MapIcon, SearchIcon, LayersIcon, FilterIcon, PencilIcon, MapPinIcon, BoxIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
+import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
 
 /**
  * Página de visualização do mapa de fibra óptica
  * Permite visualizar e gerenciar a infraestrutura de fibra óptica no mapa
  */
 export default function MapaPage() {
-  const [carregando, setCarregando] = useState(true);
+  // Chave da API do Google Maps
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  
+  // Estado para a busca
   const [busca, setBusca] = useState('');
   
-  // Simula o carregamento do mapa
-  useEffect(() => {
-    // Aqui seria a inicialização da API do Google Maps
-    const timer = setTimeout(() => {
-      setCarregando(false);
-    }, 1500);
-    
-    return () => clearTimeout(timer);
-  }, []);
+  // Hook personalizado para gerenciar o estado do mapa
+  const {
+    rotas,
+    caixas,
+    filtros,
+    camadasVisiveis,
+    modoEdicao,
+    tipoCaboSelecionado,
+    adicionarRota,
+    adicionarCaixa,
+    atualizarFiltros,
+    atualizarCamadasVisiveis,
+    setModoEdicao,
+    setTipoCaboSelecionado,
+    buscarNoMapa
+  } = useMapa();
 
   /**
    * Função para lidar com a busca no mapa
@@ -34,9 +48,47 @@ export default function MapaPage() {
   const handleBusca = (e: React.FormEvent) => {
     e.preventDefault();
     if (busca.trim()) {
-      toast.success(`Buscando por: ${busca}`);
-      // Aqui seria a lógica de busca no mapa
+      const resultados = buscarNoMapa(busca);
+      
+      if (resultados.rotas.length > 0 || resultados.caixas.length > 0) {
+        toast.success(`Encontrados: ${resultados.rotas.length} rotas e ${resultados.caixas.length} caixas`);
+        // Aqui poderia centralizar o mapa no primeiro resultado
+      } else {
+        toast.error(`Nenhum resultado encontrado para: ${busca}`);
+      }
     }
+  };
+  
+  /**
+   * Função para atualizar as camadas visíveis
+   */
+  const handleToggleCamada = (tipo: keyof CamadasVisiveis, valor: boolean) => {
+    atualizarCamadasVisiveis({ [tipo]: valor });
+  };
+  
+  /**
+   * Função para atualizar os filtros
+   */
+  const handleAtualizarFiltro = (tipo: keyof FiltrosMapa, valor: any) => {
+    atualizarFiltros({ [tipo]: valor });
+  };
+  
+  /**
+   * Função para lidar com o desenho de uma nova rota
+   */
+  const handleRotaDesenhada = (path: google.maps.LatLng[]) => {
+    // Converte o path para o formato esperado
+    const pathFormatado = path.map(ponto => ({
+      lat: ponto.lat(),
+      lng: ponto.lng()
+    }));
+    
+    // Adiciona a nova rota
+    adicionarRota({
+      nome: `Rota ${rotas.length + 1}`,
+      tipoCabo: tipoCaboSelecionado,
+      path: pathFormatado
+    });
   };
 
   // Animações
@@ -88,16 +140,45 @@ export default function MapaPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center">
-                <input type="checkbox" id="caixas" className="mr-2" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  id="caixas" 
+                  className="mr-2" 
+                  checked={camadasVisiveis.caixas}
+                  onChange={(e) => handleToggleCamada('caixas', e.target.checked)}
+                />
                 <label htmlFor="caixas" className="text-sm">Caixas (CTO/CEO)</label>
               </div>
               <div className="flex items-center">
-                <input type="checkbox" id="rotas" className="mr-2" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  id="rotas" 
+                  className="mr-2" 
+                  checked={camadasVisiveis.rotas}
+                  onChange={(e) => handleToggleCamada('rotas', e.target.checked)}
+                />
                 <label htmlFor="rotas" className="text-sm">Rotas de Cabos</label>
               </div>
               <div className="flex items-center">
-                <input type="checkbox" id="fusoes" className="mr-2" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  id="fusoes" 
+                  className="mr-2" 
+                  checked={camadasVisiveis.fusoes}
+                  onChange={(e) => handleToggleCamada('fusoes', e.target.checked)}
+                />
                 <label htmlFor="fusoes" className="text-sm">Pontos de Fusão</label>
+              </div>
+              
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-2">Tipo de Cabo</p>
+                <ToggleGroup type="single" value={tipoCaboSelecionado} onValueChange={(value) => value && setTipoCaboSelecionado(value as any)}>
+                  <ToggleGroupItem value="6" size="sm" className="text-xs">6</ToggleGroupItem>
+                  <ToggleGroupItem value="12" size="sm" className="text-xs">12</ToggleGroupItem>
+                  <ToggleGroupItem value="24" size="sm" className="text-xs">24</ToggleGroupItem>
+                  <ToggleGroupItem value="48" size="sm" className="text-xs">48</ToggleGroupItem>
+                  <ToggleGroupItem value="96" size="sm" className="text-xs">96</ToggleGroupItem>
+                </ToggleGroup>
               </div>
             </CardContent>
           </Card>
@@ -112,15 +193,23 @@ export default function MapaPage() {
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Tipo de Caixa</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtros.tipoCaixa || ''}
+                  onChange={(e) => handleAtualizarFiltro('tipoCaixa', e.target.value)}
+                >
                   <option value="">Todos</option>
-                  <option value="cto">CTO</option>
-                  <option value="ceo">CEO</option>
+                  <option value="CTO">CTO</option>
+                  <option value="CEO">CEO</option>
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Tipo de Cabo</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtros.tipoCabo || ''}
+                  onChange={(e) => handleAtualizarFiltro('tipoCabo', e.target.value)}
+                >
                   <option value="">Todos</option>
                   <option value="6">6 vias</option>
                   <option value="12">12 vias</option>
@@ -131,7 +220,11 @@ export default function MapaPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Cidade</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtros.cidade || ''}
+                  onChange={(e) => handleAtualizarFiltro('cidade', e.target.value)}
+                >
                   <option value="">Todas</option>
                   <option value="cidade1">Cidade 1</option>
                   <option value="cidade2">Cidade 2</option>
@@ -148,19 +241,30 @@ export default function MapaPage() {
         <div className="md:col-span-3">
           <Card className="h-[calc(100vh-12rem)]">
             <CardContent className="p-0 h-full">
-              {carregando ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+              <div className="relative h-full">
+                {/* Barra de ferramentas de edição */}
+                <div className="absolute top-2 left-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md shadow-md">
+                  <ToggleGroup type="single" value={modoEdicao || ''} onValueChange={(value) => setModoEdicao(value as any || null)}>
+                    <ToggleGroupItem value="rota" size="sm" title="Desenhar Rota">
+                      <PencilIcon className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="cto" size="sm" title="Adicionar CTO">
+                      <BoxIcon className="h-4 w-4" />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="ceo" size="sm" title="Adicionar CEO">
+                      <MapPinIcon className="h-4 w-4" />
+                    </ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
-              ) : (
-                <div className="relative h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <div className="text-center">
-                    <p className="text-muted-foreground mb-2">Mapa do Google será carregado aqui</p>
-                    <p className="text-xs text-muted-foreground">É necessário configurar a API do Google Maps</p>
-                  </div>
-                  {/* Aqui seria renderizado o componente do Google Maps */}
-                </div>
-              )}
+                
+                {/* Componente do Google Maps */}
+                <GoogleMapsComponent 
+                  apiKey={apiKey}
+                  camadasVisiveis={camadasVisiveis}
+                  filtros={filtros}
+                  onRotaDesenhada={handleRotaDesenhada}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
