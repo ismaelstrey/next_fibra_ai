@@ -67,6 +67,7 @@
   }
 }
 
+/* Comentando o bloco que está quebrando a aplicação */
 /* @layer base {
   * {
     @apply border-border;
@@ -76,3 +77,10 @@
     font-family: var(--font-sans);
   }
 } */
+
+/* Adicionando estilos alternativos para o tema escuro */
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-sans);
+}

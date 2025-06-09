@@ -71,7 +71,7 @@ export default function LoginPage() {
     console.log(data)
     try {
       setCarregando(true);
-      
+
       const result = await signIn('credentials', {
         redirect: false,
         email: data.email,
@@ -86,7 +86,7 @@ export default function LoginPage() {
       }
 
       toast.success('Login realizado com sucesso!');
-      // router.push(callbackUrl);
+      router.push(callbackUrl);
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       toast.error('Ocorreu um erro ao fazer login');
@@ -120,9 +120,9 @@ export default function LoginPage() {
                       <FormLabel>Email</FormLabel>
                       <div className="relative">
                         <FormControl>
-                          <Input 
-                            placeholder="seu.email@exemplo.com" 
-                            {...field} 
+                          <Input
+                            placeholder="seu.email@exemplo.com"
+                            {...field}
                             className="pl-10"
                             disabled={carregando}
                           />
@@ -141,10 +141,10 @@ export default function LoginPage() {
                       <FormLabel>Senha</FormLabel>
                       <div className="relative">
                         <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="******" 
-                            {...field} 
+                          <Input
+                            type="password"
+                            placeholder="******"
+                            {...field}
                             className="pl-10"
                             disabled={carregando}
                           />
@@ -155,9 +155,9 @@ export default function LoginPage() {
                     </FormItem>
                   )}
                 />
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={carregando}
                 >
                   {carregando ? 'Entrando...' : 'Entrar'}

@@ -12,7 +12,6 @@ import {
     EyeIcon,
     EyeOffIcon,
     Combine,
-    SplitIcon,
     SettingsIcon
 } from 'lucide-react';
 import { useState } from 'react';
@@ -232,6 +231,89 @@ export default function ToolsMap() {
 
                         <Separator />
 
+                        {/* Botões de ação rápida */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-xs font-medium text-muted-foreground">Ações Rápidas</h4>
+                                {modoEdicao && (
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs text-primary animate-pulse flex items-center">
+                                            <span className="h-2 w-2 rounded-full bg-primary mr-1"></span>
+                                            Modo: {modoEdicao.charAt(0).toUpperCase() + modoEdicao.slice(1)}
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-4 w-4 rounded-full"
+                                            onClick={() => setModoEdicao(null)}
+                                        >
+                                            <XIcon className="h-3 w-3" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="h-8 px-2 text-xs bg-primary/80 hover:bg-primary"
+                                                onClick={() => setModoEdicao('rota')}
+                                            >
+                                                <PencilIcon className="h-3 w-3 mr-1" />
+                                                Cabo
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            <p>Adicionar novo cabo</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="h-8 px-2 text-xs bg-primary/80 hover:bg-primary"
+                                                onClick={() => setModoEdicao('cto')}
+                                            >
+                                                <BoxIcon className="h-3 w-3 mr-1" />
+                                                CTO
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            <p>Adicionar nova CTO</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="h-8 px-2 text-xs bg-primary/80 hover:bg-primary"
+                                                onClick={() => setModoEdicao('ceo')}
+                                            >
+                                                <MapPinIcon className="h-3 w-3 mr-1" />
+                                                CEO
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            <p>Adicionar nova CEO</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        </div>
+
+                        <Separator />
+
                         {/* Controles de visibilidade */}
                         <div className="space-y-2">
                             <h4 className="text-xs font-medium text-muted-foreground">Camadas Visíveis</h4>
@@ -319,13 +401,41 @@ export default function ToolsMap() {
                                 <h4 className="text-xs font-medium text-muted-foreground">Configurações Avançadas</h4>
                                 {/* Aqui podem ser adicionadas mais opções de configuração */}
                                 <div className="grid grid-cols-2 gap-1">
-                                    <Button variant="outline" size="sm" className="h-8 text-xs">
-                                        <SplitIcon className="h-3 w-3 mr-1" />
-                                        Dividir Rota
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 text-xs"
+                                        onClick={() => setModoEdicao('rota')}
+                                    >
+                                        <PencilIcon className="h-3 w-3 mr-1" />
+                                        Adicionar Cabo
                                     </Button>
-                                    <Button variant="outline" size="sm" className="h-8 text-xs">
-                                        <Combine className="h-3 w-3 mr-1" />
-                                        Unir Rotas
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 text-xs"
+                                        onClick={() => setModoEdicao('cto')}
+                                    >
+                                        <BoxIcon className="h-3 w-3 mr-1" />
+                                        Adicionar CTO
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 text-xs"
+                                        onClick={() => setModoEdicao('ceo')}
+                                    >
+                                        <MapPinIcon className="h-3 w-3 mr-1" />
+                                        Adicionar CEO
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 text-xs"
+                                        onClick={() => setModoEdicao('fusao')}
+                                    >
+                                        <ZapIcon className="h-3 w-3 mr-1" />
+                                        Adicionar Fusão
                                     </Button>
                                 </div>
                             </motion.div>

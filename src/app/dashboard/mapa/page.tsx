@@ -13,6 +13,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
 import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
 import ToolsMap from '@/components/mapa/ToolsMap';
+import FiltrosMaps from './_filtros';
+import CamadasMaps from './_camadas';
 
 /**
  * Página de visualização do mapa de fibra óptica
@@ -28,17 +30,8 @@ export default function MapaPage() {
   // Hook personalizado para gerenciar o estado do mapa
   const {
     rotas,
-    caixas,
-    filtros,
-    camadasVisiveis,
-    modoEdicao,
     tipoCaboSelecionado,
     adicionarRota,
-    adicionarCaixa,
-    atualizarFiltros,
-    atualizarCamadasVisiveis,
-    setModoEdicao,
-    setTipoCaboSelecionado,
     buscarNoMapa
   } = useMapa();
 
@@ -59,24 +52,6 @@ export default function MapaPage() {
       }
     }
   };
-
-  /**
-   * Função para atualizar as camadas visíveis
-   */
-  const handleToggleCamada = (tipo: keyof CamadasVisiveis, valor: boolean) => {
-    atualizarCamadasVisiveis({ [tipo]: valor });
-  };
-
-  /**
-   * Função para atualizar os filtros
-   */
-  const handleAtualizarFiltro = (tipo: keyof FiltrosMapa, valor: any) => {
-    atualizarFiltros({ [tipo]: valor });
-  };
-
-  /**
-   * Função para lidar com o desenho de uma nova rota
-   */
   const handleRotaDesenhada = (path: google.maps.LatLng[]) => {
     // Converte o path para o formato esperado
     const pathFormatado = path.map(ponto => ({
@@ -132,110 +107,8 @@ export default function MapaPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Painel lateral */}
         <div className="md:col-span-1 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <LayersIcon className="h-4 w-4 mr-2" />
-                Camadas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="caixas"
-                  className="mr-2"
-                  checked={camadasVisiveis.caixas}
-                  onChange={(e) => handleToggleCamada('caixas', e.target.checked)}
-                />
-                <label htmlFor="caixas" className="text-sm">Caixas (CTO/CEO)</label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="rotas"
-                  className="mr-2"
-                  checked={camadasVisiveis.rotas}
-                  onChange={(e) => handleToggleCamada('rotas', e.target.checked)}
-                />
-                <label htmlFor="rotas" className="text-sm">Rotas de Cabos</label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="fusoes"
-                  className="mr-2"
-                  checked={camadasVisiveis.fusoes}
-                  onChange={(e) => handleToggleCamada('fusoes', e.target.checked)}
-                />
-                <label htmlFor="fusoes" className="text-sm">Pontos de Fusão</label>
-              </div>
-
-              <div className="mt-4">
-                <p className="text-sm font-medium mb-2">Tipo de Cabo</p>
-                <ToggleGroup type="single" value={tipoCaboSelecionado} onValueChange={(value) => value && setTipoCaboSelecionado(value as any)}>
-                  <ToggleGroupItem value="6" size="sm" className="text-xs">6</ToggleGroupItem>
-                  <ToggleGroupItem value="12" size="sm" className="text-xs">12</ToggleGroupItem>
-                  <ToggleGroupItem value="24" size="sm" className="text-xs">24</ToggleGroupItem>
-                  <ToggleGroupItem value="48" size="sm" className="text-xs">48</ToggleGroupItem>
-                  <ToggleGroupItem value="96" size="sm" className="text-xs">96</ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <FilterIcon className="h-4 w-4 mr-2" />
-                Filtros
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Tipo de Caixa</label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filtros.tipoCaixa || ''}
-                  onChange={(e) => handleAtualizarFiltro('tipoCaixa', e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  <option value="CTO">CTO</option>
-                  <option value="CEO">CEO</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Tipo de Cabo</label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filtros.tipoCabo || ''}
-                  onChange={(e) => handleAtualizarFiltro('tipoCabo', e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  <option value="6">6 vias</option>
-                  <option value="12">12 vias</option>
-                  <option value="24">24 vias</option>
-                  <option value="48">48 vias</option>
-                  <option value="96">96 vias</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Cidade</label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filtros.cidade || ''}
-                  onChange={(e) => handleAtualizarFiltro('cidade', e.target.value)}
-                >
-                  <option value="">Todas</option>
-                  <option value="cidade1">Cidade 1</option>
-                  <option value="cidade2">Cidade 2</option>
-                </select>
-              </div>
-              <Button className="w-full mt-2" variant="outline" size="sm">
-                Aplicar Filtros
-              </Button>
-            </CardContent>
-          </Card>
+          <CamadasMaps />
+          <FiltrosMaps />
         </div>
 
         {/* Área do mapa */}
