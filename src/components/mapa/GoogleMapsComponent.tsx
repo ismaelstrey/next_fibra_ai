@@ -41,17 +41,17 @@ const center = {
  * Opções do mapa
  */
 const mapOptions = {
-  disableDefaultUI: false,
+  disableDefaultUI: true,
   zoomControl: true,
   streetViewControl: false,
   mapTypeControl: true,
   fullscreenControl: true,
-  zoom: 13,
+  center: {lat: -29.572421, lng: -50.798587},
+  zoom: 15,
   clickableIcons: false, // Desabilita os ícones clicáveis
   mapTypeId: 'roadmap', // Tipo de mapa
-  
-
-  mapId: 'advanced-markers-map', // ID necessário para AdvancedMarkerElement
+  gestureHandling: 'greedy', // Permite gestos de zoom e rotação
+  mapId: '973baf8ee9c2faa5fb1f9d99', // ID necessário para AdvancedMarkerElement
 };
 
 /**
