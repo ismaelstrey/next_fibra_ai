@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, Plus, Trash2, Edit, MapPin, Box, Cable } from 'lucide-react';
+import { Settings, Save, Plus, Trash2, Edit, MapPin, Box, Cable, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 import { toast } from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { ThemeToggle } from '@/components/ui/themeToggle';
 
 /**
  * Página de configurações do sistema
@@ -26,6 +28,17 @@ export default function ConfiguracoesPage() {
     tempoSessao: 60,
     modoEscuro: false,
   });
+  
+  // Acesso ao contexto de tema
+  const { theme, setTheme } = useTheme();
+  
+  // Sincroniza o estado do modo escuro com o tema atual
+  useEffect(() => {
+    setConfigGerais(prev => ({
+      ...prev,
+      modoEscuro: theme === 'dark'
+    }));
+  }, [theme]);
 
   // Estado para as cidades
   const [cidades, setCidades] = useState([
@@ -301,14 +314,26 @@ export default function ConfiguracoesPage() {
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="modoEscuro">Modo Escuro</Label>
+                    <Label htmlFor="modoEscuro" className="flex items-center gap-2">
+                      Modo Escuro
+                      {configGerais.modoEscuro ? 
+                        <Moon className="h-4 w-4 text-blue-400" /> : 
+                        <Sun className="h-4 w-4 text-amber-500" />
+                      }
+                    </Label>
                     <p className="text-sm text-muted-foreground">Ativar tema escuro por padrão</p>
                   </div>
-                  <Switch 
-                    id="modoEscuro"
-                    checked={configGerais.modoEscuro}
-                    onCheckedChange={(checked) => setConfigGerais({...configGerais, modoEscuro: checked})}
-                  />
+                  <div className="flex items-center gap-3">
+                    <ThemeToggle />
+                    <Switch 
+                      id="modoEscuro"
+                      checked={configGerais.modoEscuro}
+                      onCheckedChange={(checked) => {
+                        setConfigGerais({...configGerais, modoEscuro: checked});
+                        setTheme(checked ? 'dark' : 'light');
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 

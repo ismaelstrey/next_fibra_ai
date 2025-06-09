@@ -24,6 +24,7 @@ import { toast } from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { DashboardHeader } from '@/components/layout/dashboardHeader';
 
 /**
  * Layout do dashboard
@@ -70,8 +71,8 @@ export default function DashboardLayout({
   // Exibe um indicador de carregamento enquanto verifica a autenticação
   if (carregando) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      <div className="flex h-screen items-center justify-center" suppressHydrationWarning>
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" suppressHydrationWarning></div>
       </div>
     );
   }
@@ -129,13 +130,13 @@ export default function DashboardLayout({
             <div className="border-t border-border pt-4">
               <div className="flex items-center px-4 py-2">
                 <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground" suppressHydrationWarning>
                     {session?.user?.name?.charAt(0) || 'U'}
                   </div>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium">{session?.user?.name || 'Usuário'}</p>
-                  <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                  <p className="text-sm font-medium" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
+                  <p className="text-xs text-muted-foreground" suppressHydrationWarning>{session?.user?.email}</p>
                 </div>
               </div>
               <Button
@@ -160,6 +161,7 @@ export default function DashboardLayout({
             exit={{ x: -300 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="fixed inset-y-0 left-0 z-40 w-64 bg-card shadow-lg md:hidden"
+            suppressHydrationWarning
           >
             <div className="flex flex-col h-full px-4 py-5">
               <div className="flex items-center justify-between h-14 mb-8">
@@ -195,13 +197,13 @@ export default function DashboardLayout({
                 <div className="border-t border-border pt-4">
                   <div className="flex items-center px-4 py-2">
                     <div className="flex-shrink-0">
-                      <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                      <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground" suppressHydrationWarning>
                         {session?.user?.name?.charAt(0) || 'U'}
                       </div>
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium">{session?.user?.name || 'Usuário'}</p>
-                      <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                      <p className="text-sm font-medium" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
+                      <p className="text-xs text-muted-foreground" suppressHydrationWarning>{session?.user?.email}</p>
                     </div>
                   </div>
                   <Button
@@ -228,11 +230,15 @@ export default function DashboardLayout({
           transition={{ duration: 0.2 }}
           className="fixed inset-0 bg-black z-30 md:hidden"
           onClick={() => setMenuAberto(false)}
+          suppressHydrationWarning
         />
       )}
 
       {/* Conteúdo principal */}
       <div className="flex flex-col flex-1 md:pl-64">
+        {/* Header do Dashboard */}
+        <DashboardHeader />
+        
         <main className="flex-1 overflow-y-auto">
           {children}
         </main>

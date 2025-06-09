@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { MapIcon, SearchIcon, LayersIcon, FilterIcon, PencilIcon, MapPinIcon, BoxIcon } from 'lucide-react';
@@ -12,6 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
 import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
+import ToolsMap from '@/components/mapa/ToolsMap';
 
 /**
  * Página de visualização do mapa de fibra óptica
@@ -20,10 +21,10 @@ import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
 export default function MapaPage() {
   // Chave da API do Google Maps
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
-  
+
   // Estado para a busca
   const [busca, setBusca] = useState('');
-  
+
   // Hook personalizado para gerenciar o estado do mapa
   const {
     rotas,
@@ -49,7 +50,7 @@ export default function MapaPage() {
     e.preventDefault();
     if (busca.trim()) {
       const resultados = buscarNoMapa(busca);
-      
+
       if (resultados.rotas.length > 0 || resultados.caixas.length > 0) {
         toast.success(`Encontrados: ${resultados.rotas.length} rotas e ${resultados.caixas.length} caixas`);
         // Aqui poderia centralizar o mapa no primeiro resultado
@@ -58,21 +59,21 @@ export default function MapaPage() {
       }
     }
   };
-  
+
   /**
    * Função para atualizar as camadas visíveis
    */
   const handleToggleCamada = (tipo: keyof CamadasVisiveis, valor: boolean) => {
     atualizarCamadasVisiveis({ [tipo]: valor });
   };
-  
+
   /**
    * Função para atualizar os filtros
    */
   const handleAtualizarFiltro = (tipo: keyof FiltrosMapa, valor: any) => {
     atualizarFiltros({ [tipo]: valor });
   };
-  
+
   /**
    * Função para lidar com o desenho de uma nova rota
    */
@@ -82,7 +83,7 @@ export default function MapaPage() {
       lat: ponto.lat(),
       lng: ponto.lng()
     }));
-    
+
     // Adiciona a nova rota
     adicionarRota({
       nome: `Rota ${rotas.length + 1}`,
@@ -94,14 +95,14 @@ export default function MapaPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -112,7 +113,7 @@ export default function MapaPage() {
           <MapIcon className="h-6 w-6 mr-2 text-primary" />
           <h1 className="text-2xl font-bold">Mapa de Infraestrutura</h1>
         </div>
-        
+
         <form onSubmit={handleBusca} className="flex w-full md:w-auto">
           <div className="relative flex-grow md:w-64">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -140,36 +141,36 @@ export default function MapaPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="caixas" 
-                  className="mr-2" 
+                <input
+                  type="checkbox"
+                  id="caixas"
+                  className="mr-2"
                   checked={camadasVisiveis.caixas}
                   onChange={(e) => handleToggleCamada('caixas', e.target.checked)}
                 />
                 <label htmlFor="caixas" className="text-sm">Caixas (CTO/CEO)</label>
               </div>
               <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="rotas" 
-                  className="mr-2" 
+                <input
+                  type="checkbox"
+                  id="rotas"
+                  className="mr-2"
                   checked={camadasVisiveis.rotas}
                   onChange={(e) => handleToggleCamada('rotas', e.target.checked)}
                 />
                 <label htmlFor="rotas" className="text-sm">Rotas de Cabos</label>
               </div>
               <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="fusoes" 
-                  className="mr-2" 
+                <input
+                  type="checkbox"
+                  id="fusoes"
+                  className="mr-2"
                   checked={camadasVisiveis.fusoes}
                   onChange={(e) => handleToggleCamada('fusoes', e.target.checked)}
                 />
                 <label htmlFor="fusoes" className="text-sm">Pontos de Fusão</label>
               </div>
-              
+
               <div className="mt-4">
                 <p className="text-sm font-medium mb-2">Tipo de Cabo</p>
                 <ToggleGroup type="single" value={tipoCaboSelecionado} onValueChange={(value) => value && setTipoCaboSelecionado(value as any)}>
@@ -193,7 +194,7 @@ export default function MapaPage() {
             <CardContent className="space-y-2">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Tipo de Caixa</label>
-                <select 
+                <select
                   className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                   value={filtros.tipoCaixa || ''}
                   onChange={(e) => handleAtualizarFiltro('tipoCaixa', e.target.value)}
@@ -205,7 +206,7 @@ export default function MapaPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Tipo de Cabo</label>
-                <select 
+                <select
                   className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                   value={filtros.tipoCabo || ''}
                   onChange={(e) => handleAtualizarFiltro('tipoCabo', e.target.value)}
@@ -220,7 +221,7 @@ export default function MapaPage() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Cidade</label>
-                <select 
+                <select
                   className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
                   value={filtros.cidade || ''}
                   onChange={(e) => handleAtualizarFiltro('cidade', e.target.value)}
@@ -243,25 +244,11 @@ export default function MapaPage() {
             <CardContent className="p-0 h-full">
               <div className="relative h-full">
                 {/* Barra de ferramentas de edição */}
-                <div className="absolute top-2 left-2 z-10 bg-background/80 backdrop-blur-sm p-2 rounded-md shadow-md">
-                  <ToggleGroup type="single" value={modoEdicao || ''} onValueChange={(value) => setModoEdicao(value as any || null)}>
-                    <ToggleGroupItem value="rota" size="sm" title="Desenhar Rota">
-                      <PencilIcon className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="cto" size="sm" title="Adicionar CTO">
-                      <BoxIcon className="h-4 w-4" />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="ceo" size="sm" title="Adicionar CEO">
-                      <MapPinIcon className="h-4 w-4" />
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
-                
+                <ToolsMap />
+
                 {/* Componente do Google Maps */}
-                <GoogleMapsComponent 
+                <GoogleMapsComponent
                   apiKey={apiKey}
-                  camadasVisiveis={camadasVisiveis}
-                  filtros={filtros}
                   onRotaDesenhada={handleRotaDesenhada}
                 />
               </div>

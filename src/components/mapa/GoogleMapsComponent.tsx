@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline, Marker } from '@react-google-maps/api';
-import { toast } from 'react-hot-toast';
+
+import useMapa from '@/hooks/useMapa';
 
 /**
  * Tipos de bibliotecas do Google Maps necessárias para o componente
@@ -72,59 +73,49 @@ interface GoogleMapsComponentProps {
    * Chave da API do Google Maps
    */
   apiKey: string;
-  
+
   /**
    * Callback para quando o mapa é carregado
    */
   onMapLoad?: (map: google.maps.Map) => void;
-  
+
   /**
    * Callback para quando uma rota é desenhada
    */
   onRotaDesenhada?: (path: google.maps.LatLng[]) => void;
-  
-  /**
-   * Camadas visíveis no mapa
-   */
-  camadasVisiveis?: {
-    caixas: boolean;
-    rotas: boolean;
-    fusoes: boolean;
-  };
-  
-  /**
-   * Filtros aplicados ao mapa
-   */
-  filtros?: {
-    tipoCaixa?: string;
-    tipoCabo?: string;
-    cidade?: string;
-  };
 }
 
 /**
  * Componente do Google Maps para visualização e gerenciamento da infraestrutura de fibra óptica
  */
-// Dentro do componente, após o carregamento da API
+// Componente do Google Maps para visualização e gerenciamento da infraestrutura de fibra óptica
 const GoogleMapsComponent = ({
   apiKey,
   onMapLoad,
-  onRotaDesenhada,
-  camadasVisiveis = { caixas: true, rotas: true, fusoes: true },
-  filtros = {}
+  onRotaDesenhada
 }: GoogleMapsComponentProps) => {
   // Referência para o mapa
   const mapRef = useRef<google.maps.Map | null>(null);
-  
+
   // Estado para armazenar as rotas desenhadas
   const [rotas, setRotas] = useState<google.maps.Polyline[]>([]);
-  
+
   // Estado para armazenar os marcadores (CTOs e CEOs)
   const [marcadores, setMarcadores] = useState<google.maps.Marker[]>([]);
-  
-  // Estado para o tipo de cabo selecionado
-  const [tipoCaboSelecionado, setTipoCaboSelecionado] = useState<string>('12');
-  
+
+  // Estado para controlar o modo de desenho
+  const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>(null);
+
+  // Obtém o estado do mapa do hook useMapa
+  const {
+    modoEdicao,
+    tipoCaboSelecionado,
+    camadasVisiveis,
+    filtros,
+    adicionarRota,
+    adicionarCaixa
+  } = useMapa();
+
   // Bibliotecas necessárias
   const libraries = useState<Libraries>(['drawing', 'geometry']);
 
@@ -143,7 +134,7 @@ const GoogleMapsComponent = ({
   }, [onMapLoad]);
 
   /**
-   * Callback para quando o desenho de uma rota é completado
+   * Callback para quando o desenho de uma rota é completada
    */
   const handlePolylineComplete = useCallback((polyline: google.maps.Polyline) => {
     // Aplica a cor baseada no tipo de cabo selecionado
@@ -152,31 +143,40 @@ const GoogleMapsComponent = ({
       editable: true,
       draggable: true
     });
-    
+
     // Adiciona a nova rota ao estado
     setRotas(prev => [...prev, polyline]);
-    
-    // Notifica sobre a nova rota
-    toast.success('Rota desenhada com sucesso!');
-    
+
+    // Adiciona a rota ao estado global do mapa
+    const path = polyline.getPath().getArray();
+    const pathArray = path.map(point => ({
+      lat: point.lat(),
+      lng: point.lng()
+    }));
+
+    adicionarRota({
+      nome: `Rota ${new Date().toLocaleTimeString()}`,
+      tipoCabo: tipoCaboSelecionado,
+      path: pathArray
+    });
+
     // Chama o callback se existir
     if (onRotaDesenhada) {
-      const path = polyline.getPath().getArray();
       onRotaDesenhada(path);
     }
-  }, [tipoCaboSelecionado, onRotaDesenhada]);
+  }, [tipoCaboSelecionado, onRotaDesenhada, adicionarRota]);
 
   /**
    * Adiciona um marcador (CTO ou CEO) no mapa
    */
   const adicionarMarcador = useCallback((posicao: google.maps.LatLng, tipo: 'CTO' | 'CEO') => {
     if (!mapRef.current) return;
-    
+
     const icone = {
       url: tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg',
       scaledSize: new google.maps.Size(32, 32)
     };
-    
+
     const novoMarcador = new google.maps.Marker({
       position: posicao,
       map: mapRef.current,
@@ -184,10 +184,19 @@ const GoogleMapsComponent = ({
       draggable: true,
       title: `${tipo} - Clique para editar`
     });
-    
+
     setMarcadores(prev => [...prev, novoMarcador]);
-    toast.success(`${tipo} adicionado com sucesso!`);
-  }, []);
+
+    // Adiciona a caixa ao estado global do mapa
+    adicionarCaixa({
+      tipo,
+      nome: `${tipo} ${new Date().toLocaleTimeString()}`,
+      posicao: {
+        lat: posicao.lat(),
+        lng: posicao.lng()
+      }
+    });
+  }, [adicionarCaixa]);
 
   /**
    * Efeito para atualizar a visibilidade das camadas
@@ -197,15 +206,35 @@ const GoogleMapsComponent = ({
     rotas.forEach(rota => {
       rota.setVisible(camadasVisiveis.rotas);
     });
-    
+
     // Atualiza a visibilidade dos marcadores
     marcadores.forEach(marcador => {
       marcador.setVisible(
-        camadasVisiveis.caixas && 
+        camadasVisiveis.caixas &&
         (!filtros.tipoCaixa || (marcador.getTitle()?.includes(filtros.tipoCaixa || '') ?? false))
       );
     });
   }, [camadasVisiveis, filtros, rotas, marcadores]);
+
+  // Função para lidar com cliques no mapa para adicionar CTO ou CEO
+  const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
+    if (!event.latLng || !mapRef.current) return;
+
+    if (modoEdicao === 'cto') {
+      adicionarMarcador(event.latLng, 'CTO');
+    } else if (modoEdicao === 'ceo') {
+      adicionarMarcador(event.latLng, 'CEO');
+    }
+  }, [modoEdicao, adicionarMarcador]);
+  
+  // Efeito para controlar a visibilidade do DrawingManager baseado no modo de edição
+  useEffect(() => {
+    if (modoEdicao === 'rota') {
+      setDrawingMode(google.maps.drawing.OverlayType.POLYLINE);
+    } else {
+      setDrawingMode(null);
+    }
+  }, [modoEdicao]);
 
   // Renderiza mensagem de erro se houver problema ao carregar a API
   if (loadError) {
@@ -235,22 +264,25 @@ const GoogleMapsComponent = ({
       zoom={13}
       options={mapOptions}
       onLoad={handleMapLoad}
+      onClick={handleMapClick}
     >
       {/* Gerenciador de desenho para rotas */}
       {isLoaded && (
         <DrawingManager
           options={{
-            ...drawingManagerOptions,
-            drawingControlOptions: {
-              ...drawingManagerOptions.drawingControlOptions,
-              position: google.maps.ControlPosition.TOP_CENTER,
-              drawingModes: [google.maps.drawing.OverlayType.POLYLINE]
+            drawingMode: drawingMode,
+            drawingControl: false, // Desabilita os controles nativos, usaremos nosso próprio painel
+            polylineOptions: {
+              strokeColor: tiposCabos[tipoCaboSelecionado as keyof typeof tiposCabos] || '#FF0000',
+              strokeWeight: 3,
+              editable: true,
+              draggable: true
             }
           }}
           onPolylineComplete={handlePolylineComplete}
         />
       )}
-      
+
       {/* Renderiza as rotas existentes */}
       {camadasVisiveis.rotas && rotas.map((rota, index) => {
         const path = rota.getPath().getArray();
@@ -261,9 +293,22 @@ const GoogleMapsComponent = ({
             options={{
               strokeColor: rota.get('strokeColor'),
               strokeWeight: rota.get('strokeWeight'),
-              editable: true,
-              draggable: true
+              editable: modoEdicao === 'editar',
+              draggable: modoEdicao === 'editar'
             }}
+          />
+        );
+      })}
+
+      {/* Renderiza os marcadores existentes */}
+      {camadasVisiveis.caixas && marcadores.map((marcador, index) => {
+        return (
+          <Marker
+            key={`marcador-${index}`}
+            position={marcador.getPosition() || { lat: 0, lng: 0 }}
+            icon={marcador.getIcon() as google.maps.Icon}
+            title={marcador.getTitle() || 'Titulo'}
+            draggable={modoEdicao === 'editar'}
           />
         );
       })}

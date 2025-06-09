@@ -66,26 +66,26 @@ export interface CamadasVisiveis {
 export const useMapa = () => {
   // Estado para as rotas de cabos
   const [rotas, setRotas] = useState<Rota[]>([]);
-  
+
   // Estado para as caixas (CTOs e CEOs)
   const [caixas, setCaixas] = useState<Caixa[]>([]);
-  
+
   // Estado para os pontos de fusão
   const [pontosFusao, setPontosFusao] = useState<PontoFusao[]>([]);
-  
+
   // Estado para os filtros aplicados ao mapa
   const [filtros, setFiltros] = useState<FiltrosMapa>({});
-  
+
   // Estado para as camadas visíveis no mapa
   const [camadasVisiveis, setCamadasVisiveis] = useState<CamadasVisiveis>({
     caixas: true,
     rotas: true,
     fusoes: true
   });
-  
+
   // Estado para o modo de edição atual
-  const [modoEdicao, setModoEdicao] = useState<'rota' | 'cto' | 'ceo' | 'fusao' | null>(null);
-  
+  const [modoEdicao, setModoEdicao] = useState<'rota' | 'cto' | 'ceo' | 'fusao' | 'editar' | 'cortar' | 'mesclar' | null>(null);
+
   // Estado para o tipo de cabo selecionado para desenho
   const [tipoCaboSelecionado, setTipoCaboSelecionado] = useState<'6' | '12' | '24' | '48' | '96'>('12');
 
@@ -97,7 +97,7 @@ export const useMapa = () => {
       ...rota,
       id: `rota-${Date.now()}`
     };
-    
+
     setRotas(prev => [...prev, novaRota]);
     toast.success('Rota adicionada com sucesso!');
     return novaRota;
@@ -111,7 +111,7 @@ export const useMapa = () => {
       ...caixa,
       id: `caixa-${Date.now()}`
     };
-    
+
     setCaixas(prev => [...prev, novaCaixa]);
     toast.success(`${caixa.tipo} adicionada com sucesso!`);
     return novaCaixa;
@@ -125,7 +125,7 @@ export const useMapa = () => {
       ...pontoFusao,
       id: `fusao-${Date.now()}`
     };
-    
+
     setPontosFusao(prev => [...prev, novoPontoFusao]);
     toast.success('Ponto de fusão adicionado com sucesso!');
     return novoPontoFusao;
@@ -150,30 +150,30 @@ export const useMapa = () => {
    */
   const calcularDistanciaRota = useCallback((path: { lat: number; lng: number }[]): number => {
     if (path.length < 2) return 0;
-    
+
     let distanciaTotal = 0;
-    
+
     for (let i = 0; i < path.length - 1; i++) {
       const p1 = path[i];
       const p2 = path[i + 1];
-      
+
       // Fórmula de Haversine para calcular distância entre dois pontos geográficos
       const R = 6371e3; // raio da Terra em metros
       const φ1 = p1.lat * Math.PI / 180;
       const φ2 = p2.lat * Math.PI / 180;
       const Δφ = (p2.lat - p1.lat) * Math.PI / 180;
       const Δλ = (p2.lng - p1.lng) * Math.PI / 180;
-      
-      const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-      
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distancia = R * c;
-      
+
       distanciaTotal += distancia;
     }
-    
+
     return Math.round(distanciaTotal);
   }, []);
 
@@ -182,17 +182,17 @@ export const useMapa = () => {
    */
   const buscarNoMapa = useCallback((texto: string) => {
     const textoBusca = texto.toLowerCase();
-    
-    const rotasEncontradas = rotas.filter(rota => 
+
+    const rotasEncontradas = rotas.filter(rota =>
       rota.nome.toLowerCase().includes(textoBusca) ||
       rota.observacoes?.toLowerCase().includes(textoBusca)
     );
-    
-    const caixasEncontradas = caixas.filter(caixa => 
+
+    const caixasEncontradas = caixas.filter(caixa =>
       caixa.nome.toLowerCase().includes(textoBusca) ||
       caixa.modelo?.toLowerCase().includes(textoBusca)
     );
-    
+
     return { rotas: rotasEncontradas, caixas: caixasEncontradas };
   }, [rotas, caixas]);
 
