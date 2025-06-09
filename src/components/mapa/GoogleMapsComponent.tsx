@@ -1,14 +1,25 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, DrawingManager, Polyline, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
 
 import useMapa from '@/hooks/useMapa';
 
 /**
+ * Interface para a biblioteca de marcadores do Google Maps
+ */
+declare global {
+  namespace google.maps {
+    interface MarkerLibrary {
+      AdvancedMarkerElement: typeof google.maps.marker.AdvancedMarkerElement;
+    }
+  }
+}
+
+/**
  * Tipos de bibliotecas do Google Maps necessárias para o componente
  */
-type Libraries = ("drawing" | "geometry" | "places" | "visualization")[];
+type Libraries = ("drawing" | "geometry" | "places" | "visualization" | "marker")[];
 
 /**
  * Configurações do mapa
@@ -35,6 +46,7 @@ const mapOptions = {
   streetViewControl: false,
   mapTypeControl: true,
   fullscreenControl: true,
+  mapId: 'advanced-markers-map', // ID necessário para AdvancedMarkerElement
 };
 
 /**
@@ -100,8 +112,17 @@ const GoogleMapsComponent = ({
   // Estado para armazenar as rotas desenhadas
   const [rotas, setRotas] = useState<google.maps.Polyline[]>([]);
 
+  // Interface para armazenar informações dos marcadores
+  interface MarcadorInfo {
+    position: google.maps.LatLng;
+    icon: string;
+    title: string;
+    tipo: 'CTO' | 'CEO';
+    draggable: boolean;
+  }
+
   // Estado para armazenar os marcadores (CTOs e CEOs)
-  const [marcadores, setMarcadores] = useState<google.maps.Marker[]>([]);
+  const [marcadores, setMarcadores] = useState<MarcadorInfo[]>([]);
 
   // Estado para controlar o modo de desenho
   const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>(null);
@@ -117,7 +138,7 @@ const GoogleMapsComponent = ({
   } = useMapa();
 
   // Bibliotecas necessárias
-  const libraries = useState<Libraries>(['drawing', 'geometry']);
+  const libraries = useState<Libraries>(['drawing', 'geometry', 'marker']);
 
   // Carrega a API do Google Maps
   const { isLoaded, loadError } = useJsApiLoader({
@@ -172,18 +193,15 @@ const GoogleMapsComponent = ({
   const adicionarMarcador = useCallback((posicao: google.maps.LatLng, tipo: 'CTO' | 'CEO') => {
     if (!mapRef.current) return;
 
-    const icone = {
-      url: tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg',
-      scaledSize: new google.maps.Size(32, 32)
-    };
+    const iconUrl = tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
 
-    const novoMarcador = new google.maps.Marker({
+    const novoMarcador: MarcadorInfo = {
       position: posicao,
-      map: mapRef.current,
-      icon: icone,
-      draggable: true,
-      title: `${tipo} - Clique para editar`
-    });
+      icon: iconUrl,
+      title: `${tipo} - Clique para editar`,
+      tipo: tipo,
+      draggable: true
+    };
 
     setMarcadores(prev => [...prev, novoMarcador]);
 
@@ -199,22 +217,24 @@ const GoogleMapsComponent = ({
   }, [adicionarCaixa]);
 
   /**
-   * Efeito para atualizar a visibilidade das camadas
+   * Efeito para atualizar a visibilidade das rotas
    */
   useEffect(() => {
     // Atualiza a visibilidade das rotas
     rotas.forEach(rota => {
       rota.setVisible(camadasVisiveis.rotas);
     });
+  }, [camadasVisiveis.rotas, rotas]);
 
-    // Atualiza a visibilidade dos marcadores
-    marcadores.forEach(marcador => {
-      marcador.setVisible(
-        camadasVisiveis.caixas &&
-        (!filtros.tipoCaixa || (marcador.getTitle()?.includes(filtros.tipoCaixa || '') ?? false))
-      );
-    });
-  }, [camadasVisiveis, filtros, rotas, marcadores]);
+  /**
+   * Efeito para filtrar os marcadores visíveis
+   */
+  const marcadoresFiltrados = useCallback(() => {
+    return marcadores.filter(marcador => 
+      camadasVisiveis.caixas &&
+      (!filtros.tipoCaixa || marcador.title.includes(filtros.tipoCaixa || ''))
+    );
+  }, [camadasVisiveis.caixas, filtros.tipoCaixa, marcadores]);
 
   // Função para lidar com cliques no mapa para adicionar CTO ou CEO
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -234,8 +254,65 @@ console.log(modoEdicao)
     } else {
       setDrawingMode(null);
     }
-    console.log(modoEdicao)
   }, [modoEdicao]);
+  
+  // Referência para armazenar os marcadores avançados criados
+  const advancedMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+
+  // Efeito para criar os AdvancedMarkerElement quando o mapa estiver carregado
+  useEffect(() => {
+    if (!isLoaded || !mapRef.current) return;
+    
+    // Função para limpar marcadores existentes
+    const limparMarcadores = async () => {
+      // Remove todos os marcadores avançados existentes
+      advancedMarkersRef.current.forEach(marker => {
+        marker.map = null;
+      });
+      advancedMarkersRef.current = [];
+      
+      // Obtém os marcadores visíveis
+      const marcadoresVisiveis = marcadoresFiltrados();
+      
+      // Importa a biblioteca de marcadores
+      try {
+        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+        
+        // Cria cada marcador
+        marcadoresVisiveis.forEach(marcador => {
+          // Cria o elemento para o ícone
+          const iconElement = document.createElement('img');
+          iconElement.src = marcador.icon;
+          iconElement.style.width = '32px';
+          iconElement.style.height = '32px';
+          
+          // Cria o marcador avançado diretamente no mapa
+          const advancedMarker = new AdvancedMarkerElement({
+            position: marcador.position,
+            map: mapRef.current,
+            title: marcador.title,
+            content: iconElement,
+            gmpDraggable: modoEdicao === 'editar'
+          });
+          
+          // Armazena o marcador na referência
+          advancedMarkersRef.current.push(advancedMarker);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar a biblioteca de marcadores:', error);
+      }
+    };
+    
+    limparMarcadores();
+    
+    // Limpa os marcadores quando o componente for desmontado
+    return () => {
+      advancedMarkersRef.current.forEach(marker => {
+        marker.map = null;
+      });
+      advancedMarkersRef.current = [];
+    };
+  }, [isLoaded, marcadoresFiltrados, modoEdicao]);
 
   // Renderiza mensagem de erro se houver problema ao carregar a API
   if (loadError) {
@@ -301,18 +378,7 @@ console.log(modoEdicao)
         );
       })}
 
-      {/* Renderiza os marcadores existentes */}
-      {camadasVisiveis.caixas && marcadores.map((marcador, index) => {
-        return (
-          <Marker
-            key={`marcador-${index}`}
-            position={marcador.getPosition() || { lat: 0, lng: 0 }}
-            icon={marcador.getIcon() as google.maps.Icon}
-            title={marcador.getTitle() || 'Titulo'}
-            draggable={modoEdicao === 'editar'}
-          />
-        );
-      })}
+      {/* Os marcadores avançados são criados e gerenciados diretamente no useEffect */}
     </GoogleMap>
   );
 };
