@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { MapProvider } from "@/context/MapContext";
 import { Toaster } from "react-hot-toast";
 
 // Configuração das fontes
@@ -42,8 +43,10 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            <Toaster position="top-right" />
-            {children}
+            <MapProvider>
+              <Toaster position="top-right" />
+              {children}
+            </MapProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

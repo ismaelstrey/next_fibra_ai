@@ -219,7 +219,7 @@ const GoogleMapsComponent = ({
   // Função para lidar com cliques no mapa para adicionar CTO ou CEO
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
     if (!event.latLng || !mapRef.current) return;
-
+console.log(modoEdicao)
     if (modoEdicao === 'cto') {
       adicionarMarcador(event.latLng, 'CTO');
     } else if (modoEdicao === 'ceo') {
@@ -234,6 +234,7 @@ const GoogleMapsComponent = ({
     } else {
       setDrawingMode(null);
     }
+    console.log(modoEdicao)
   }, [modoEdicao]);
 
   // Renderiza mensagem de erro se houver problema ao carregar a API

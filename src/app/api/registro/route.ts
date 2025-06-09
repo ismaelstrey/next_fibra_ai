@@ -41,6 +41,8 @@ export async function POST(req: NextRequest) {
     }
     
     const { nome, email, senha } = result.data;
+
+    console.log(result.data)
     
     // Verifica se o email já está em uso
     const usuarioExistente = await prisma.usuario.findUnique({
