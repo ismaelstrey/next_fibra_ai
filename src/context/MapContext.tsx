@@ -43,11 +43,14 @@ export interface PontoFusao {
   id: string;
   caixaId: string; // ID da caixa (CEO) onde está localizado
   bandeja?: number;
-  posicao: number;
+  fibraOrigem: number;
+  fibraDestino: number;
+  tuboOrigem?: string;
+  tuboDestino?: string;
+  status: string;
   cor?: string;
-  origem: string;
-  destino: string;
   observacoes?: string;
+  rotaOrigemId: string;
 }
 
 /**
@@ -137,9 +140,9 @@ const converterCaixaApiParaContexto = (caixaApi: CaixaAPI): Caixa => {
     nome: caixaApi.nome,
     modelo: caixaApi.modelo,
     capacidade: caixaApi.capacidade,
-    posicao: { 
-      lat: caixaApi.coordenadas.latitude, 
-      lng: caixaApi.coordenadas.longitude 
+    posicao: {
+      lat: caixaApi.coordenadas.latitude,
+      lng: caixaApi.coordenadas.longitude
     },
     rotaAssociada: caixaApi.rotaId,
     cidadeId: caixaApi.cidadeId,
@@ -155,11 +158,14 @@ const converterFusaoApiParaContexto = (fusaoApi: FusaoAPI): PontoFusao => {
     id: fusaoApi.id,
     caixaId: fusaoApi.caixaId,
     bandeja: fusaoApi.bandejaId ? parseInt(fusaoApi.bandejaId) : undefined,
-    posicao: fusaoApi.posicao,
+    fibraOrigem: fusaoApi.fibraOrigem,
+    fibraDestino: fusaoApi.fibraDestino,
+    tuboOrigem: fusaoApi.tuboOrigem,
+    tuboDestino: fusaoApi.tuboDestino,
+    status: fusaoApi.status,
     cor: fusaoApi.cor,
-    origem: fusaoApi.origem,
-    destino: fusaoApi.destino,
-    observacoes: fusaoApi.observacoes
+    observacoes: fusaoApi.observacoes,
+    rotaOrigemId: fusaoApi.rotaOrigemId
   };
 };
 
@@ -170,7 +176,7 @@ const converterFusaoApiParaContexto = (fusaoApi: FusaoAPI): PontoFusao => {
 export function MapProvider({ children }: { children: ReactNode }) {
   // Acesso à API
   const api = useApiService();
-  
+
   // Estado para as rotas de cabos
   const [rotas, setRotas] = useState<Rota[]>([]);
 
@@ -179,7 +185,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   // Estado para os pontos de fusão
   const [pontosFusao, setPontosFusao] = useState<PontoFusao[]>([]);
-  
+
   // Estado para as cidades
   const [cidades, setCidades] = useState<CidadeAPI[]>([]);
 
@@ -198,7 +204,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   // Estado para o tipo de cabo selecionado para desenho
   const [tipoCaboSelecionado, setTipoCaboSelecionado] = useState<'6' | '12' | '24' | '48' | '96'>('12');
-  
+
   // Estado para indicar carregamento
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -213,20 +219,20 @@ export function MapProvider({ children }: { children: ReactNode }) {
       if (cidadesResponse.data.cidades) {
         setCidades(cidadesResponse.data.cidades);
       }
-      
+
       // Carrega as rotas
-      const rotasResponse = await api.rotas.listar({ 
-        limite: 100, 
-        cidadeId: cidadeId || filtros.cidade 
+      const rotasResponse = await api.rotas.listar({
+        limite: 100,
+        cidadeId: cidadeId || filtros.cidade
       });
       if (rotasResponse.data.rotas) {
         const rotasConvertidas = rotasResponse.data.rotas.map(converterRotaApiParaContexto);
         setRotas(rotasConvertidas);
       }
-      
+
       // Carrega as caixas
-      const caixasResponse = await api.caixas.listar({ 
-        limite: 100, 
+      const caixasResponse = await api.caixas.listar({
+        limite: 100,
         cidadeId: cidadeId || filtros.cidade,
         tipo: filtros.tipoCaixa
       });
@@ -234,11 +240,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
         const caixasConvertidas = caixasResponse.data.caixas.map(converterCaixaApiParaContexto);
         setCaixas(caixasConvertidas);
       }
-      
+
       // Carrega as fusões
-      const fusoesResponse = await api.fusoes.listar({ 
-        limite: 500, 
-        cidadeId: cidadeId || filtros.cidade 
+      const fusoesResponse = await api.fusoes.listar({
+        limite: 500,
+        cidadeId: cidadeId || filtros.cidade
       });
       if (fusoesResponse.data.fusoes) {
         const fusoesConvertidas = fusoesResponse.data.fusoes.map(converterFusaoApiParaContexto);
@@ -278,7 +284,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
       // Envia para a API
       const response = await api.rotas.criar(rotaParaApi);
-      
+
       if (response.data.rota) {
         const novaRota = converterRotaApiParaContexto(response.data.rota);
         setRotas(prev => [...prev, novaRota]);
@@ -315,7 +321,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
       // Envia para a API
       const response = await api.caixas.criar(caixaParaApi);
-      
+
       if (response.data.caixa) {
         const novaCaixa = converterCaixaApiParaContexto(response.data.caixa);
         setCaixas(prev => [...prev, novaCaixa]);
@@ -337,18 +343,21 @@ export function MapProvider({ children }: { children: ReactNode }) {
     try {
       // Prepara os dados para a API
       const fusaoParaApi = {
-        posicao: pontoFusao.posicao,
+        fibraOrigem: pontoFusao.fibraOrigem,
+        fibraDestino: pontoFusao.fibraDestino,
+        tuboOrigem: pontoFusao.tuboOrigem,
+        tuboDestino: pontoFusao.tuboDestino,
+        status: pontoFusao.status,
         cor: pontoFusao.cor,
-        origem: pontoFusao.origem,
-        destino: pontoFusao.destino,
         observacoes: pontoFusao.observacoes,
+        rotaOrigemId: pontoFusao.rotaOrigemId,
         caixaId: pontoFusao.caixaId,
         bandejaId: pontoFusao.bandeja?.toString()
       };
 
       // Envia para a API
       const response = await api.fusoes.criar(fusaoParaApi);
-      
+
       if (response.data.fusao) {
         const novaFusao = converterFusaoApiParaContexto(response.data.fusao);
         setPontosFusao(prev => [...prev, novaFusao]);

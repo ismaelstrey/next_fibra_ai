@@ -6,13 +6,16 @@ import { z } from "zod";
  * Esquema para criação e atualização de fusão
  */
 export const fusaoSchema = z.object({
-  posicao: z.number().int().min(1),
+  fibraOrigem: z.number().int().min(1),
+  fibraDestino: z.number().int().min(1),
+  tuboOrigem: z.string().optional().nullable(),
+  tuboDestino: z.string().optional().nullable(),
+  status: z.string(),
   cor: z.string().optional(),
-  origem: z.string(),
-  destino: z.string(),
   observacoes: z.string().optional().nullable(),
   caixaId: z.string(),
   bandejaId: z.string().optional(),
+  rotaOrigemId: z.string(),
 });
 
 /**

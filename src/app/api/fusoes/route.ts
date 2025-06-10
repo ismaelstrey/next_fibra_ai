@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por origem ou destino
     if (busca) {
       where.OR = [
@@ -126,10 +126,12 @@ export async function GET(req: NextRequest) {
         where,
         select: {
           id: true,
-          posicao: true,
+          fibraOrigem: true,
+          fibraDestino: true,
+          tuboOrigem: true,
+          tuboDestino: true,
+          status: true,
           cor: true,
-          origem: true,
-          destino: true,
           observacoes: true,
           criadoEm: true,
           atualizadoEm: true,
@@ -159,7 +161,7 @@ export async function GET(req: NextRequest) {
         orderBy: [
           { caixa: { nome: "asc" } },
           { bandeja: { numero: "asc" } },
-          { posicao: "asc" },
+          { fibraOrigem: "asc" },
         ],
       }),
       prisma.fusao.count({ where }),
@@ -193,14 +195,14 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Verifica se é uma criação em lote ou individual
     const isLote = body.fusoes && Array.isArray(body.fusoes);
-    
+
     if (isLote) {
       // Valida os dados com o esquema Zod para lote
       const result = criarFusoesEmLoteSchema.safeParse(body);
-      
+
       // Se a validação falhar, retorna os erros
       if (!result.success) {
         return NextResponse.json(
@@ -208,9 +210,9 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       const { fusoes } = result.data;
-      
+
       // Verifica se todas as fusões são para a mesma caixa
       const caixaIds = new Set(fusoes.map(f => f.caixaId));
       if (caixaIds.size !== 1) {
@@ -219,13 +221,13 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       const caixaId = fusoes[0].caixaId;
-      
+
       // Verifica se o usuário tem acesso à caixa
       const acesso = await verificarAcessoCaixa(req, caixaId);
       if (acesso.erro) return acesso.erro;
-      
+
       // Verifica se a caixa é do tipo CEO
       if (acesso.caixa?.tipo !== "CEO") {
         return NextResponse.json(
@@ -233,13 +235,13 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       // Verifica se as bandejas existem e pertencem à caixa
       const bandejaIds = new Set(fusoes.filter(f => f.bandejaId).map(f => f.bandejaId));
       if (bandejaIds.size > 0) {
         const bandejas = await prisma.bandeja.findMany({
           where: {
-            id: { in: Array.from(bandejaIds) },
+            id: { in: Array.from(bandejaIds) || [] },
             caixaId,
           },
           select: {
@@ -252,14 +254,14 @@ export async function POST(req: NextRequest) {
             },
           },
         });
-        
+
         if (bandejas.length !== bandejaIds.size) {
           return NextResponse.json(
             { erro: "Uma ou mais bandejas não existem ou não pertencem à caixa especificada" },
             { status: 400 }
           );
         }
-        
+
         // Verifica se as bandejas têm capacidade disponível
         const fusoesPorBandeja = new Map();
         fusoes.forEach(f => {
@@ -267,7 +269,7 @@ export async function POST(req: NextRequest) {
             fusoesPorBandeja.set(f.bandejaId, (fusoesPorBandeja.get(f.bandejaId) || 0) + 1);
           }
         });
-        
+
         const bandejasLotadas = [];
         for (const bandeja of bandejas) {
           const novasFusoes = fusoesPorBandeja.get(bandeja.id) || 0;
@@ -281,23 +283,23 @@ export async function POST(req: NextRequest) {
             });
           }
         }
-        
+
         if (bandejasLotadas.length > 0) {
           return NextResponse.json(
-            { 
-              erro: "Uma ou mais bandejas não têm capacidade suficiente", 
-              detalhes: bandejasLotadas 
+            {
+              erro: "Uma ou mais bandejas não têm capacidade suficiente",
+              detalhes: bandejasLotadas
             },
             { status: 400 }
           );
         }
       }
-      
+
       // Cria as fusões no banco de dados
       const novasFusoes = await prisma.fusao.createMany({
         data: fusoes,
       });
-      
+
       // Registra a ação no log de auditoria
       if (acesso.token) {
         await registrarLog({
@@ -309,7 +311,7 @@ export async function POST(req: NextRequest) {
           detalhes: { quantidade: fusoes.length },
         });
       }
-      
+
       return NextResponse.json(
         { mensagem: `${novasFusoes.count} fusões criadas com sucesso` },
         { status: 201 }
@@ -317,7 +319,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Valida os dados com o esquema Zod para fusão individual
       const result = fusaoSchema.safeParse(body);
-      
+
       // Se a validação falhar, retorna os erros
       if (!result.success) {
         return NextResponse.json(
@@ -325,21 +327,24 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      
-      const { 
-        posicao, 
-        cor, 
-        origem, 
-        destino, 
-        observacoes, 
-        caixaId, 
-        bandejaId 
+
+      const {
+        fibraOrigem,
+        fibraDestino,
+        tuboOrigem,
+        tuboDestino,
+        status,
+        cor,
+        observacoes,
+        caixaId,
+        bandejaId,
+        rotaOrigemId
       } = result.data;
-      
+
       // Verifica se o usuário tem acesso à caixa
       const acesso = await verificarAcessoCaixa(req, caixaId);
       if (acesso.erro) return acesso.erro;
-      
+
       // Verifica se a caixa é do tipo CEO
       if (acesso.caixa?.tipo !== "CEO") {
         return NextResponse.json(
@@ -347,7 +352,7 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
-      
+
       // Se foi especificada uma bandeja, verifica se ela existe e pertence à caixa
       if (bandejaId) {
         const bandeja = await prisma.bandeja.findUnique({
@@ -362,49 +367,52 @@ export async function POST(req: NextRequest) {
             },
           },
         });
-        
+
         if (!bandeja) {
           return NextResponse.json(
             { erro: "Bandeja não encontrada" },
             { status: 404 }
           );
         }
-        
+
         if (bandeja.caixaId !== caixaId) {
           return NextResponse.json(
             { erro: "A bandeja não pertence à caixa especificada" },
             { status: 400 }
           );
         }
-        
+
         // Verifica se a bandeja tem capacidade disponível
         if (bandeja._count.fusoes >= bandeja.capacidade) {
           return NextResponse.json(
-            { 
-              erro: "A bandeja não tem capacidade disponível", 
-              detalhes: { 
-                capacidade: bandeja.capacidade, 
-                fusoesExistentes: bandeja._count.fusoes 
-              } 
+            {
+              erro: "A bandeja não tem capacidade disponível",
+              detalhes: {
+                capacidade: bandeja.capacidade,
+                fusoesExistentes: bandeja._count.fusoes
+              }
             },
             { status: 400 }
           );
         }
       }
-      
+
       // Cria a fusão no banco de dados
       const novaFusao = await prisma.fusao.create({
         data: {
-          posicao,
+          fibraOrigem,
+          fibraDestino,
+          tuboOrigem,
+          tuboDestino,
+          status,
           cor,
-          origem,
-          destino,
           observacoes,
           caixaId,
           bandejaId,
+          rotaOrigemId,
         },
       });
-      
+
       // Registra a ação no log de auditoria
       if (acesso.token) {
         await registrarLog({
@@ -416,7 +424,7 @@ export async function POST(req: NextRequest) {
           detalhes: { origem, destino, caixaId, bandejaId },
         });
       }
-      
+
       // Retorna os dados da fusão criada
       return NextResponse.json(
         { mensagem: "Fusão criada com sucesso", fusao: novaFusao },

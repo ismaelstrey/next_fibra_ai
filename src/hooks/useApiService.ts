@@ -84,13 +84,16 @@ export interface CaixaAPI {
 
 export interface FusaoAPI {
     id: string;
-    posicao: number;
+    fibraOrigem: number;
+    fibraDestino: number;
+    tuboOrigem?: string;
+    tuboDestino?: string;
+    status: string;
     cor?: string;
-    origem: string;
-    destino: string;
     observacoes?: string;
     caixaId: string;
     bandejaId?: string;
+    rotaOrigemId: string;
     criadoEm: string;
     atualizadoEm: string;
     caixa?: {
