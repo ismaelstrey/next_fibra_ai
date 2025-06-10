@@ -44,8 +44,7 @@ export default function RootLayout({
         <Toaster position="bottom-center"/>
         <ThemeProvider>
           <AuthProvider>
-            <MapProvider>
-         
+            <MapProvider>         
               {children}
             </MapProvider>
           </AuthProvider>
