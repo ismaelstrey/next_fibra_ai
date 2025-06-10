@@ -322,7 +322,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (acesso.erro) return acesso.erro;
 
     // Apenas o criador do relatório, engenheiros ou gerentes podem atualizar o relatório
-    if (!acesso.ehCriador && !(await verificarPermissao(acesso.token, ["Engenheiro", "Gerente"]))) {
+    if (!acesso.ehCriador && !(await verificarPermissao(req, ["Engenheiro", "Gerente"]))) {
       return NextResponse.json(
         { erro: "Você não tem permissão para atualizar este relatório" },
         { status: 403 }
@@ -343,12 +343,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       );
     }
 
-    const { 
-      titulo, 
-      descricao, 
-      tipo, 
-      dataInicio, 
-      dataFim, 
+    const {
+      titulo,
+      descricao,
+      tipo,
+      dataInicio,
+      dataFim,
       dados,
       cidadeId,
       caixaId,
@@ -360,10 +360,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     // Se estiver alterando entidades relacionadas, verifica se o usuário tem acesso
     if (cidadeId || caixaId || rotaId) {
       const acessoEntidade = await verificarAcessoEntidade(
-        req, 
-        cidadeId || acesso.relatorio?.cidadeId, 
-        caixaId || acesso.relatorio?.caixaId, 
-        rotaId || acesso.relatorio?.rotaId
+        req,
+        cidadeId || acesso.relatorio?.cidadeId || '',
+        caixaId || acesso.relatorio?.caixaId || '',
+        rotaId || acesso.relatorio?.rotaId || ''
       );
       if (acessoEntidade.erro) return acessoEntidade.erro;
     }

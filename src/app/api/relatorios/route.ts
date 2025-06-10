@@ -142,7 +142,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por título ou descrição
     if (busca) {
       where.OR = [
@@ -335,7 +335,7 @@ export async function POST(req: NextRequest) {
 
     // Verifica se o usuário tem permissão para criar relatórios
     // Apenas usuários com cargo de Engenheiro ou Gerente podem criar relatórios
-    if (!(await verificarPermissao(token, ["Engenheiro", "Gerente"]))) {
+    if (!(await verificarPermissao(req, ["Engenheiro", "Gerente"]))) {
       return NextResponse.json(
         { erro: "Você não tem permissão para criar relatórios" },
         { status: 403 }
@@ -344,10 +344,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = relatorioSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -355,13 +355,13 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    const { 
-      titulo, 
-      descricao, 
-      tipo, 
-      dataInicio, 
-      dataFim, 
+
+    const {
+      titulo,
+      descricao,
+      tipo,
+      dataInicio,
+      dataFim,
       dados,
       cidadeId,
       caixaId,
@@ -369,11 +369,11 @@ export async function POST(req: NextRequest) {
       manutencaoId,
       observacoes
     } = result.data;
-    
+
     // Verifica se o usuário tem acesso às entidades relacionadas
     const acesso = await verificarAcessoEntidade(req, cidadeId, caixaId, rotaId);
     if (acesso.erro) return acesso.erro;
-    
+
     // Verifica se a manutenção existe, se especificada
     if (manutencaoId) {
       const manutencaoExiste = await prisma.manutencao.findUnique({
@@ -387,7 +387,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     // Cria o relatório no banco de dados
     const novoRelatorio = await prisma.relatorio.create({
       data: {
@@ -405,7 +405,7 @@ export async function POST(req: NextRequest) {
         criadorId: acesso.token?.id as string,
       },
     });
-    
+
     // Registra a ação no log de auditoria
     if (acesso.token) {
       await registrarLog({
@@ -417,7 +417,7 @@ export async function POST(req: NextRequest) {
         detalhes: { titulo, tipo },
       });
     }
-    
+
     // Retorna os dados do relatório criado
     return NextResponse.json(
       { mensagem: "Relatório criado com sucesso", relatorio: novoRelatorio },

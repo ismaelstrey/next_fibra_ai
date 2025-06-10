@@ -22,12 +22,15 @@ model Usuario {
   atualizadoEm        DateTime  @updatedAt
   cidades             Cidade[]  // Cidades que o usuário tem acesso
   logs                Log[]     // Logs de atividades do usuário
+  atividades          Atividade[] // Registro de atividades do usuário
   comentarios         Comentario[]
   configuracoes       ConfiguracaoUsuario[] // Configurações específicas do usuário
   manutencaoes        Manutencao[]
   notificacoesCriadas Notificacao[] @relation(name: "notificacoesCriadas") // Notificações criadas pelo usuário
   notificacoesRecebidas Notificacao[] @relation(name: "notificacoesRecebidas") // Notificações recebidas pelo usuário
   notificacoesLidas   NotificacaoLida[] // Status de leitura de notificações
+  eventos             Evento[]  // Eventos associados ao usuário
+  relatorios          Relatorio[] // Relatórios criados pelo usuário
 }
 
 // Modelo de cidade para gerenciamento geográfico
@@ -42,6 +45,9 @@ model Cidade {
   rotas         Rota[]    // Rotas de cabos nesta cidade
   caixas        Caixa[]   // Caixas (CTO e CEO) nesta cidade
   notificacoes   Notificacao[] // Notificações relacionadas a esta cidade
+  manutencoes   Manutencao[] // Manutenções relacionadas a esta cidade
+  eventos       Evento[]  // Eventos relacionados a esta cidade
+  relatorios    Relatorio[] // Relatórios relacionados a esta cidade
 }
 
 // Modelo de rota de cabo de fibra óptica
@@ -50,6 +56,7 @@ model Rota {
   nome          String
   tipoCabo      String    // 6, 12, 24, 48, 96 vias
   fabricante    String?
+  status        String   @default("Ativo") // Ativo, Inativo, Em Manutenção
   distancia     Float?    // Distância em metros
   profundidade  Float?    // Profundidade em metros (se aplicável)
   tipoPassagem  String    // Posteado, Subterrâneo, Aéreo
@@ -66,6 +73,8 @@ model Rota {
   arquivos      Arquivo[]
   notificacoes   Notificacao[]
   manutencoes   Manutencao[]
+  eventos       Evento[]  // Eventos relacionados a esta rota
+  relatorios    Relatorio[] // Relatórios relacionados a esta rota
 }
 
 // Modelo de caixa (CTO - Caixa Terminal Óptica ou CEO - Caixa de Emenda Óptica)
@@ -77,6 +86,7 @@ model Caixa {
   capacidade    Int       // Número de portas ou bandejas
   coordenadas   Json      // Coordenadas geográficas {lat, lng}
   observacoes   String?
+  status        String @default("Ativo")   // Ativo, Inativo, Em Manutenção
   criadoEm      DateTime  @default(now())
   atualizadoEm  DateTime  @updatedAt
   cidadeId      String
@@ -90,6 +100,8 @@ model Caixa {
   arquivos      Arquivo[]
   manutencoes   Manutencao[]
   notificacoes   Notificacao[]
+  eventos       Evento[]  // Eventos relacionados a esta caixa
+  relatorios    Relatorio[] // Relatórios relacionados a esta caixa
 }
 
 // Modelo de porta para CTO
@@ -148,17 +160,35 @@ model Manutencao {
   tipo          String    // Preventiva, Corretiva, Emergencial
   descricao     String
   status        String    // Agendada, Em Andamento, Concluída, Cancelada
+  prioridade    String    // Baixa, Média, Alta, Crítica
   criadoEm      DateTime  @default(now())
   atualizadoEm  DateTime  @updatedAt
   dataManutencao DateTime?
+  cidadeId      String
+  cidade        Cidade    @relation(fields: [cidadeId], references: [id])
   rotaId        String
   rota          Rota      @relation(fields: [rotaId], references: [id])
   caixaId       String
   caixa         Caixa     @relation(fields: [caixaId], references: [id])
   usuarioId     String
   usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  responsavelId  String?
+  responsavel   Responsavel? @relation(fields: [responsavelId], references: [id])
+  eventoId      Evento[]
+  comentarios   Comentario[]
   arquivos      Arquivo[]
   notificacoes   Notificacao[]
+  relatorios    Relatorio[] // Relatórios relacionados a esta manutenção
+}
+model Responsavel {
+  id            String    @id @default(cuid())
+  nome          String
+  cargo         String
+  telefone      String?
+  email         String?
+  criadoEm      DateTime  @default(now())
+  manutencao Manutencao[]
+  evento         Evento[]
 }
 
 // Modelo de comentário
@@ -174,6 +204,12 @@ model Comentario {
   rota          Rota?     @relation(fields: [rotaId], references: [id])
   caixaId       String?
   caixa         Caixa?    @relation(fields: [caixaId], references: [id])
+  manutencaoId  String?
+  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id])
+  eventoId      String?
+  evento        Evento?   @relation(fields: [eventoId], references: [id])
+  relatorioId   String?
+  relatorio     Relatorio? @relation(fields: [relatorioId], references: [id])
 }
 
 // Modelo de arquivo (fotos, documentos, etc.)
@@ -189,6 +225,10 @@ model Arquivo {
   caixa         Caixa?    @relation(fields: [caixaId], references: [id])
   manutencaoId  String?
   manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id])
+  eventoId      String?
+  evento        Evento?   @relation(fields: [eventoId], references: [id])
+  relatorioId   String?
+  relatorio     Relatorio? @relation(fields: [relatorioId], references: [id])
 }
 
 // Modelo de log para auditoria
@@ -198,6 +238,18 @@ model Log {
   entidade      String    // Nome da entidade (Rota, Caixa, etc.)
   entidadeId    String    // ID da entidade
   detalhes      Json?     // Detalhes da ação
+  criadoEm      DateTime  @default(now())
+  usuarioId     String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+}
+
+// Modelo de atividade do usuário
+model Atividade {
+  id            String    @id @default(cuid())
+  tipo          String    // Tipo de atividade (login, logout, visualização, etc.)
+  entidade      String?   // Entidade relacionada à atividade (opcional)
+  entidadeId    String?   // ID da entidade relacionada (opcional)
+  detalhes      Json?     // Detalhes adicionais sobre a atividade
   criadoEm      DateTime  @default(now())
   usuarioId     String
   usuario       Usuario   @relation(fields: [usuarioId], references: [id])
@@ -254,6 +306,12 @@ model Notificacao {
   manutencaoId      String?   // Manutenção relacionada (opcional)
   manutencao        Manutencao? @relation(fields: [manutencaoId], references: [id])
   
+  eventoId          String?   // Evento relacionado (opcional)
+  evento            Evento?   @relation(fields: [eventoId], references: [id])
+
+  relatorioId       String?   // Relatório relacionado (opcional)
+  relatorio         Relatorio? @relation(fields: [relatorioId], references: [id])
+  
   // Criador da notificação
   criadorId         String
   criador           Usuario   @relation(name: "notificacoesCriadas", fields: [criadorId], references: [id])
@@ -286,3 +344,79 @@ model NotificacaoLida {
   // Chave composta para garantir unicidade por notificação e usuário
   @@unique([notificacaoId, usuarioId])
 }
+
+// Modelo de evento do sistema
+model Evento {
+  id            String    @id @default(cuid())
+  titulo        String
+  descricao     String?
+  tipo          String    // Tipo do evento (Manutenção, Instalação, Visita Técnica, etc)
+  status        String    // Status do evento (Agendado, Em Andamento, Concluído, Cancelado)
+  dataInicio    DateTime
+  dataFim       DateTime?
+  prioridade    String?   // Baixa, Média, Alta, Crítica
+ 
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  localizacao   String?
+  // Relações com entidades do sistema
+   responsavelId  String?
+  responsavel   Responsavel? @relation(fields: [responsavelId], references: [id])
+  manutencaoId  String?
+  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id])
+  cidadeId      String?
+  cidade        Cidade?   @relation(fields: [cidadeId], references: [id])
+  
+  rotaId        String?
+  rota          Rota?     @relation(fields: [rotaId], references: [id])
+  
+  caixaId       String?
+  caixa         Caixa?    @relation(fields: [caixaId], references: [id])
+  
+  usuarioId     String?
+  usuario       Usuario?  @relation(fields: [usuarioId], references: [id])
+  
+  // Outras relações possíveis
+  comentarios   Comentario[]
+  arquivos      Arquivo[]
+  notificacoes  Notificacao[]
+}
+
+// Modelo de relatório
+model Relatorio {
+  id            String    @id @default(cuid())
+  titulo        String
+  descricao     String
+  tipo          String    // manutencao, instalacao, desempenho, incidente, outro
+  dataInicio    DateTime
+  dataFim       DateTime
+  dados         Json?     // Dados específicos do relatório em formato JSON
+  observacoes   String?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  
+  // Relações com entidades do sistema
+  cidadeId      String?
+  cidade        Cidade?   @relation(fields: [cidadeId], references: [id])
+  
+  caixaId       String?
+  caixa         Caixa?    @relation(fields: [caixaId], references: [id])
+  
+  rotaId        String?
+  rota          Rota?     @relation(fields: [rotaId], references: [id])
+  
+  manutencaoId  String?
+  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id])
+  
+  // Criador do relatório
+  criadorId     String
+  criador       Usuario   @relation(fields: [criadorId], references: [id])
+  
+  // Outras relações
+  comentarios   Comentario[]
+  arquivos      Arquivo[]
+  notificacoes  Notificacao[]
+}
+
+
+

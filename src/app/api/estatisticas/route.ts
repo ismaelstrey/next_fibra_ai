@@ -212,21 +212,27 @@ async function obterEstatisticasManutencoes({
   const contagemPorStatus = await prisma.manutencao.groupBy({
     by: ["status"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por tipo
   const contagemPorTipo = await prisma.manutencao.groupBy({
     by: ["tipo"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por prioridade
   const contagemPorPrioridade = await prisma.manutencao.groupBy({
     by: ["prioridade"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Tempo médio de resolução (em dias)
@@ -234,17 +240,17 @@ async function obterEstatisticasManutencoes({
     SELECT AVG(EXTRACT(EPOCH FROM ("dataFechamento" - "dataAbertura")) / 86400) as "tempoMedio"
     FROM "Manutencao"
     WHERE "dataFechamento" IS NOT NULL
-    ${Object.keys(filtro).length > 0 ? prisma.$queryRaw`AND ${prisma.sql(JSON.stringify(filtro))}` : prisma.$queryRaw``}
+    ${Object.keys(filtro).length > 0 ? `AND ${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : ''}
   `;
 
   // Manutenções por período (dia, semana, mês, ano)
   let manutencoesAoLongo;
-  
+
   if (agruparPor === "dia") {
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE("criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE("criadoEm")
       ORDER BY data
     `;
@@ -252,7 +258,7 @@ async function obterEstatisticasManutencoes({
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('week', "criadoEm")
       ORDER BY data
     `;
@@ -260,7 +266,7 @@ async function obterEstatisticasManutencoes({
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('month', "criadoEm")
       ORDER BY data
     `;
@@ -268,7 +274,7 @@ async function obterEstatisticasManutencoes({
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('year', "criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('year', "criadoEm")
       ORDER BY data
     `;
@@ -324,21 +330,27 @@ async function obterEstatisticasCaixas({
   const contagemPorTipo = await prisma.caixa.groupBy({
     by: ["tipo"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por status
   const contagemPorStatus = await prisma.caixa.groupBy({
     by: ["status"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por cidade
   const contagemPorCidade = await prisma.caixa.groupBy({
     by: ["cidadeId"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Busca detalhes das cidades para incluir nomes
@@ -358,13 +370,15 @@ async function obterEstatisticasCaixas({
   const manutencoesPorCaixa = await prisma.manutencao.groupBy({
     by: ["caixaId"],
     where: {
-      caixaId: { not: null },
+      caixaId: { not: '' },
       ...(Object.keys(filtroData).length > 0 ? { criadoEm: filtroData } : {}),
     },
-    _count: true,
+    _count: {
+      _all: true
+    },
     orderBy: {
       _count: {
-        desc: true,
+        id: 'desc',
       },
     },
     take: 10,
@@ -445,21 +459,27 @@ async function obterEstatisticasRotas({
   const contagemPorTipoCabo = await prisma.rota.groupBy({
     by: ["tipoCabo"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por status
   const contagemPorStatus = await prisma.rota.groupBy({
     by: ["status"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem por cidade
   const contagemPorCidade = await prisma.rota.groupBy({
     by: ["cidadeId"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Busca detalhes das cidades para incluir nomes
@@ -479,13 +499,15 @@ async function obterEstatisticasRotas({
   const manutencoesPorRota = await prisma.manutencao.groupBy({
     by: ["rotaId"],
     where: {
-      rotaId: { not: null },
+      rotaId: { not: '' },
       ...(Object.keys(filtroData).length > 0 ? { criadoEm: filtroData } : {}),
     },
-    _count: true,
+    _count: {
+      _all: true
+    },
     orderBy: {
       _count: {
-        desc: true,
+        titulo: "desc"
       },
     },
     take: 10,
@@ -566,7 +588,9 @@ async function obterEstatisticasUsuarios({
   const contagemPorCargo = await prisma.usuario.groupBy({
     by: ["cargo"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Manutenções por usuário (top 10)
@@ -577,10 +601,12 @@ async function obterEstatisticasUsuarios({
       ...(Object.keys(filtroData).length > 0 ? { criadoEm: filtroData } : {}),
       ...(usuarioId ? { responsavelId: usuarioId } : {}),
     },
-    _count: true,
+    _count: {
+      _all: true
+    },
     orderBy: {
       _count: {
-        desc: true,
+        dataManutencao: "desc"
       },
     },
     take: usuarioId ? 1 : 10,
@@ -685,7 +711,9 @@ async function obterEstatisticasCidades({
   const contagemPorEstado = await prisma.cidade.groupBy({
     by: ["estado"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem de caixas por cidade
@@ -695,7 +723,9 @@ async function obterEstatisticasCidades({
       ...(typeof filtroCidades === "string" ? { cidadeId: filtroCidades } : {}),
       ...(filtroCidades.in && filtroCidades.in.length > 0 ? { cidadeId: filtroCidades } : {}),
     },
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem de rotas por cidade
@@ -705,7 +735,9 @@ async function obterEstatisticasCidades({
       ...(typeof filtroCidades === "string" ? { cidadeId: filtroCidades } : {}),
       ...(filtroCidades.in && filtroCidades.in.length > 0 ? { cidadeId: filtroCidades } : {}),
     },
-    _count: true,
+    _count: {
+      _all: true
+    },
   });
 
   // Contagem de manutenções por cidade
@@ -792,24 +824,24 @@ async function obterEstatisticasEventos({
   const contagemPorTipo = await prisma.evento.groupBy({
     by: ["tipo"],
     where: filtro,
-    _count: true,
+    _count: { _all: true },
   });
 
   // Contagem por status
   const contagemPorStatus = await prisma.evento.groupBy({
     by: ["status"],
     where: filtro,
-    _count: true,
+    _count: { _all: true },
   });
 
   // Eventos por período (dia, semana, mês, ano)
   let eventosAoLongo;
-  
+
   if (agruparPor === "dia") {
     eventosAoLongo = await prisma.$queryRaw`
       SELECT DATE("dataInicio") as data, COUNT(*) as total
       FROM "Evento"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE("dataInicio")
       ORDER BY data
     `;
@@ -817,7 +849,7 @@ async function obterEstatisticasEventos({
     eventosAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "dataInicio") as data, COUNT(*) as total
       FROM "Evento"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('week', "dataInicio")
       ORDER BY data
     `;
@@ -825,7 +857,7 @@ async function obterEstatisticasEventos({
     eventosAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "dataInicio") as data, COUNT(*) as total
       FROM "Evento"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('month', "dataInicio")
       ORDER BY data
     `;
@@ -833,7 +865,7 @@ async function obterEstatisticasEventos({
     eventosAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('year', "dataInicio") as data, COUNT(*) as total
       FROM "Evento"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('year', "dataInicio")
       ORDER BY data
     `;
@@ -892,12 +924,12 @@ async function obterEstatisticasAtividade({
 
   // Atividades por período (dia, semana, mês, ano)
   let atividadesAoLongo;
-  
+
   if (agruparPor === "dia") {
     atividadesAoLongo = await prisma.$queryRaw`
       SELECT DATE("criadoEm") as data, COUNT(*) as total
       FROM "Atividade"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE("criadoEm")
       ORDER BY data
     `;
@@ -905,7 +937,7 @@ async function obterEstatisticasAtividade({
     atividadesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "criadoEm") as data, COUNT(*) as total
       FROM "Atividade"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('week', "criadoEm")
       ORDER BY data
     `;
@@ -913,7 +945,7 @@ async function obterEstatisticasAtividade({
     atividadesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "criadoEm") as data, COUNT(*) as total
       FROM "Atividade"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('month', "criadoEm")
       ORDER BY data
     `;
@@ -921,7 +953,7 @@ async function obterEstatisticasAtividade({
     atividadesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('year', "criadoEm") as data, COUNT(*) as total
       FROM "Atividade"
-      WHERE ${Object.keys(filtro).length > 0 ? prisma.sql(JSON.stringify(filtro)) : prisma.sql(`1=1`)}
+      WHERE ${Object.keys(filtro).length > 0 ? `${Object.entries(filtro).map(([key, value]) => `"${key}" = ${typeof value === 'string' ? `'${value}'` : value}`).join(' AND ')}` : `1=1`}
       GROUP BY DATE_TRUNC('year', "criadoEm")
       ORDER BY data
     `;
@@ -931,10 +963,12 @@ async function obterEstatisticasAtividade({
   const atividadesPorUsuario = await prisma.atividade.groupBy({
     by: ["usuarioId"],
     where: filtro,
-    _count: true,
+    _count: {
+      _all: true
+    },
     orderBy: {
       _count: {
-        desc: true,
+        criadoEm: "desc"
       },
     },
     take: 10,

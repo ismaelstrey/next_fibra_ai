@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por título ou descrição
     if (busca) {
       where.OR = [
@@ -273,13 +273,13 @@ export async function GET(req: NextRequest) {
           caixaId: true,
           rotaId: true,
           manutencaoId: true,
-          criadorId: true,
+          usuarioId: true,
           _count: {
             select: {
-              participantes: true,
+              comentarios: true
             },
           },
-          criador: {
+          usuario: {
             select: {
               id: true,
               nome: true,
@@ -317,15 +317,7 @@ export async function GET(req: NextRequest) {
               tipo: true,
             },
           } : false,
-          participantes: participanteId ? {
-            select: {
-              id: true,
-              nome: true,
-              email: true,
-              cargo: true,
-              imagem: true,
-            },
-          } : false,
+
         },
         skip,
         take: limite,
@@ -367,10 +359,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = eventoSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -378,14 +370,14 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    const { 
-      titulo, 
-      descricao, 
-      dataInicio, 
-      dataFim, 
-      tipo, 
-      status, 
+
+    const {
+      titulo,
+      descricao,
+      dataInicio,
+      dataFim,
+      tipo,
+      status,
       localizacao,
       cidadeId,
       caixaId,
@@ -393,11 +385,11 @@ export async function POST(req: NextRequest) {
       manutencaoId,
       participantes
     } = result.data;
-    
+
     // Verifica se o usuário tem acesso às entidades relacionadas
     const acesso = await verificarAcessoEntidade(req, cidadeId, caixaId, rotaId);
     if (acesso.erro) return acesso.erro;
-    
+
     // Verifica se a manutenção existe, se especificada
     if (manutencaoId) {
       const manutencaoExiste = await prisma.manutencao.findUnique({
@@ -411,7 +403,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     // Verifica se os participantes existem
     if (participantes && participantes.length > 0) {
       const usuariosExistentes = await prisma.usuario.count({
@@ -429,7 +421,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     // Cria o evento no banco de dados
     const novoEvento = await prisma.evento.create({
       data: {
@@ -444,13 +436,11 @@ export async function POST(req: NextRequest) {
         caixaId,
         rotaId,
         manutencaoId,
-        criadorId: acesso.token?.id as string,
-        participantes: participantes ? {
-          connect: participantes.map(id => ({ id })),
-        } : undefined,
+        usuarioId: acesso.token?.id as string,
+
       },
     });
-    
+
     // Registra a ação no log de auditoria
     if (acesso.token) {
       await registrarLog({
@@ -462,7 +452,7 @@ export async function POST(req: NextRequest) {
         detalhes: { titulo, tipo, status },
       });
     }
-    
+
     // Retorna os dados do evento criado
     return NextResponse.json(
       { mensagem: "Evento criado com sucesso", evento: novoEvento },
