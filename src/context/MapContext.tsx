@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
+import { useApiService, RotaAPI, CaixaAPI, FusaoAPI, CidadeAPI } from '../hooks/useApiService';
 
 /**
  * Interface para uma rota de cabo de fibra óptica
@@ -16,6 +17,8 @@ export interface Rota {
   observacoes?: string;
   fabricante?: string;
   distancia?: number; // em metros
+  cidadeId: string;
+  cor?: string;
 }
 
 /**
@@ -29,6 +32,8 @@ export interface Caixa {
   capacidade?: number; // número de portas para CTO ou bandejas para CEO
   posicao: { lat: number; lng: number };
   rotaAssociada?: string; // ID da rota associada
+  cidadeId: string;
+  observacoes?: string;
 }
 
 /**
@@ -37,9 +42,12 @@ export interface Caixa {
 export interface PontoFusao {
   id: string;
   caixaId: string; // ID da caixa (CEO) onde está localizado
-  bandeja: number;
-  tubo: number;
-  fibras: { origem: number; destino: number; status: 'ativo' | 'reserva' | 'programado' }[];
+  bandeja?: number;
+  posicao: number;
+  cor?: string;
+  origem: string;
+  destino: string;
+  observacoes?: string;
 }
 
 /**
@@ -67,19 +75,22 @@ interface MapContextType {
   rotas: Rota[];
   caixas: Caixa[];
   pontosFusao: PontoFusao[];
+  cidades: CidadeAPI[];
   filtros: FiltrosMapa;
   camadasVisiveis: CamadasVisiveis;
   modoEdicao: 'rota' | 'cto' | 'ceo' | 'fusao' | 'editar' | 'cortar' | 'mesclar' | null;
   tipoCaboSelecionado: '6' | '12' | '24' | '48' | '96';
-  adicionarRota: (rota: Omit<Rota, 'id'>) => Rota;
-  adicionarCaixa: (caixa: Omit<Caixa, 'id'>) => Caixa;
-  adicionarPontoFusao: (pontoFusao: Omit<PontoFusao, 'id'>) => PontoFusao;
+  isLoading: boolean;
+  adicionarRota: (rota: Omit<Rota, 'id'>) => Promise<Rota | null>;
+  adicionarCaixa: (caixa: Omit<Caixa, 'id'>) => Promise<Caixa | null>;
+  adicionarPontoFusao: (pontoFusao: Omit<PontoFusao, 'id'>) => Promise<PontoFusao | null>;
   atualizarFiltros: (novosFiltros: FiltrosMapa) => void;
   atualizarCamadasVisiveis: (novasCamadas: Partial<CamadasVisiveis>) => void;
   setModoEdicao: (modo: 'rota' | 'cto' | 'ceo' | 'fusao' | 'editar' | 'cortar' | 'mesclar' | null) => void;
   setTipoCaboSelecionado: (tipo: '6' | '12' | '24' | '48' | '96') => void;
   calcularDistanciaRota: (path: { lat: number; lng: number }[]) => number;
   buscarNoMapa: (texto: string) => { rotas: Rota[]; caixas: Caixa[] };
+  carregarDados: (cidadeId?: string) => Promise<void>;
 }
 
 // Criação do contexto com valor inicial undefined
@@ -98,10 +109,68 @@ export const useMapContext = (): MapContextType => {
 };
 
 /**
+ * Função para converter uma rota da API para o formato do contexto
+ */
+const converterRotaApiParaContexto = (rotaApi: RotaAPI): Rota => {
+  return {
+    id: rotaApi.id,
+    nome: rotaApi.nome,
+    tipoCabo: rotaApi.tipoCabo as '6' | '12' | '24' | '48' | '96',
+    path: rotaApi.coordenadas,
+    profundidade: rotaApi.profundidade?.toString(),
+    tipoPassagem: rotaApi.tipoPassagem.toLowerCase() as 'posteado' | 'subterraneo' | 'aereo',
+    observacoes: rotaApi.observacoes,
+    fabricante: rotaApi.fabricante,
+    distancia: rotaApi.distancia,
+    cidadeId: rotaApi.cidadeId,
+    cor: rotaApi.cor
+  };
+};
+
+/**
+ * Função para converter uma caixa da API para o formato do contexto
+ */
+const converterCaixaApiParaContexto = (caixaApi: CaixaAPI): Caixa => {
+  return {
+    id: caixaApi.id,
+    tipo: caixaApi.tipo,
+    nome: caixaApi.nome,
+    modelo: caixaApi.modelo,
+    capacidade: caixaApi.capacidade,
+    posicao: { 
+      lat: caixaApi.coordenadas.latitude, 
+      lng: caixaApi.coordenadas.longitude 
+    },
+    rotaAssociada: caixaApi.rotaId,
+    cidadeId: caixaApi.cidadeId,
+    observacoes: caixaApi.observacoes
+  };
+};
+
+/**
+ * Função para converter uma fusão da API para o formato do contexto
+ */
+const converterFusaoApiParaContexto = (fusaoApi: FusaoAPI): PontoFusao => {
+  return {
+    id: fusaoApi.id,
+    caixaId: fusaoApi.caixaId,
+    bandeja: fusaoApi.bandejaId ? parseInt(fusaoApi.bandejaId) : undefined,
+    posicao: fusaoApi.posicao,
+    cor: fusaoApi.cor,
+    origem: fusaoApi.origem,
+    destino: fusaoApi.destino,
+    observacoes: fusaoApi.observacoes
+  };
+};
+
+/**
  * Provedor de contexto do mapa para a aplicação
  * Gerencia o estado global do mapa e suas funcionalidades
  */
 export function MapProvider({ children }: { children: ReactNode }) {
+  // Acesso à API
+  const api = useApiService();
+  
   // Estado para as rotas de cabos
   const [rotas, setRotas] = useState<Rota[]>([]);
 
@@ -110,6 +179,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   // Estado para os pontos de fusão
   const [pontosFusao, setPontosFusao] = useState<PontoFusao[]>([]);
+  
+  // Estado para as cidades
+  const [cidades, setCidades] = useState<CidadeAPI[]>([]);
 
   // Estado para os filtros aplicados ao mapa
   const [filtros, setFiltros] = useState<FiltrosMapa>({});
@@ -126,54 +198,181 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   // Estado para o tipo de cabo selecionado para desenho
   const [tipoCaboSelecionado, setTipoCaboSelecionado] = useState<'6' | '12' | '24' | '48' | '96'>('12');
+  
+  // Estado para indicar carregamento
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   /**
-   * Adiciona uma nova rota ao estado
+   * Carrega os dados da API
    */
-  const adicionarRota = (rota: Omit<Rota, 'id'>) => {
-    const novaRota: Rota = {
-      ...rota,
-      id: `rota-${Date.now()}`
-    };
+  const carregarDados = useCallback(async (cidadeId?: string) => {
+    setIsLoading(true);
+    try {
+      // Carrega as cidades
+      const cidadesResponse = await api.cidades.listar({ limite: 100 });
+      if (cidadesResponse.data.cidades) {
+        setCidades(cidadesResponse.data.cidades);
+      }
+      
+      // Carrega as rotas
+      const rotasResponse = await api.rotas.listar({ 
+        limite: 100, 
+        cidadeId: cidadeId || filtros.cidade 
+      });
+      if (rotasResponse.data.rotas) {
+        const rotasConvertidas = rotasResponse.data.rotas.map(converterRotaApiParaContexto);
+        setRotas(rotasConvertidas);
+      }
+      
+      // Carrega as caixas
+      const caixasResponse = await api.caixas.listar({ 
+        limite: 100, 
+        cidadeId: cidadeId || filtros.cidade,
+        tipo: filtros.tipoCaixa
+      });
+      if (caixasResponse.data.caixas) {
+        const caixasConvertidas = caixasResponse.data.caixas.map(converterCaixaApiParaContexto);
+        setCaixas(caixasConvertidas);
+      }
+      
+      // Carrega as fusões
+      const fusoesResponse = await api.fusoes.listar({ 
+        limite: 500, 
+        cidadeId: cidadeId || filtros.cidade 
+      });
+      if (fusoesResponse.data.fusoes) {
+        const fusoesConvertidas = fusoesResponse.data.fusoes.map(converterFusaoApiParaContexto);
+        setPontosFusao(fusoesConvertidas);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar dados do mapa');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [api, filtros.cidade, filtros.tipoCaixa]);
 
-    setRotas(prev => [...prev, novaRota]);
-    toast.success('Rota adicionada com sucesso!');
-    return novaRota;
+  // Carrega os dados iniciais
+  useEffect(() => {
+    carregarDados();
+  }, [carregarDados]);
+
+  /**
+   * Adiciona uma nova rota ao estado e na API
+   */
+  const adicionarRota = async (rota: Omit<Rota, 'id'>): Promise<Rota | null> => {
+    try {
+      // Prepara os dados para a API
+      const rotaParaApi = {
+        nome: rota.nome,
+        tipoCabo: rota.tipoCabo,
+        fabricante: rota.fabricante,
+        distancia: rota.distancia || calcularDistanciaRota(rota.path),
+        profundidade: rota.profundidade ? parseFloat(rota.profundidade) : undefined,
+        tipoPassagem: rota.tipoPassagem ? rota.tipoPassagem.charAt(0).toUpperCase() + rota.tipoPassagem.slice(1) : 'Posteado',
+        coordenadas: rota.path,
+        cor: rota.cor,
+        observacoes: rota.observacoes,
+        cidadeId: rota.cidadeId
+      };
+
+      // Envia para a API
+      const response = await api.rotas.criar(rotaParaApi);
+      
+      if (response.data.rota) {
+        const novaRota = converterRotaApiParaContexto(response.data.rota);
+        setRotas(prev => [...prev, novaRota]);
+        toast.success('Rota adicionada com sucesso!');
+        return novaRota;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao adicionar rota:', error);
+      toast.error('Erro ao adicionar rota');
+      return null;
+    }
   };
 
   /**
-   * Adiciona uma nova caixa ao estado
+   * Adiciona uma nova caixa ao estado e na API
    */
-  const adicionarCaixa = (caixa: Omit<Caixa, 'id'>) => {
-    const novaCaixa: Caixa = {
-      ...caixa,
-      id: `caixa-${Date.now()}`
-    };
+  const adicionarCaixa = async (caixa: Omit<Caixa, 'id'>): Promise<Caixa | null> => {
+    try {
+      // Prepara os dados para a API
+      const caixaParaApi = {
+        nome: caixa.nome,
+        tipo: caixa.tipo,
+        modelo: caixa.modelo || '',
+        capacidade: caixa.capacidade || 0,
+        coordenadas: {
+          latitude: caixa.posicao.lat,
+          longitude: caixa.posicao.lng
+        },
+        observacoes: caixa.observacoes,
+        cidadeId: caixa.cidadeId,
+        rotaId: caixa.rotaAssociada || ''
+      };
 
-    setCaixas(prev => [...prev, novaCaixa]);
-    toast.success(`${caixa.tipo} adicionada com sucesso!`);
-    return novaCaixa;
+      // Envia para a API
+      const response = await api.caixas.criar(caixaParaApi);
+      
+      if (response.data.caixa) {
+        const novaCaixa = converterCaixaApiParaContexto(response.data.caixa);
+        setCaixas(prev => [...prev, novaCaixa]);
+        toast.success(`${caixa.tipo} adicionada com sucesso!`);
+        return novaCaixa;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao adicionar caixa:', error);
+      toast.error('Erro ao adicionar caixa');
+      return null;
+    }
   };
 
   /**
-   * Adiciona um novo ponto de fusão ao estado
+   * Adiciona um novo ponto de fusão ao estado e na API
    */
-  const adicionarPontoFusao = (pontoFusao: Omit<PontoFusao, 'id'>) => {
-    const novoPontoFusao: PontoFusao = {
-      ...pontoFusao,
-      id: `fusao-${Date.now()}`
-    };
+  const adicionarPontoFusao = async (pontoFusao: Omit<PontoFusao, 'id'>): Promise<PontoFusao | null> => {
+    try {
+      // Prepara os dados para a API
+      const fusaoParaApi = {
+        posicao: pontoFusao.posicao,
+        cor: pontoFusao.cor,
+        origem: pontoFusao.origem,
+        destino: pontoFusao.destino,
+        observacoes: pontoFusao.observacoes,
+        caixaId: pontoFusao.caixaId,
+        bandejaId: pontoFusao.bandeja?.toString()
+      };
 
-    setPontosFusao(prev => [...prev, novoPontoFusao]);
-    toast.success('Ponto de fusão adicionado com sucesso!');
-    return novoPontoFusao;
+      // Envia para a API
+      const response = await api.fusoes.criar(fusaoParaApi);
+      
+      if (response.data.fusao) {
+        const novaFusao = converterFusaoApiParaContexto(response.data.fusao);
+        setPontosFusao(prev => [...prev, novaFusao]);
+        toast.success('Ponto de fusão adicionado com sucesso!');
+        return novaFusao;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao adicionar ponto de fusão:', error);
+      toast.error('Erro ao adicionar ponto de fusão');
+      return null;
+    }
   };
 
   /**
-   * Atualiza os filtros do mapa
+   * Atualiza os filtros do mapa e recarrega os dados
    */
   const atualizarFiltros = (novosFiltros: FiltrosMapa) => {
-    setFiltros(prev => ({ ...prev, ...novosFiltros }));
+    setFiltros(prev => {
+      const filtrosAtualizados = { ...prev, ...novosFiltros };
+      // Recarrega os dados com os novos filtros
+      carregarDados(filtrosAtualizados.cidade);
+      return filtrosAtualizados;
+    });
   };
 
   /**
@@ -239,10 +438,12 @@ export function MapProvider({ children }: { children: ReactNode }) {
     rotas,
     caixas,
     pontosFusao,
+    cidades,
     filtros,
     camadasVisiveis,
     modoEdicao,
     tipoCaboSelecionado,
+    isLoading,
     adicionarRota,
     adicionarCaixa,
     adicionarPontoFusao,
@@ -251,7 +452,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
     setModoEdicao,
     setTipoCaboSelecionado,
     calcularDistanciaRota,
-    buscarNoMapa
+    buscarNoMapa,
+    carregarDados
   };
 
   return (
