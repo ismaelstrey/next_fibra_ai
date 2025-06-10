@@ -89,7 +89,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           transition={{ duration: 0.15 }}
           className="min-h-screen"
           suppressHydrationWarning
-        >
+        > 
+
+             
           {children}
         </motion.div>
       </AnimatePresence>

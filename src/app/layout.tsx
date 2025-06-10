@@ -4,7 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { MapProvider } from "@/context/MapContext";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner"
 
 // Configuração das fontes
 const geistSans = Geist({
@@ -41,10 +41,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        <Toaster position="bottom-center"/>
         <ThemeProvider>
           <AuthProvider>
             <MapProvider>
-              <Toaster position="top-right" />
+         
               {children}
             </MapProvider>
           </AuthProvider>

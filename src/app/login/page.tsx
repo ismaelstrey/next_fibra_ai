@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
 import { Button } from '@/components/ui/button';
@@ -30,6 +29,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { LockIcon, MailIcon } from 'lucide-react';
+import { toast } from 'sonner';
 
 /**
  * Esquema de validação do formulário de login
