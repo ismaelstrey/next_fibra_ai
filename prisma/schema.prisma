@@ -12,17 +12,22 @@ datasource db {
 
 // Modelo de usuário para autenticação
 model Usuario {
-  id            String    @id @default(cuid())
-  nome          String
-  email         String    @unique
-  senha         String?
-  cargo         String    // Engenheiro, Técnico, Gerente
-  imagem        String?
-  criadoEm      DateTime  @default(now())
-  atualizadoEm  DateTime  @updatedAt
-  cidades       Cidade[]  // Cidades que o usuário tem acesso
-  logs          Log[]     // Logs de atividades do usuário
-  comentarios   Comentario[]
+  id                  String    @id @default(cuid())
+  nome                String
+  email               String    @unique
+  senha               String?
+  cargo               String    // Engenheiro, Técnico, Gerente
+  imagem              String?
+  criadoEm            DateTime  @default(now())
+  atualizadoEm        DateTime  @updatedAt
+  cidades             Cidade[]  // Cidades que o usuário tem acesso
+  logs                Log[]     // Logs de atividades do usuário
+  comentarios         Comentario[]
+  configuracoes       ConfiguracaoUsuario[] // Configurações específicas do usuário
+  manutencaoes        Manutencao[]
+  notificacoesCriadas Notificacao[] @relation(name: "notificacoesCriadas") // Notificações criadas pelo usuário
+  notificacoesRecebidas Notificacao[] @relation(name: "notificacoesRecebidas") // Notificações recebidas pelo usuário
+  notificacoesLidas   NotificacaoLida[] // Status de leitura de notificações
 }
 
 // Modelo de cidade para gerenciamento geográfico
@@ -36,6 +41,7 @@ model Cidade {
   usuarios      Usuario[] // Usuários com acesso a esta cidade
   rotas         Rota[]    // Rotas de cabos nesta cidade
   caixas        Caixa[]   // Caixas (CTO e CEO) nesta cidade
+  notificacoes   Notificacao[] // Notificações relacionadas a esta cidade
 }
 
 // Modelo de rota de cabo de fibra óptica
@@ -58,6 +64,8 @@ model Rota {
   fusoes        Fusao[]   // Fusões associadas a esta rota
   comentarios   Comentario[]
   arquivos      Arquivo[]
+  notificacoes   Notificacao[]
+  manutencoes   Manutencao[]
 }
 
 // Modelo de caixa (CTO - Caixa Terminal Óptica ou CEO - Caixa de Emenda Óptica)
@@ -81,6 +89,7 @@ model Caixa {
   comentarios   Comentario[]
   arquivos      Arquivo[]
   manutencoes   Manutencao[]
+  notificacoes   Notificacao[]
 }
 
 // Modelo de porta para CTO
@@ -134,21 +143,29 @@ model Fusao {
 model Manutencao {
   id            String    @id @default(cuid())
   dataInicio    DateTime
+  titulo        String
   dataFim       DateTime?
   tipo          String    // Preventiva, Corretiva, Emergencial
   descricao     String
   status        String    // Agendada, Em Andamento, Concluída, Cancelada
   criadoEm      DateTime  @default(now())
   atualizadoEm  DateTime  @updatedAt
+  dataManutencao DateTime?
+  rotaId        String
+  rota          Rota      @relation(fields: [rotaId], references: [id])
   caixaId       String
   caixa         Caixa     @relation(fields: [caixaId], references: [id])
+  usuarioId     String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
   arquivos      Arquivo[]
+  notificacoes   Notificacao[]
 }
 
 // Modelo de comentário
 model Comentario {
   id            String    @id @default(cuid())
   texto         String
+  conteudo      String?   // Rota, Caixa, etc.
   criadoEm      DateTime  @default(now())
   atualizadoEm  DateTime  @updatedAt
   usuarioId     String
@@ -184,4 +201,88 @@ model Log {
   criadoEm      DateTime  @default(now())
   usuarioId     String
   usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+}
+
+// Modelo de configuração global do sistema
+model ConfiguracaoGlobal {
+  id            String    @id @default(cuid())
+  chave         String    @unique // Chave única para identificar a configuração
+  valor         Json      // Valor da configuração (pode ser qualquer tipo de dado)
+  descricao     String?   // Descrição da configuração
+  categoria     String    @default("geral") // Categoria para agrupamento
+  editavel      Boolean   @default(true) // Se a configuração pode ser editada por usuários
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+}
+
+// Modelo de configuração específica do usuário
+model ConfiguracaoUsuario {
+  id            String    @id @default(cuid())
+  chave         String    // Chave da configuração
+  valor         Json      // Valor da configuração
+  usuarioId     String    // ID do usuário dono da configuração
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  
+  // Relação com o usuário
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  
+  // Chave composta para garantir unicidade por usuário e chave
+  @@unique([usuarioId, chave])
+}
+
+// Modelo de notificação do sistema
+model Notificacao {
+  id                String    @id @default(cuid())
+  titulo            String    // Título da notificação
+  conteudo          String    // Conteúdo da notificação
+  tipo              String    // Tipo da notificação (informacao, alerta, erro)
+  prioridade        String    // Nível de prioridade (baixa, media, alta)
+  criadoEm          DateTime  @default(now())
+  atualizadoEm      DateTime  @updatedAt
+  
+  // Relações com entidades do sistema
+  cidadeId          String?   // Cidade relacionada (opcional)
+  cidade            Cidade?   @relation(fields: [cidadeId], references: [id])
+  
+  caixaId           String?   // Caixa relacionada (opcional)
+  caixa             Caixa?    @relation(fields: [caixaId], references: [id])
+  
+  rotaId            String?   // Rota relacionada (opcional)
+  rota              Rota?     @relation(fields: [rotaId], references: [id])
+  
+  manutencaoId      String?   // Manutenção relacionada (opcional)
+  manutencao        Manutencao? @relation(fields: [manutencaoId], references: [id])
+  
+  // Criador da notificação
+  criadorId         String
+  criador           Usuario   @relation(name: "notificacoesCriadas", fields: [criadorId], references: [id])
+  
+  // Destinatários da notificação
+  destinatarios     Usuario[] @relation(name: "notificacoesRecebidas")
+  
+  // Cargos dos destinatários (array de strings)
+  cargoDestinatarios String    // Comma-separated list of roles (Engenheiro, Técnico, Gerente)
+  
+  // Status de leitura por usuário
+  notificacoesLidas NotificacaoLida[]
+}
+
+// Modelo para controle de leitura de notificações por usuário
+model NotificacaoLida {
+  id            String    @id @default(cuid())
+  lida          Boolean   @default(false) // Se a notificação foi lida
+  lidaEm        DateTime? // Quando a notificação foi lida
+  criadoEm      DateTime  @default(now())
+  
+  // Relação com a notificação
+  notificacaoId String
+  notificacao   Notificacao @relation(fields: [notificacaoId], references: [id], onDelete: Cascade)
+  
+  // Relação com o usuário
+  usuarioId     String
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  
+  // Chave composta para garantir unicidade por notificação e usuário
+  @@unique([notificacaoId, usuarioId])
 }
