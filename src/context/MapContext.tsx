@@ -261,7 +261,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   // Carrega os dados iniciais
   useEffect(() => {
     carregarDados();
-  }, [carregarDados]);
+  });
 
   /**
    * Adiciona uma nova rota ao estado e na API
