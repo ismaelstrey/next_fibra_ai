@@ -56,8 +56,8 @@ export interface CaixaAPI {
     modelo: string;
     capacidade: number;
     coordenadas: {
-        latitude: number;
-        longitude: number;
+        lat: number;
+        lng: number;
     };
     observacoes?: string;
     cidadeId: string;
@@ -110,8 +110,8 @@ export interface CidadeAPI {
     nome: string;
     estado: string;
     coordenadas: {
-        latitude: number;
-        longitude: number;
+        lat: number;
+        lng: number;
     };
     criadoEm: string;
     atualizadoEm: string;
@@ -253,8 +253,8 @@ export const useApiService = () => {
             modelo: string;
             capacidade: number;
             coordenadas: {
-                latitude: number;
-                longitude: number;
+                lat: number;
+                lng: number;
             };
             observacoes?: string;
             cidadeId: string;

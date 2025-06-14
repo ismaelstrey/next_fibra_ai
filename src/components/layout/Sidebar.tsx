@@ -5,12 +5,17 @@ import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, PlusCircle } from "lucide-react";
+import { useState } from "react";
+import { AdicionarCidadeModal } from "../cidade/AdicionarCidadeModal";
+
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session, status } = useSession();
     const { fazerLogout } = useAuth();
+    const [modalCidadeAberto, setModalCidadeAberto] = useState(false);
+    
     const handleLogout = async () => {
         try {
             await fazerLogout();
@@ -19,6 +24,10 @@ export default function Sidebar() {
             console.error('Erro ao fazer logout:', error);
             toast.error('Ocorreu um erro ao fazer logout');
         }
+    };
+    
+    const abrirModalAdicionarCidade = () => {
+        setModalCidadeAberto(true);
     };
     return (
         <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
@@ -58,6 +67,14 @@ export default function Sidebar() {
                             </div>
                         </div>
                         <Button
+                            variant="outline"
+                            className="w-full mt-2 justify-start"
+                            onClick={abrirModalAdicionarCidade}
+                        >
+                            <PlusCircle className="h-5 w-5 mr-2" />
+                            Adicionar Cidade
+                        </Button>
+                        <Button
                             variant="ghost"
                             className="w-full mt-2 justify-start"
                             onClick={handleLogout}
@@ -68,6 +85,15 @@ export default function Sidebar() {
                     </div>
                 </div>
             </div>
+            
+            {/* Modal para adicionar cidade */}
+            <AdicionarCidadeModal 
+                aberto={modalCidadeAberto} 
+                aoMudarEstado={setModalCidadeAberto} 
+                aoAdicionar={() => {
+                    // Recarregar dados ou atualizar lista de cidades se necessário
+                }}
+            />
         </div>
     )
 }

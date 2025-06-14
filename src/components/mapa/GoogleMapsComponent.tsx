@@ -183,7 +183,9 @@ const GoogleMapsComponent = ({
     adicionarRota({
       nome: `Rota ${new Date().toLocaleTimeString()}`,
       tipoCabo: tipoCaboSelecionado,
-      path: pathArray
+      path: pathArray,
+      cidadeId: filtros.cidade || '', // Adiciona o cidadeId da cidade selecionada
+      tipoPassagem: 'posteado' // Valor padrão necessário conforme API
     });
 
     // Chama o callback se existir
@@ -217,7 +219,10 @@ const GoogleMapsComponent = ({
       posicao: {
         lat: posicao.lat(),
         lng: posicao.lng()
-      }
+      },
+      cidadeId: filtros.cidade || '', // Adiciona o cidadeId da cidade selecionada
+      modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão', // Modelo padrão necessário conforme API
+      capacidade: tipo === 'CTO' ? 8 : 12 // Capacidade padrão necessária conforme API
     });
   }, [adicionarCaixa]);
 
@@ -368,6 +373,8 @@ const GoogleMapsComponent = ({
       {/* Renderiza as rotas existentes */}
       {camadasVisiveis.rotas && rotas.map((rota, index) => {
         const path = rota.getPath().getArray();
+
+        console.log(path)
         return (
           <Polyline
             key={`rota-${index}`}

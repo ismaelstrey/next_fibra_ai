@@ -141,8 +141,8 @@ const converterCaixaApiParaContexto = (caixaApi: CaixaAPI): Caixa => {
     modelo: caixaApi.modelo,
     capacidade: caixaApi.capacidade,
     posicao: {
-      lat: caixaApi.coordenadas.latitude,
-      lng: caixaApi.coordenadas.longitude
+      lat: caixaApi.coordenadas.lat,
+      lng: caixaApi.coordenadas.lng
     },
     rotaAssociada: caixaApi.rotaId,
     cidadeId: caixaApi.cidadeId,
@@ -261,7 +261,9 @@ export function MapProvider({ children }: { children: ReactNode }) {
   // Carrega os dados iniciais
   useEffect(() => {
     carregarDados();
-  });
+
+    console.log('carregarDados');
+  }, []); // Adiciona array de dependências vazio para executar apenas na montagem
 
   /**
    * Adiciona uma nova rota ao estado e na API
@@ -311,8 +313,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
         modelo: caixa.modelo || '',
         capacidade: caixa.capacidade || 0,
         coordenadas: {
-          latitude: caixa.posicao.lat,
-          longitude: caixa.posicao.lng
+          lat: caixa.posicao.lat,
+          lng: caixa.posicao.lng
         },
         observacoes: caixa.observacoes,
         cidadeId: caixa.cidadeId,
@@ -343,14 +345,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
     try {
       // Prepara os dados para a API
       const fusaoParaApi = {
-        fibraOrigem: pontoFusao.fibraOrigem,
-        fibraDestino: pontoFusao.fibraDestino,
-        tuboOrigem: pontoFusao.tuboOrigem,
-        tuboDestino: pontoFusao.tuboDestino,
-        status: pontoFusao.status,
+        posicao: pontoFusao.fibraOrigem,
+        origem: pontoFusao.tuboOrigem || `Fibra ${pontoFusao.fibraOrigem}`,
+        destino: pontoFusao.tuboDestino || `Fibra ${pontoFusao.fibraDestino}`,
         cor: pontoFusao.cor,
         observacoes: pontoFusao.observacoes,
-        rotaOrigemId: pontoFusao.rotaOrigemId,
         caixaId: pontoFusao.caixaId,
         bandejaId: pontoFusao.bandeja?.toString()
       };

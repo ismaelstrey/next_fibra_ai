@@ -12,7 +12,8 @@ import {
     EyeIcon,
     EyeOffIcon,
     Combine,
-    SettingsIcon
+    SettingsIcon,
+    SaveIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
@@ -22,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import useMapa from '@/hooks/useMapa';
+import { toast } from 'react-hot-toast';
 
 export default function ToolsMap() {
     const {
@@ -30,7 +32,8 @@ export default function ToolsMap() {
         tipoCaboSelecionado,
         setTipoCaboSelecionado,
         camadasVisiveis,
-        atualizarCamadasVisiveis
+        atualizarCamadasVisiveis,
+        carregarDados
     } = useMapa();
 
     // Estado para controlar a expansão do painel de ferramentas
@@ -306,6 +309,32 @@ export default function ToolsMap() {
                                         </TooltipTrigger>
                                         <TooltipContent side="right">
                                             <p>Adicionar nova CEO</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="default"
+                                                size="sm"
+                                                className="h-8 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                                onClick={() => {
+                                                    // Recarrega os dados para atualizar a visualização
+                                                    toast.promise(carregarDados(), {
+                                                        loading: 'Atualizando visualização...',
+                                                        success: 'Visualização atualizada com sucesso!',
+                                                        error: 'Erro ao atualizar visualização'
+                                                    });
+                                                }}
+                                            >
+                                                <SaveIcon className="h-3 w-3 mr-1" />
+                                                Atualizar
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="right">
+                                            <p>Atualizar visualização do mapa</p>
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
