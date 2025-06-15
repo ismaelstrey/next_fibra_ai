@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
+import { toast } from 'react-hot-toast';
 
 import useMapa from '@/hooks/useMapa';
 
@@ -180,11 +181,17 @@ const GoogleMapsComponent = ({
       lng: point.lng()
     }));
 
+    // Verifica se há uma cidade selecionada nos filtros
+    if (!filtros.cidade) {
+      toast.error('Selecione uma cidade antes de adicionar uma rota');
+      return;
+    }
+    
     adicionarRota({
       nome: `Rota ${new Date().toLocaleTimeString()}`,
       tipoCabo: tipoCaboSelecionado,
       path: pathArray,
-      cidadeId: filtros.cidade || '', // Adiciona o cidadeId da cidade selecionada
+      cidadeId: filtros.cidade, // Adiciona o cidadeId da cidade selecionada
       tipoPassagem: 'posteado' // Valor padrão necessário conforme API
     });
 
@@ -212,6 +219,12 @@ const GoogleMapsComponent = ({
 
     setMarcadores(prev => [...prev, novoMarcador]);
 
+    // Verifica se há uma cidade selecionada nos filtros
+    if (!filtros.cidade) {
+      toast.error('Selecione uma cidade antes de adicionar uma ' + tipo);
+      return;
+    }
+
     // Adiciona a caixa ao estado global do mapa
     adicionarCaixa({
       tipo,
@@ -220,7 +233,7 @@ const GoogleMapsComponent = ({
         lat: posicao.lat(),
         lng: posicao.lng()
       },
-      cidadeId: filtros.cidade || '', // Adiciona o cidadeId da cidade selecionada
+      cidadeId: filtros.cidade, // Adiciona o cidadeId da cidade selecionada
       modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão', // Modelo padrão necessário conforme API
       capacidade: tipo === 'CTO' ? 8 : 12 // Capacidade padrão necessária conforme API
     });

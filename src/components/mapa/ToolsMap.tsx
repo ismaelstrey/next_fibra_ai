@@ -41,6 +41,11 @@ export default function ToolsMap() {
         if (modoEdicao === modo) {
             setModoEdicao(null);
         } else {
+            // Verifica se uma cidade foi selecionada para modos que exigem cidade
+            if ((modo === 'rota' || modo === 'cto' || modo === 'ceo' || modo === 'fusao') && !cidadeSelecionada) {
+                alert("Selecione uma cidade antes de usar esta ferramenta");
+                return;
+            }
             setModoEdicao(modo);
         }
     };
@@ -76,7 +81,7 @@ export default function ToolsMap() {
         <motion.div
             className="absolute top-4 left-4 z-10 bg-background rounded-lg shadow-lg overflow-hidden"
             initial={{ width: 60 }}
-            animate={{ width: painelExpandido ? 240 : 60 }}
+            animate={{ width: painelExpandido ? 400 : 60 }}
             transition={{ duration: 0.3 }}
         >
             <div className="flex">
@@ -243,7 +248,11 @@ export default function ToolsMap() {
                             <h4 className="text-xs font-medium text-muted-foreground">Cidade</h4>
                             <Select 
                                 value={cidadeSelecionada} 
-                                onValueChange={setCidadeSelecionada}
+                                onValueChange={(value) => {
+                                    setCidadeSelecionada(value);
+                                    // Atualiza o filtro de cidade no contexto do mapa
+                                    carregarDados(value);
+                                }}
                             >
                                 <SelectTrigger className="w-full h-8 text-xs">
                                     <SelectValue placeholder="Selecione uma cidade" />
