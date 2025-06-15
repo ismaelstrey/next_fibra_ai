@@ -22,6 +22,7 @@ export default function ToolsMap() {
         camadasVisiveis, 
         atualizarCamadasVisiveis,
         carregarDados,
+        atualizarFiltros,
         cidades,
         adicionarRota,
         adicionarCaixa
@@ -251,7 +252,7 @@ export default function ToolsMap() {
                                 onValueChange={(value) => {
                                     setCidadeSelecionada(value);
                                     // Atualiza o filtro de cidade no contexto do mapa
-                                    carregarDados(value);
+                                    atualizarFiltros({ cidade: value });
                                 }}
                             >
                                 <SelectTrigger className="w-full h-8 text-xs">

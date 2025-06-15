@@ -180,7 +180,7 @@ const GoogleMapsComponent = ({
       lat: point.lat(),
       lng: point.lng()
     }));
-
+console.log(filtros)
     // Verifica se há uma cidade selecionada nos filtros
     if (!filtros.cidade) {
       toast.error('Selecione uma cidade antes de adicionar uma rota');
@@ -205,6 +205,8 @@ const GoogleMapsComponent = ({
    * Adiciona um marcador (CTO ou CEO) no mapa
    */
   const adicionarMarcador = useCallback((posicao: google.maps.LatLng, tipo: 'CTO' | 'CEO') => {
+
+
     if (!mapRef.current) return;
 
     const iconUrl = tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
@@ -220,12 +222,15 @@ const GoogleMapsComponent = ({
     setMarcadores(prev => [...prev, novoMarcador]);
 
     // Verifica se há uma cidade selecionada nos filtros
+
+    console.log(filtros)
     if (!filtros.cidade) {
       toast.error('Selecione uma cidade antes de adicionar uma ' + tipo);
       return;
     }
-
+console.log("Adicionando caixa...")
     // Adiciona a caixa ao estado global do mapa
+    console.log("Adicionando marcador...")
     adicionarCaixa({
       tipo,
       nome: `${tipo} ${new Date().toLocaleTimeString()}`,
@@ -261,6 +266,7 @@ const GoogleMapsComponent = ({
 
   // Função para lidar com cliques no mapa para adicionar CTO ou CEO
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
+    console.log(event, modoEdicao)
     if (!event.latLng || !mapRef.current) return;
     if (modoEdicao === 'cto') {
       adicionarMarcador(event.latLng, 'CTO');

@@ -265,6 +265,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
     console.log('carregarDados');
   }, []); // Adiciona array de dependências vazio para executar apenas na montagem
 
+
+  /**
+   * Calcula a distância total de uma rota
+
   /**
    * Adiciona uma nova rota ao estado e na API
    */
@@ -440,7 +444,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
     return { rotas: rotasEncontradas, caixas: caixasEncontradas };
   };
-
+console.log(rotas)
   // Valor do contexto que será fornecido aos componentes filhos
   const contextValue: MapContextType = {
     rotas,
