@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
-import { toast } from 'react-hot-toast';
+import { toast } from 'sonner';
 
-import useMapa from '@/hooks/useMapa';
+import useMapa, { Rota } from '@/hooks/useMapa';
 import { getFiberColor } from '@/functions/color';
+import AddCaixaModal from './AddCaixaModal';
 
 /**
  * Interface para a biblioteca de marcadores do Google Maps
@@ -134,6 +135,11 @@ const GoogleMapsComponent = ({
   // Estado para controlar o modo de desenho
   const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>(null);
 
+  // Estado para controlar o modal de adicionar CTO/CEO
+  const [modalAberto, setModalAberto] = useState(false);
+  const [posicaoClicada, setPosicaoClicada] = useState<google.maps.LatLngLiteral | null>(null);
+  const [rotaAssociada, setRotaAssociada] = useState<string | undefined>(undefined);
+
   // Obtém o estado do mapa do hook useMapa
   const {
     modoEdicao,
@@ -142,6 +148,8 @@ const GoogleMapsComponent = ({
     filtros,
     adicionarRota,
     adicionarCaixa,
+    setModoEdicao,
+
     rotas: rotasGlobais,
   } = useMapa();
 
@@ -277,6 +285,90 @@ console.log("Adicionando caixa...")
     }
   }, [modoEdicao, adicionarMarcador]);
   
+  // Função para lidar com cliques em uma rota (Polyline) para adicionar CTO ou CEO vinculada à rota
+  const handlePolylineClick = useCallback((event: google.maps.PolyMouseEvent, rota: Rota) => {
+    console.log('Evento Polyline:', event, modoEdicao)
+    if (!event.latLng || !mapRef.current) return;
+
+    // Verifica se está no modo de adicionar CTO ou CEO
+    if (modoEdicao === 'cto' || modoEdicao === 'ceo') {
+      // Cria um novo marcador na posição do clique
+      const tipo = modoEdicao === 'cto' ? 'CTO' : 'CEO';
+      
+      if (!mapRef.current) return;
+
+      const iconUrl = tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
+
+      const novoMarcador: MarcadorInfo = {
+        position: event.latLng,
+        icon: iconUrl,
+        title: `${tipo} - Vinculada à rota ${rota.nome}`,
+        tipo: tipo,
+        draggable: true
+      };
+
+      setMarcadores(prev => [...prev, novoMarcador]);
+
+      // Verifica se há uma cidade selecionada nos filtros
+      if (!filtros.cidade) {
+        toast.error('Selecione uma cidade antes de adicionar uma ' + tipo);
+        return;
+      }
+
+      // Adiciona a caixa ao estado global do mapa, vinculada à rota
+      adicionarCaixa({
+        tipo,
+        nome: `${tipo} ${new Date().toLocaleTimeString()} - ${rota.nome}`,
+        posicao: {
+          lat: event.latLng.lat(),
+          lng: event.latLng.lng()
+        },
+        cidadeId: filtros.cidade,
+        rotaAssociada: rota.id, // Vincula a caixa à rota clicada
+        modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão',
+        capacidade: tipo === 'CTO' ? 8 : 12
+      });
+      
+      toast.success(`${tipo} adicionada e vinculada à rota ${rota.nome}`);
+    } else {
+      // Se não estiver no modo de adicionar CTO ou CEO, apenas exibe informações da rota
+      console.log('Rota clicada:', rota);
+    }
+  }, [modoEdicao, adicionarCaixa, filtros.cidade, mapRef]);
+  
+  // Função para lidar com duplo clique em uma rota para ativar o modo de edição
+  const handlePolylineDblClick = useCallback((event: google.maps.PolyMouseEvent, rota: Rota) => {
+    // Previne a propagação do evento para evitar que o mapa também receba o evento
+    console.log('Evento Polyline dbClick:', event, modoEdicao)
+    if (event.domEvent) {
+      event.domEvent.stopPropagation();
+    }
+    
+    // Ativa o modo de edição
+    setModoEdicao('editar');
+    
+    // Exibe uma mensagem informando que o modo de edição foi ativado
+    toast.success(`Modo de edição ativado para a rota ${rota.nome}`);
+    
+    console.log('Modo de edição ativado para a rota:', rota);
+  }, [setModoEdicao]);
+
+
+    const handlePolylineRightClick = useCallback((event: google.maps.PolyMouseEvent, rota: Rota) => {
+    // Previne a propagação do evento para evitar que o mapa também receba o evento
+    console.log('Evento Polyline clickRight:', event, modoEdicao)
+    if (event.domEvent) {
+      event.domEvent.stopPropagation();
+    }
+    
+    // Ativa o modo de edição
+  
+    
+    // Exibe uma mensagem informando que o modo de edição foi ativado
+    toast.success(`Modo de edição ativado para a rota ${rota.nome}`);
+    
+    console.log('Modo de edição ativado para a rota:', rota);
+  }, [setModoEdicao]);
   // Efeito para controlar a visibilidade do DrawingManager baseado no modo de edição
   useEffect(() => {
     if (modoEdicao === 'rota') {
@@ -325,6 +417,21 @@ console.log("Adicionando caixa...")
             gmpDraggable: modoEdicao === 'editar'
           });
           
+          // Adiciona evento de clique ao marcador
+          advancedMarker.addListener('click', () => {
+            // Se estiver no modo de edição, abre o modal
+            if (modoEdicao === 'editar') {
+              setPosicaoClicada({
+                lat: marcador.position.lat(),
+                lng: marcador.position.lng()
+              });
+              // Extrai o ID da rota associada do título do marcador, se existir
+              const rotaMatch = marcador.title.match(/Vinculada à rota (.+)$/);
+              setRotaAssociada(rotaMatch ? rotaMatch[1] : undefined);
+              setModalAberto(true);
+            }
+          });
+          
           // Armazena o marcador na referência
           advancedMarkersRef.current.push(advancedMarker);
         });
@@ -365,10 +472,10 @@ console.log("Adicionando caixa...")
     );
   }
 
-  console.log("Renderizando mapa...")
-  console.log(mapRef.current)
-  console.log(mapOptions)
-  rotas && console.log(rotasGlobais)
+  // console.log("Renderizando mapa...")
+  // console.log(mapRef.current)
+  // console.log(mapOptions)
+  // rotas && console.log(rotasGlobais)
 
   return (
     <GoogleMap
@@ -397,31 +504,19 @@ console.log("Adicionando caixa...")
       )}
 
       {/* Renderiza as rotas existentes */}
-   
-      {camadasVisiveis.rotas && rotas.map((rota, index) => {     
-        const path = rota.getPath().getArray();
-        return (
-          <Polyline
-            key={`rota-${index}`}
-            path={path}
-            options={{
-              strokeColor: rota.get('strokeColor'),
-              strokeWeight: rota.get('strokeWeight'),
-              editable: modoEdicao === 'editar',
-              draggable: modoEdicao === 'editar'
-            }}
-          />
-        );
-      })}
+
             {camadasVisiveis.rotas && rotasGlobais.map((rota, index) => {     
         const path = rota.path
         return (
           <Polyline
+            onClick={(e) => handlePolylineClick(e, rota)}
+            onDblClick={(e) => handlePolylineDblClick(e, rota)}
+            onRightClick={(e) => handlePolylineRightClick(e, rota)}
             key={`rota-${index}`}
             path={path}
             options={{
               strokeColor:rota.cor ||getFiberColor(rota.tipoCabo),
-              strokeWeight:  3,
+              strokeWeight:  5,
               editable: modoEdicao === 'editar',
               draggable: modoEdicao === 'editar'
             }}
@@ -430,6 +525,16 @@ console.log("Adicionando caixa...")
       })}
 
       {/* Os marcadores avançados são criados e gerenciados diretamente no useEffect */}
+
+      {/* Modal para adicionar CTO ou CEO */}
+      {posicaoClicada && (
+        <AddCaixaModal
+          isOpen={modalAberto}
+          onClose={() => setModalAberto(false)}
+          position={posicaoClicada}
+          rotaAssociada={rotaAssociada}
+        />
+      )}
     </GoogleMap>
   );
 };

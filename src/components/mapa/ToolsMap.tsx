@@ -78,6 +78,8 @@ export default function ToolsMap() {
         setModoEdicao('rota');
     };
 
+    console.log(modoEdicao)
+
     return (
         <motion.div
             className="absolute top-4 left-4 z-10 bg-background rounded-lg shadow-lg overflow-hidden"
@@ -287,12 +289,12 @@ export default function ToolsMap() {
 
                         {/* Ações rápidas */}
                         <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-muted-foreground">Ações Rápidas</h4>
+                            <h4 className="text-xs font-medium text-muted-foreground">Ações Rápidas {modoEdicao}</h4>
                             <div className="grid grid-cols-3 gap-1">
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 text-xs"
+                                    className={`h-8 text-xs ${modoEdicao === 'rota'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
                                     onClick={adicionarCabo}
                                 >
                                     <PencilIcon className="h-3 w-3 mr-1" />
@@ -301,7 +303,8 @@ export default function ToolsMap() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 text-xs"
+                                    className={`h-8 text-xs ${modoEdicao === 'cto'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
+
                                     onClick={adicionarCTO}
                                 >
                                     <BoxIcon className="h-3 w-3 mr-1" />
@@ -310,7 +313,7 @@ export default function ToolsMap() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 text-xs"
+                                    className={`h-8 text-xs ${modoEdicao === 'ceo'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
                                     onClick={adicionarCEO}
                                 >
                                     <MapPinIcon className="h-3 w-3 mr-1" />
@@ -327,7 +330,7 @@ export default function ToolsMap() {
                                     <Tooltip>
                                         <TooltipTrigger asChild>
                                             <Button
-                                                variant={camadasVisiveis.caixas ? "default" : "outline"}
+                                                variant={camadasVisiveis.caixas ? "default" : "secondary"}
                                                 size="sm"
                                                 className="h-8 text-xs flex-1 mx-0.5"
                                                 onClick={() => atualizarCamadasVisiveis({ caixas: !camadasVisiveis.caixas })}
