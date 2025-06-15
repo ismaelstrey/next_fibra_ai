@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
 import { toast } from 'sonner';
 
+
 import useMapa, { Rota } from '@/hooks/useMapa';
 import { getFiberColor } from '@/functions/color';
 import AddCaixaModal from './AddCaixaModal';
@@ -149,12 +150,14 @@ const GoogleMapsComponent = ({
     adicionarRota,
     adicionarCaixa,
     setModoEdicao,
-
+   caixas,
     rotas: rotasGlobais,
   } = useMapa();
 
   // Bibliotecas necessárias
   const libraries = useState<Libraries>(['drawing', 'geometry', 'marker']);
+
+  // Efeito para inicializar o mapa
 
   // Carrega a API do Google Maps
   const { isLoaded, loadError } = useJsApiLoader({
@@ -228,6 +231,7 @@ console.log(filtros)
       tipo: tipo,
       draggable: true
     };
+   
 
     setMarcadores(prev => [...prev, novoMarcador]);
 
@@ -256,23 +260,35 @@ console.log("Adicionando caixa...")
 
   /**
    * Efeito para atualizar a visibilidade das rotas
-   */
+  const */
+
+
   useEffect(() => {
     // Atualiza a visibilidade das rotas
     rotas.forEach(rota => {
       rota.setVisible(camadasVisiveis.rotas);
     });
-  }, [camadasVisiveis.rotas, rotas]);
 
+    setMarcadores(prev => prev.map(marcador => ({
+      ...marcador,
+      visible: camadasVisiveis.caixas
+    })))
+
+
+  }, [camadasVisiveis.rotas, rotas]);
+console.log(marcadores)
   /**
    * Efeito para filtrar os marcadores visíveis
    */
   const marcadoresFiltrados = useCallback(() => {
-    return marcadores.filter(marcador => 
-      camadasVisiveis.caixas &&
-      (!filtros.tipoCaixa || marcador.title.includes(filtros.tipoCaixa || ''))
-    );
+   
+    // return marcadores.filter(marcador => 
+    //   camadasVisiveis.caixas &&
+    //   (!filtros.tipoCaixa || marcador.title.includes(filtros.tipoCaixa || ''))
+    // );
+      return marcadores
   }, [camadasVisiveis.caixas, filtros.tipoCaixa, marcadores]);
+
 
   // Função para lidar com cliques no mapa para adicionar CTO ou CEO
   const handleMapClick = useCallback((event: google.maps.MapMouseEvent) => {
@@ -287,8 +303,14 @@ console.log("Adicionando caixa...")
   
   // Função para lidar com cliques em uma rota (Polyline) para adicionar CTO ou CEO vinculada à rota
   const handlePolylineClick = useCallback((event: google.maps.PolyMouseEvent, rota: Rota) => {
-    console.log('Evento Polyline:', event, modoEdicao)
     if (!event.latLng || !mapRef.current) return;
+    const lat = event.latLng?.lat()
+    const lng = event.latLng?.lng()
+    const latLng = {lat, lng}
+
+
+    if (latLng?.lat === undefined || latLng.lng === undefined) return;
+   
 
     // Verifica se está no modo de adicionar CTO ou CEO
     if (modoEdicao === 'cto' || modoEdicao === 'ceo') {
@@ -298,19 +320,21 @@ console.log("Adicionando caixa...")
       if (!mapRef.current) return;
 
       const iconUrl = tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
-
+      console.log(latLng)
       const novoMarcador: MarcadorInfo = {
-        position: event.latLng,
+        position:event.latLng,
         icon: iconUrl,
         title: `${tipo} - Vinculada à rota ${rota.nome}`,
         tipo: tipo,
         draggable: true
       };
 
+      console.log(novoMarcador)
+
       setMarcadores(prev => [...prev, novoMarcador]);
 
       // Verifica se há uma cidade selecionada nos filtros
-      if (!filtros.cidade) {
+      if (!rota.cidadeId || !filtros.cidade) {
         toast.error('Selecione uma cidade antes de adicionar uma ' + tipo);
         return;
       }
@@ -320,10 +344,10 @@ console.log("Adicionando caixa...")
         tipo,
         nome: `${tipo} ${new Date().toLocaleTimeString()} - ${rota.nome}`,
         posicao: {
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng()
+          lat,
+          lng
         },
-        cidadeId: filtros.cidade,
+        cidadeId: rota.cidadeId || filtros.cidade,
         rotaAssociada: rota.id, // Vincula a caixa à rota clicada
         modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão',
         capacidade: tipo === 'CTO' ? 8 : 12
@@ -362,7 +386,7 @@ console.log("Adicionando caixa...")
     }
     
     // Ativa o modo de edição
-  
+  setModalAberto(true);
     
     // Exibe uma mensagem informando que o modo de edição foi ativado
     toast.success(`Modo de edição ativado para a rota ${rota.nome}`);
@@ -383,6 +407,7 @@ console.log("Adicionando caixa...")
 
   // Efeito para criar os AdvancedMarkerElement quando o mapa estiver carregado
   useEffect(() => {
+   
     if (!isLoaded || !mapRef.current) return;
     
     // Função para limpar marcadores existentes
@@ -392,10 +417,10 @@ console.log("Adicionando caixa...")
         marker.map = null;
       });
       advancedMarkersRef.current = [];
-      
+       console.log('oi')
       // Obtém os marcadores visíveis
       const marcadoresVisiveis = marcadoresFiltrados();
-      
+      console.log(marcadoresVisiveis)
       // Importa a biblioteca de marcadores
       try {
         const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
@@ -477,6 +502,7 @@ console.log("Adicionando caixa...")
   // console.log(mapOptions)
   // rotas && console.log(rotasGlobais)
 
+
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
@@ -505,6 +531,8 @@ console.log("Adicionando caixa...")
 
       {/* Renderiza as rotas existentes */}
 
+      
+
             {camadasVisiveis.rotas && rotasGlobais.map((rota, index) => {     
         const path = rota.path
         return (
@@ -513,7 +541,7 @@ console.log("Adicionando caixa...")
             onDblClick={(e) => handlePolylineDblClick(e, rota)}
             onRightClick={(e) => handlePolylineRightClick(e, rota)}
             key={`rota-${index}`}
-            path={path}
+            path={path}            
             options={{
               strokeColor:rota.cor ||getFiberColor(rota.tipoCabo),
               strokeWeight:  5,

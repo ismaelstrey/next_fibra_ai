@@ -32,7 +32,8 @@ export default function MapaPage() {
     rotas,
     tipoCaboSelecionado,
     adicionarRota,
-    buscarNoMapa
+    buscarNoMapa,
+    filtros,
   } = useMapa();
 
   /**
@@ -63,7 +64,9 @@ export default function MapaPage() {
     adicionarRota({
       nome: `Rota ${rotas.length + 1}`,
       tipoCabo: tipoCaboSelecionado,
-      path: pathFormatado
+      path: pathFormatado,
+      cidadeId: filtros?.cidade || '', // Substitua pelo ID da cidade
+
     });
   };
 
@@ -104,16 +107,16 @@ export default function MapaPage() {
         </form>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4">
         {/* Painel lateral */}
-        <div className="md:col-span-1 space-y-4">
+        {/* <div className="md:col-span-1 space-y-4">
           <CamadasMaps />
           <FiltrosMaps />
-        </div>
+        </div> */}
 
         {/* Área do mapa */}
-        <div className="md:col-span-3">
-          <Card className="h-[calc(100vh-12rem)]">
+        <div className="md:col-span-4">
+          <Card className="h-[calc(100vh-8rem)] bg-red-500 w-full">
             <CardContent className="p-0 h-full">
               <div className="relative h-full">
                 {/* Barra de ferramentas de edição */}

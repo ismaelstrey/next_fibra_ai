@@ -29,7 +29,7 @@ export default function ToolsMap() {
     } = useMapa();
 
     // Estado para controlar a expansão do painel
-    const [painelExpandido, setPainelExpandido] = useState(true);
+    const [painelExpandido, setPainelExpandido] = useState(false);
 
     // Estado para controlar a visibilidade das configurações avançadas
     const [mostrarConfiguracoes, setMostrarConfiguracoes] = useState(false);
