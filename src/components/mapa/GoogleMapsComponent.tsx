@@ -5,6 +5,7 @@ import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-goog
 import { toast } from 'react-hot-toast';
 
 import useMapa from '@/hooks/useMapa';
+import { getFiberColor } from '@/functions/color';
 
 /**
  * Interface para a biblioteca de marcadores do Google Maps
@@ -140,7 +141,8 @@ const GoogleMapsComponent = ({
     camadasVisiveis,
     filtros,
     adicionarRota,
-    adicionarCaixa
+    adicionarCaixa,
+    rotas: rotasGlobais,
   } = useMapa();
 
   // Bibliotecas necessárias
@@ -363,6 +365,11 @@ console.log("Adicionando caixa...")
     );
   }
 
+  console.log("Renderizando mapa...")
+  console.log(mapRef.current)
+  console.log(mapOptions)
+  rotas && console.log(rotasGlobais)
+
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
@@ -390,10 +397,9 @@ console.log("Adicionando caixa...")
       )}
 
       {/* Renderiza as rotas existentes */}
-      {camadasVisiveis.rotas && rotas.map((rota, index) => {
+   
+      {camadasVisiveis.rotas && rotas.map((rota, index) => {     
         const path = rota.getPath().getArray();
-
-        console.log(path)
         return (
           <Polyline
             key={`rota-${index}`}
@@ -401,6 +407,21 @@ console.log("Adicionando caixa...")
             options={{
               strokeColor: rota.get('strokeColor'),
               strokeWeight: rota.get('strokeWeight'),
+              editable: modoEdicao === 'editar',
+              draggable: modoEdicao === 'editar'
+            }}
+          />
+        );
+      })}
+            {camadasVisiveis.rotas && rotasGlobais.map((rota, index) => {     
+        const path = rota.path
+        return (
+          <Polyline
+            key={`rota-${index}`}
+            path={path}
+            options={{
+              strokeColor:rota.cor ||getFiberColor(rota.tipoCabo),
+              strokeWeight:  3,
               editable: modoEdicao === 'editar',
               draggable: modoEdicao === 'editar'
             }}

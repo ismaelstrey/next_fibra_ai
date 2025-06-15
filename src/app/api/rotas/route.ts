@@ -78,6 +78,7 @@ export async function GET(req: NextRequest) {
           distancia: true,
           profundidade: true,
           tipoPassagem: true,
+          coordenadas: true,
           cor: true,
           observacoes: true,
           criadoEm: true,

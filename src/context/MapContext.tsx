@@ -444,7 +444,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
     return { rotas: rotasEncontradas, caixas: caixasEncontradas };
   };
-console.log(rotas)
+
   // Valor do contexto que será fornecido aos componentes filhos
   const contextValue: MapContextType = {
     rotas,
