@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { 
-  UsersIcon, 
-  SearchIcon, 
-  PlusIcon, 
+import {
+  UsersIcon,
+  SearchIcon,
+  PlusIcon,
   FilterIcon,
   ArrowUpDownIcon,
   EditIcon,
@@ -40,7 +40,7 @@ export default function UsuariosPage() {
   const [busca, setBusca] = useState('');
   const [ordenacao, setOrdenacao] = useState<'nome' | 'email' | 'cargo'>('nome');
   const [ordem, setOrdem] = useState<'asc' | 'desc'>('asc');
-  
+
   // Dados de exemplo para usuários
   const usuariosExemplo: Usuario[] = [
     {
@@ -168,14 +168,14 @@ export default function UsuariosPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -184,9 +184,9 @@ export default function UsuariosPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <UsersIcon className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Gerenciamento de Usuários</h1>
+          <h1 className="text-2xl font-bold text-primary">Gerenciamento de Usuários</h1>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <form onSubmit={handleBusca} className="flex">
             <div className="relative flex-grow">
@@ -257,7 +257,7 @@ export default function UsuariosPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('nome')}
                       >
@@ -268,7 +268,7 @@ export default function UsuariosPage() {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('email')}
                       >
@@ -279,7 +279,7 @@ export default function UsuariosPage() {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('cargo')}
                       >
@@ -319,24 +319,24 @@ export default function UsuariosPage() {
                         </td>
                         <td className="px-4 py-3 text-sm text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => visualizarUsuario(usuario.id)}
                               title="Visualizar"
                             >
                               <EyeIcon className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => editarUsuario(usuario.id)}
                               title="Editar"
                             >
                               <EditIcon className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => excluirUsuario(usuario.id)}
                               title="Excluir"

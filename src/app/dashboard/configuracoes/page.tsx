@@ -28,10 +28,10 @@ export default function ConfiguracoesPage() {
     tempoSessao: 60,
     modoEscuro: false,
   });
-  
+
   // Acesso ao contexto de tema
   const { theme, setTheme } = useTheme();
-  
+
   // Sincroniza o estado do modo escuro com o tema atual
   useEffect(() => {
     setConfigGerais(prev => ({
@@ -73,10 +73,10 @@ export default function ConfiguracoesPage() {
       toast.error('Preencha todos os campos');
       return;
     }
-    
+
     if (editandoCidade !== null) {
-      setCidades(cidades.map(cidade => 
-        cidade.id === editandoCidade 
+      setCidades(cidades.map(cidade =>
+        cidade.id === editandoCidade
           ? { ...cidade, nome: novaCidade.nome, estado: novaCidade.estado }
           : cidade
       ));
@@ -92,7 +92,7 @@ export default function ConfiguracoesPage() {
       setCidades([...cidades, novaCidadeObj]);
       toast.success('Cidade adicionada com sucesso!');
     }
-    
+
     setNovaCidade({ nome: '', estado: '' });
   };
 
@@ -110,7 +110,7 @@ export default function ConfiguracoesPage() {
   };
 
   const alterarStatusCidade = (id: number) => {
-    setCidades(cidades.map(cidade => 
+    setCidades(cidades.map(cidade =>
       cidade.id === id ? { ...cidade, ativa: !cidade.ativa } : cidade
     ));
   };
@@ -121,10 +121,10 @@ export default function ConfiguracoesPage() {
       toast.error('Preencha todos os campos');
       return;
     }
-    
+
     if (editandoTipoCaixa !== null) {
-      setTiposCaixa(tiposCaixa.map(tipo => 
-        tipo.id === editandoTipoCaixa 
+      setTiposCaixa(tiposCaixa.map(tipo =>
+        tipo.id === editandoTipoCaixa
           ? { ...tipo, nome: novoTipoCaixa.nome, descricao: novoTipoCaixa.descricao, cor: novoTipoCaixa.cor }
           : tipo
       ));
@@ -140,7 +140,7 @@ export default function ConfiguracoesPage() {
       setTiposCaixa([...tiposCaixa, novoTipo]);
       toast.success('Tipo de caixa adicionado com sucesso!');
     }
-    
+
     setNovoTipoCaixa({ nome: '', descricao: '', cor: '#000000' });
   };
 
@@ -163,10 +163,10 @@ export default function ConfiguracoesPage() {
       toast.error('Preencha todos os campos');
       return;
     }
-    
+
     if (editandoTipoCabo !== null) {
-      setTiposCabo(tiposCabo.map(tipo => 
-        tipo.id === editandoTipoCabo 
+      setTiposCabo(tiposCabo.map(tipo =>
+        tipo.id === editandoTipoCabo
           ? { ...tipo, nome: novoTipoCabo.nome, descricao: novoTipoCabo.descricao, cor: novoTipoCabo.cor }
           : tipo
       ));
@@ -182,7 +182,7 @@ export default function ConfiguracoesPage() {
       setTiposCabo([...tiposCabo, novoTipo]);
       toast.success('Tipo de cabo adicionado com sucesso!');
     }
-    
+
     setNovoTipoCabo({ nome: '', descricao: '', cor: '#000000' });
   };
 
@@ -208,14 +208,14 @@ export default function ConfiguracoesPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -223,7 +223,7 @@ export default function ConfiguracoesPage() {
     >
       <header className="flex items-center mb-6">
         <Settings className="h-6 w-6 mr-2 text-primary" />
-        <h1 className="text-2xl font-bold">Configurações do Sistema</h1>
+        <h1 className="text-2xl font-bold text-primary">Configurações do Sistema</h1>
       </header>
 
       <Tabs defaultValue="gerais" className="w-full">
@@ -257,20 +257,20 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nomeEmpresa">Nome da Empresa</Label>
-                  <Input 
-                    id="nomeEmpresa" 
+                  <Input
+                    id="nomeEmpresa"
                     value={configGerais.nomeEmpresa}
-                    onChange={(e) => setConfigGerais({...configGerais, nomeEmpresa: e.target.value})}
+                    onChange={(e) => setConfigGerais({ ...configGerais, nomeEmpresa: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="emailContato">Email de Contato</Label>
-                  <Input 
-                    id="emailContato" 
+                  <Input
+                    id="emailContato"
                     type="email"
                     value={configGerais.emailContato}
-                    onChange={(e) => setConfigGerais({...configGerais, emailContato: e.target.value})}
+                    onChange={(e) => setConfigGerais({ ...configGerais, emailContato: e.target.value })}
                   />
                 </div>
               </div>
@@ -278,11 +278,11 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="tempoSessao">Tempo de Sessão (minutos)</Label>
-                  <Input 
-                    id="tempoSessao" 
+                  <Input
+                    id="tempoSessao"
                     type="number"
                     value={configGerais.tempoSessao}
-                    onChange={(e) => setConfigGerais({...configGerais, tempoSessao: parseInt(e.target.value)})}
+                    onChange={(e) => setConfigGerais({ ...configGerais, tempoSessao: parseInt(e.target.value) })}
                   />
                 </div>
               </div>
@@ -293,10 +293,10 @@ export default function ConfiguracoesPage() {
                     <Label htmlFor="notificacoesEmail">Notificações por Email</Label>
                     <p className="text-sm text-muted-foreground">Receba alertas e notificações por email</p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="notificacoesEmail"
                     checked={configGerais.notificacoesEmail}
-                    onCheckedChange={(checked) => setConfigGerais({...configGerais, notificacoesEmail: checked})}
+                    onCheckedChange={(checked) => setConfigGerais({ ...configGerais, notificacoesEmail: checked })}
                   />
                 </div>
 
@@ -305,10 +305,10 @@ export default function ConfiguracoesPage() {
                     <Label htmlFor="notificacoesSistema">Notificações do Sistema</Label>
                     <p className="text-sm text-muted-foreground">Exibir notificações no sistema</p>
                   </div>
-                  <Switch 
+                  <Switch
                     id="notificacoesSistema"
                     checked={configGerais.notificacoesSistema}
-                    onCheckedChange={(checked) => setConfigGerais({...configGerais, notificacoesSistema: checked})}
+                    onCheckedChange={(checked) => setConfigGerais({ ...configGerais, notificacoesSistema: checked })}
                   />
                 </div>
 
@@ -316,8 +316,8 @@ export default function ConfiguracoesPage() {
                   <div className="space-y-0.5">
                     <Label htmlFor="modoEscuro" className="flex items-center gap-2">
                       Modo Escuro
-                      {configGerais.modoEscuro ? 
-                        <Moon className="h-4 w-4 text-blue-400" /> : 
+                      {configGerais.modoEscuro ?
+                        <Moon className="h-4 w-4 text-blue-400" /> :
                         <Sun className="h-4 w-4 text-amber-500" />
                       }
                     </Label>
@@ -325,11 +325,11 @@ export default function ConfiguracoesPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <ThemeToggle />
-                    <Switch 
+                    <Switch
                       id="modoEscuro"
                       checked={configGerais.modoEscuro}
                       onCheckedChange={(checked) => {
-                        setConfigGerais({...configGerais, modoEscuro: checked});
+                        setConfigGerais({ ...configGerais, modoEscuro: checked });
                         setTheme(checked ? 'dark' : 'light');
                       }}
                     />
@@ -358,22 +358,22 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label htmlFor="nomeCidade">Nome da Cidade</Label>
-                  <Input 
-                    id="nomeCidade" 
+                  <Input
+                    id="nomeCidade"
                     placeholder="Ex: São Paulo"
                     value={novaCidade.nome}
-                    onChange={(e) => setNovaCidade({...novaCidade, nome: e.target.value})}
+                    onChange={(e) => setNovaCidade({ ...novaCidade, nome: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="estadoCidade">Estado (UF)</Label>
-                  <Input 
-                    id="estadoCidade" 
+                  <Input
+                    id="estadoCidade"
                     placeholder="Ex: SP"
                     maxLength={2}
                     value={novaCidade.estado}
-                    onChange={(e) => setNovaCidade({...novaCidade, estado: e.target.value.toUpperCase()})}
+                    onChange={(e) => setNovaCidade({ ...novaCidade, estado: e.target.value.toUpperCase() })}
                   />
                 </div>
 
@@ -417,23 +417,23 @@ export default function ConfiguracoesPage() {
                         </td>
                         <td className="p-2 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => alterarStatusCidade(cidade.id)}
                             >
                               {cidade.ativa ? 'Desativar' : 'Ativar'}
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => editarCidade(cidade.id)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => removerCidade(cidade.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -467,31 +467,31 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label htmlFor="nomeTipoCaixa">Nome do Tipo</Label>
-                  <Input 
-                    id="nomeTipoCaixa" 
+                  <Input
+                    id="nomeTipoCaixa"
                     placeholder="Ex: CTO"
                     value={novoTipoCaixa.nome}
-                    onChange={(e) => setNovoTipoCaixa({...novoTipoCaixa, nome: e.target.value})}
+                    onChange={(e) => setNovoTipoCaixa({ ...novoTipoCaixa, nome: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="descricaoTipoCaixa">Descrição</Label>
-                  <Input 
-                    id="descricaoTipoCaixa" 
+                  <Input
+                    id="descricaoTipoCaixa"
                     placeholder="Ex: Caixa de Terminação Óptica"
                     value={novoTipoCaixa.descricao}
-                    onChange={(e) => setNovoTipoCaixa({...novoTipoCaixa, descricao: e.target.value})}
+                    onChange={(e) => setNovoTipoCaixa({ ...novoTipoCaixa, descricao: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="corTipoCaixa">Cor</Label>
-                  <Input 
-                    id="corTipoCaixa" 
+                  <Input
+                    id="corTipoCaixa"
                     type="color"
                     value={novoTipoCaixa.cor}
-                    onChange={(e) => setNovoTipoCaixa({...novoTipoCaixa, cor: e.target.value})}
+                    onChange={(e) => setNovoTipoCaixa({ ...novoTipoCaixa, cor: e.target.value })}
                     className="h-10 p-1 w-full"
                   />
                 </div>
@@ -527,8 +527,8 @@ export default function ConfiguracoesPage() {
                     {tiposCaixa.map((tipo) => (
                       <tr key={tipo.id} className="border-b last:border-b-0">
                         <td className="p-2">
-                          <div 
-                            className="h-6 w-6 rounded-full" 
+                          <div
+                            className="h-6 w-6 rounded-full"
                             style={{ backgroundColor: tipo.cor }}
                           ></div>
                         </td>
@@ -536,16 +536,16 @@ export default function ConfiguracoesPage() {
                         <td className="p-2">{tipo.descricao}</td>
                         <td className="p-2 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => editarTipoCaixa(tipo.id)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => removerTipoCaixa(tipo.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -579,31 +579,31 @@ export default function ConfiguracoesPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div className="space-y-2">
                   <Label htmlFor="nomeTipoCabo">Nome do Tipo</Label>
-                  <Input 
-                    id="nomeTipoCabo" 
+                  <Input
+                    id="nomeTipoCabo"
                     placeholder="Ex: Cabo 12F"
                     value={novoTipoCabo.nome}
-                    onChange={(e) => setNovoTipoCabo({...novoTipoCabo, nome: e.target.value})}
+                    onChange={(e) => setNovoTipoCabo({ ...novoTipoCabo, nome: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="descricaoTipoCabo">Descrição</Label>
-                  <Input 
-                    id="descricaoTipoCabo" 
+                  <Input
+                    id="descricaoTipoCabo"
                     placeholder="Ex: 12 fibras"
                     value={novoTipoCabo.descricao}
-                    onChange={(e) => setNovoTipoCabo({...novoTipoCabo, descricao: e.target.value})}
+                    onChange={(e) => setNovoTipoCabo({ ...novoTipoCabo, descricao: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="corTipoCabo">Cor</Label>
-                  <Input 
-                    id="corTipoCabo" 
+                  <Input
+                    id="corTipoCabo"
                     type="color"
                     value={novoTipoCabo.cor}
-                    onChange={(e) => setNovoTipoCabo({...novoTipoCabo, cor: e.target.value})}
+                    onChange={(e) => setNovoTipoCabo({ ...novoTipoCabo, cor: e.target.value })}
                     className="h-10 p-1 w-full"
                   />
                 </div>
@@ -639,8 +639,8 @@ export default function ConfiguracoesPage() {
                     {tiposCabo.map((tipo) => (
                       <tr key={tipo.id} className="border-b last:border-b-0">
                         <td className="p-2">
-                          <div 
-                            className="h-6 w-6 rounded-full" 
+                          <div
+                            className="h-6 w-6 rounded-full"
                             style={{ backgroundColor: tipo.cor }}
                           ></div>
                         </td>
@@ -648,16 +648,16 @@ export default function ConfiguracoesPage() {
                         <td className="p-2">{tipo.descricao}</td>
                         <td className="p-2 text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => editarTipoCabo(tipo.id)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
+                            <Button
+                              variant="outline"
+                              size="icon"
                               onClick={() => removerTipoCabo(tipo.id)}
                             >
                               <Trash2 className="h-4 w-4" />

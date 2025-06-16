@@ -11,13 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 // Registrar componentes do Chart.js
 ChartJS.register(
-  ArcElement, 
-  Tooltip, 
-  Legend, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
-  PointElement, 
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
   LineElement,
   Title
 );
@@ -28,7 +28,7 @@ ChartJS.register(
  */
 export default function RelatoriosPage() {
   const [periodoSelecionado, setPeriodoSelecionado] = useState('mes');
-  
+
   // Dados para o gráfico de distribuição de caixas por tipo
   const dadosCaixasPorTipo = {
     labels: ['CTO', 'CEO'],
@@ -121,14 +121,14 @@ export default function RelatoriosPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -137,12 +137,12 @@ export default function RelatoriosPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <FileTextIcon className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Relatórios e Estatísticas</h1>
+          <h1 className="text-2xl font-bold text-primary">Relatórios e Estatísticas</h1>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
-          <select 
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          <select
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm text-primary"
             value={periodoSelecionado}
             onChange={(e) => setPeriodoSelecionado(e.target.value)}
           >
@@ -150,7 +150,7 @@ export default function RelatoriosPage() {
             <option value="mes">Último Mês</option>
             <option value="trimestre">Último Trimestre</option>
             <option value="semestre">Último Semestre</option>
-            <option value="ano">Último Ano</option>
+            <option value="ano">Último Ano </option>
           </select>
           <Button className="flex items-center gap-1">
             <DownloadIcon className="h-4 w-4" />
@@ -172,7 +172,7 @@ export default function RelatoriosPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-4">
             <div className="p-2 rounded-full bg-green-100 dark:bg-green-900 mr-4">
@@ -184,7 +184,7 @@ export default function RelatoriosPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-4">
             <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900 mr-4">
@@ -196,7 +196,7 @@ export default function RelatoriosPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="flex items-center p-4">
             <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900 mr-4">

@@ -8,10 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogOutIcon, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { AdicionarCidadeModal } from "../cidade/AdicionarCidadeModal";
-
 import { motion } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
-
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -19,7 +17,6 @@ export default function Sidebar() {
     const { fazerLogout } = useAuth();
     const [modalCidadeAberto, setModalCidadeAberto] = useState(false);
     const { sidebarVisible, toggleSidebar } = useTheme();
-
     const handleLogout = async () => {
         try {
             await fazerLogout();
@@ -29,11 +26,9 @@ export default function Sidebar() {
             toast.error('Ocorreu um erro ao fazer logout');
         }
     };
-
     const abrirModalAdicionarCidade = () => {
         setModalCidadeAberto(true);
     };
-
     return (
         <>
             <motion.div
@@ -106,8 +101,6 @@ export default function Sidebar() {
                             </Button>
                         </div>
                     </div>
-
-
                     <AdicionarCidadeModal
                         aberto={modalCidadeAberto}
                         aoMudarEstado={setModalCidadeAberto}

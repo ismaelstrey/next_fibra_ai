@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { 
-  BoxIcon, 
-  SearchIcon, 
-  PlusIcon, 
+import {
+  BoxIcon,
+  SearchIcon,
+  PlusIcon,
   FilterIcon,
   ArrowUpDownIcon,
   EditIcon,
@@ -39,7 +39,7 @@ export default function CaixasPage() {
   const [busca, setBusca] = useState('');
   const [ordenacao, setOrdenacao] = useState<'nome' | 'tipo' | 'cidade'>('nome');
   const [ordem, setOrdem] = useState<'asc' | 'desc'>('asc');
-  
+
   // Dados de exemplo para caixas
   const caixasExemplo: Caixa[] = [
     {
@@ -144,14 +144,14 @@ export default function CaixasPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -160,9 +160,9 @@ export default function CaixasPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <BoxIcon className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Gerenciamento de Caixas</h1>
+          <h1 className="text-2xl font-bold text-primary">Gerenciamento de Caixas</h1>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <form onSubmit={handleBusca} className="flex">
             <div className="relative flex-grow">
@@ -236,7 +236,7 @@ export default function CaixasPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('nome')}
                       >
@@ -247,7 +247,7 @@ export default function CaixasPage() {
                           )}
                         </div>
                       </th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('tipo')}
                       >
@@ -260,7 +260,7 @@ export default function CaixasPage() {
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-medium">Modelo</th>
                       <th className="px-4 py-3 text-left text-sm font-medium">Capacidade</th>
-                      <th 
+                      <th
                         className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-accent"
                         onClick={() => alternarOrdenacao('cidade')}
                       >
@@ -288,24 +288,24 @@ export default function CaixasPage() {
                         <td className="px-4 py-3 text-sm">{caixa.cidade}</td>
                         <td className="px-4 py-3 text-sm text-right">
                           <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               onClick={() => visualizarCaixa(caixa.id)}
                               title="Visualizar"
                             >
                               <EyeIcon className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => editarCaixa(caixa.id)}
                               title="Editar"
                             >
                               <EditIcon className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               onClick={() => excluirCaixa(caixa.id)}
                               title="Excluir"
