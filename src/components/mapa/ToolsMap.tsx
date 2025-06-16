@@ -24,8 +24,6 @@ export default function ToolsMap() {
         carregarDados,
         atualizarFiltros,
         cidades,
-        adicionarRota,
-        adicionarCaixa
     } = useMapa();
 
     // Estado para controlar a expansão do painel
@@ -78,7 +76,7 @@ export default function ToolsMap() {
         setModoEdicao('rota');
     };
 
-    console.log(modoEdicao)
+    // Função para alternar a visibilidade de uma camada
 
     return (
         <motion.div
@@ -111,7 +109,7 @@ export default function ToolsMap() {
                                         aria-label="Desenhar rota"
                                         onClick={() => alternarModoEdicao('rota')}
                                     >
-                                        <PencilIcon className="h-4 w-4" />
+                                        <PencilIcon className={`h-4 w-4 ${modoEdicao === "rota" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -128,7 +126,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CTO"
                                         onClick={() => alternarModoEdicao('cto')}
                                     >
-                                        <BoxIcon className="h-4 w-4" />
+                                        <BoxIcon  className={`h-4 w-4 ${modoEdicao === "cto" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -145,7 +143,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CEO"
                                         onClick={() => alternarModoEdicao('ceo')}
                                     >
-                                        <MapPinIcon className="h-4 w-4" />
+                                        <MapPinIcon  className={`h-4 w-4 ${modoEdicao === "ceo" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -162,7 +160,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar ponto de fusão"
                                         onClick={() => alternarModoEdicao('fusao')}
                                     >
-                                        <ZapIcon className="h-4 w-4" />
+                                        <ZapIcon  className={`h-4 w-4 ${modoEdicao === "fusao" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -179,7 +177,7 @@ export default function ToolsMap() {
                                         aria-label="Editar elementos"
                                         onClick={() => alternarModoEdicao('editar')}
                                     >
-                                        <PencilIcon className="h-4 w-4" />
+                                        <PencilIcon  className={`h-4 w-4 ${modoEdicao === "editar" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -196,7 +194,7 @@ export default function ToolsMap() {
                                         aria-label="Cortar rota"
                                         onClick={() => alternarModoEdicao('cortar')}
                                     >
-                                        <ScissorsIcon className="h-4 w-4" />
+                                        <ScissorsIcon  className={`h-4 w-4 ${modoEdicao === "cortar" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -213,7 +211,7 @@ export default function ToolsMap() {
                                         aria-label="Mesclar rotas"
                                         onClick={() => alternarModoEdicao('mesclar')}
                                     >
-                                        <MergeIcon className="h-4 w-4" />
+                                        <MergeIcon  className={`h-4 w-4 ${modoEdicao === "mesclar" ?"text-primary":"text-primary/50"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">

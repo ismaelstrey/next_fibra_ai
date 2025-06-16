@@ -85,6 +85,7 @@ interface MapContextType {
   tipoCaboSelecionado: '6' | '12' | '24' | '48' | '96';
   isLoading: boolean;
   adicionarRota: (rota: Omit<Rota, 'id'>) => Promise<Rota | null>;
+  removerRota: (rotaId: string) => Promise<boolean>;
   adicionarCaixa: (caixa: Omit<Caixa, 'id'>) => Promise<Caixa | null>;
   adicionarPontoFusao: (pontoFusao: Omit<PontoFusao, 'id'>) => Promise<PontoFusao | null>;
   atualizarFiltros: (novosFiltros: FiltrosMapa) => void;
@@ -445,6 +446,28 @@ export function MapProvider({ children }: { children: ReactNode }) {
     return { rotas: rotasEncontradas, caixas: caixasEncontradas };
   };
 
+  /**
+   * Remove uma rota do estado e da API
+   */
+  const removerRota = async (rotaId: string): Promise<boolean> => {
+    try {
+      // Envia para a API
+      const response = await api.rotas.excluir(rotaId);
+
+      if (response.status === 200) {
+        // Atualiza o estado local removendo a rota
+        setRotas(prev => prev.filter(rota => rota.id !== rotaId));
+        toast.success('Rota removida com sucesso!');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erro ao remover rota:', error);
+      toast.error('Erro ao remover rota');
+      return false;
+    }
+  };
+
   // Valor do contexto que será fornecido aos componentes filhos
   const contextValue: MapContextType = {
     rotas,
@@ -457,6 +480,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     tipoCaboSelecionado,
     isLoading,
     adicionarRota,
+    removerRota,
     adicionarCaixa,
     adicionarPontoFusao,
     atualizarFiltros,
