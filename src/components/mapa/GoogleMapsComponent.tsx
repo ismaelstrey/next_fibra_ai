@@ -1,14 +1,11 @@
 'use client';
-
-import { useRef } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
-import { toast } from 'sonner';
-
 import useMapa from '@/hooks/useMapa';
 import { getFiberColor } from '@/functions/color';
 import AddCaixaModal from './AddCaixaModal';
 
-// Importações dos arquivos refatorados
+
 import { mapContainerStyle, center, mapOptions, drawingManagerOptions, tiposCabos } from './config/mapConfig';
 import { GoogleMapsComponentProps } from './types/mapTypes';
 import { useMarcadores } from './hooks/useMarcadores';
@@ -25,6 +22,14 @@ const GoogleMapsComponent = ({
 }: GoogleMapsComponentProps) => {
   // Referência para o mapa
   const mapRef = useRef<google.maps.Map | null>(null);
+  
+  // Função para lidar com o carregamento do mapa
+  const handleMapLoaded = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    if (onMapLoad) {
+      onMapLoad(map);
+    }
+  }, [onMapLoad]);
 
   // Obtém o estado do mapa do hook useMapa
   const {
@@ -109,8 +114,12 @@ const GoogleMapsComponent = ({
       center={center}
       zoom={13}
       options={mapOptions}
-      onLoad={handleMapLoad}
+      onLoad={map => {
+        handleMapLoaded(map);
+        handleMapLoad(map);
+      }}
       onClick={handleMapClick}
+
     >
       {/* Gerenciador de desenho para rotas */}
       {isLoaded && (
@@ -143,7 +152,7 @@ const GoogleMapsComponent = ({
               strokeColor: rota.cor || getFiberColor(rota.tipoCabo),
               strokeWeight: 5,
               editable: modoEdicao === 'editar',
-              draggable: modoEdicao === 'editar'
+              draggable: modoEdicao === 'editar',
             }}
           />
         );

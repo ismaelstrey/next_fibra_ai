@@ -262,8 +262,6 @@ export function MapProvider({ children }: { children: ReactNode }) {
   // Carrega os dados iniciais
   useEffect(() => {
     carregarDados();
-
-    console.log('carregarDados');
   }, []); // Adiciona array de dependências vazio para executar apenas na montagem
 
 

@@ -24,7 +24,53 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
     camadasVisiveis,
     filtros,
     adicionarCaixa,
+    caixas, // Adicionado para acessar as caixas da API
   } = useMapa();
+  
+  /**
+   * Efeito para carregar os marcadores existentes da API
+   */
+  useEffect(() => {
+    if (!mapRef.current || !caixas || caixas.length === 0) return;
+    
+    // Importa a biblioteca de marcadores
+    const carregarMarcadores = async () => {
+      try {
+        // Converte as caixas da API em marcadores
+        const marcadoresDaAPI = caixas.map(caixa => {
+          const iconUrl = caixa.tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
+          const title = caixa.rotaAssociada 
+            ? `${caixa.tipo} ${caixa.nome} - Vinculada à rota ${caixa.rotaAssociada}` 
+            : `${caixa.tipo} ${caixa.nome}`;
+          
+          // Cria um objeto LatLng do Google Maps
+          const position = new google.maps.LatLng(
+            caixa.posicao.lat,
+            caixa.posicao.lng
+          );
+          
+          return {
+            position,
+            icon: iconUrl,
+            title: title,
+            tipo: caixa.tipo,
+            draggable: modoEdicao === 'editar',
+            visible: camadasVisiveis.caixas
+          } as MarcadorInfo;
+        });
+        
+        // Atualiza o estado dos marcadores
+        setMarcadores(marcadoresDaAPI);
+        
+        // Recria os marcadores avançados no mapa
+        criarMarcadoresAvancados(true);
+      } catch (error) {
+        console.error('Erro ao carregar marcadores da API:', error);
+      }
+    };
+    
+    carregarMarcadores();
+  }, [caixas, modoEdicao, camadasVisiveis.caixas]);
 
   /**
    * Adiciona um marcador (CTO ou CEO) no mapa

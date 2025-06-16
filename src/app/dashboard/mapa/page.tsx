@@ -3,18 +3,16 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
-import { MapIcon, SearchIcon, LayersIcon, FilterIcon, PencilIcon, MapPinIcon, BoxIcon } from 'lucide-react';
+import { MapIcon, SearchIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Card, CardContent} from '@/components/ui/card';
 
 import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
-import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
+import useMapa from '@/hooks/useMapa';
 import ToolsMap from '@/components/mapa/ToolsMap';
-import FiltrosMaps from './_filtros';
-import CamadasMaps from './_camadas';
+
 
 /**
  * Página de visualização do mapa de fibra óptica
@@ -34,6 +32,7 @@ export default function MapaPage() {
     adicionarRota,
     buscarNoMapa,
     filtros,
+
   } = useMapa();
 
   /**
@@ -108,13 +107,6 @@ export default function MapaPage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-4">
-        {/* Painel lateral */}
-        {/* <div className="md:col-span-1 space-y-4">
-          <CamadasMaps />
-          <FiltrosMaps />
-        </div> */}
-
-        {/* Área do mapa */}
         <div className="md:col-span-4">
           <Card className="h-[calc(100vh-8rem)] bg-red-500 w-full">
             <CardContent className="p-0 h-full">
@@ -125,7 +117,7 @@ export default function MapaPage() {
                 {/* Componente do Google Maps */}
                 <GoogleMapsComponent
                   apiKey={apiKey}
-                  onRotaDesenhada={handleRotaDesenhada}
+                  onRotaDesenhada={handleRotaDesenhada}                  
                 />
               </div>
             </CardContent>
