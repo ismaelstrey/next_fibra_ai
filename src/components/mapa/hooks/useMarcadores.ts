@@ -211,16 +211,22 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         
         // Cria o marcador avançado diretamente no mapa
         const advancedMarker = new AdvancedMarkerElement({
+     
           position: marcador.position,
           map: mapRef.current,
           title: marcador.title,
           content: iconElement,
-          gmpDraggable: modoEdicao === 'editar'
+          gmpDraggable: modoEdicao === 'editar',
+          gmpClickable: true,
+        
+
         });
         
         // Adiciona evento de clique ao marcador (usando gmp-click conforme recomendado para AdvancedMarkerElement)
         advancedMarker.addListener('gmp-click', () => {
           // Se estiver no modo de edição, abre o modal
+
+          console.log('Clicou no marcador:', {...marcador});
           if (modoEdicao === 'editar') {
             setPosicaoClicada({
               lat: marcador.position.lat(),

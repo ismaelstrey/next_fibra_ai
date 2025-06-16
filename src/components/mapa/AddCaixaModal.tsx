@@ -12,12 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 interface AddCaixaModalProps {
   isOpen: boolean;
   onClose: () => void;
   position: google.maps.LatLngLiteral;
   rotaAssociada?: string;
+
 }
 
 /**
@@ -74,6 +76,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Adicionar {tipoCaixa}</DialogTitle>
+          <DialogDescription>Adicionar {tipoCaixa}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
