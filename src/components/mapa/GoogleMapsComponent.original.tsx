@@ -405,8 +405,8 @@ console.log(marcadores)
             gmpDraggable: modoEdicao === 'editar'
           });
           
-          // Adiciona evento de clique ao marcador
-          advancedMarker.addListener('click', () => {
+          // Adiciona evento de clique ao marcador (usando gmp-click conforme recomendado para AdvancedMarkerElement)
+          advancedMarker.addListener('gmp-click', () => {
             // Se estiver no modo de edição, abre o modal
             if (modoEdicao === 'editar') {
               setPosicaoClicada({
