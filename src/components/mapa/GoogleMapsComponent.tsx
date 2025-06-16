@@ -12,6 +12,9 @@ import { useMarcadores } from './hooks/useMarcadores';
 import { useRotas } from './hooks/useRotas';
 import { useMapHandlers } from './hooks/useMapHandlers';
 
+// Bibliotecas necessárias - definidas fora do componente para evitar recriação a cada render
+const libraries = ['drawing', 'geometry', 'marker'] as ("drawing" | "geometry" | "places" | "visualization" | "marker")[];
+
 /**
  * Componente do Google Maps para visualização e gerenciamento da infraestrutura de fibra óptica
  */
@@ -38,9 +41,6 @@ const GoogleMapsComponent = ({
     camadasVisiveis,
     rotas: rotasGlobais,
   } = useMapa();
-
-  // Bibliotecas necessárias
-  const libraries = ['drawing', 'geometry', 'marker'] as ("drawing" | "geometry" | "places" | "visualization" | "marker")[];
 
   // Carrega a API do Google Maps
   const { isLoaded, loadError } = useJsApiLoader({
