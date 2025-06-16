@@ -7,7 +7,7 @@ import { MapIcon, SearchIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
 import useMapa from '@/hooks/useMapa';
@@ -80,15 +80,14 @@ export default function MapaPage() {
 
   return (
     <motion.div
-      className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+      <header className="flex flex-col md:flex-row md:items-center md:justify-between p-2 bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center mb-4 md:mb-0">
           <MapIcon className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Mapa de Infraestrutura</h1>
+          <h1 className="text-2xl text-primary font-bold">Mapa de Infraestrutura</h1>
         </div>
 
         <form onSubmit={handleBusca} className="flex w-full md:w-auto">
@@ -106,18 +105,20 @@ export default function MapaPage() {
         </form>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-4">
-        <div className="md:col-span-4">
-          <Card className="h-[calc(100vh-8rem)] bg-red-500 w-full">
+      <div className="grid grid-cols-1">
+        <div className="w-full">
+          <Card className="h-[calc(100vh-3.5rem)] w-full border-0 rounded-none shadow-none">
             <CardContent className="p-0 h-full">
               <div className="relative h-full">
                 {/* Barra de ferramentas de edição */}
-                <ToolsMap />
+                <div className="absolute top-2 right-2 z-10">
+                  <ToolsMap />
+                </div>
 
                 {/* Componente do Google Maps */}
                 <GoogleMapsComponent
                   apiKey={apiKey}
-                  onRotaDesenhada={handleRotaDesenhada}                  
+                  onRotaDesenhada={handleRotaDesenhada}
                 />
               </div>
             </CardContent>

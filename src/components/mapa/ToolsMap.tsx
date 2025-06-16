@@ -80,7 +80,7 @@ export default function ToolsMap() {
 
     return (
         <motion.div
-            className="absolute top-4 left-4 z-10 bg-background rounded-lg shadow-lg overflow-hidden"
+            className="bg-background rounded-lg shadow-lg overflow-hidden"
             initial={{ width: 60 }}
             animate={{ width: painelExpandido ? 400 : 60 }}
             transition={{ duration: 0.3 }}

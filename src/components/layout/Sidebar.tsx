@@ -1,4 +1,4 @@
-import { menuItems } from "@/app/dashboard/layout";
+import { menuItems } from "@/constants/menuItems";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,8 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { LogOutIcon, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { AdicionarCidadeModal } from "../cidade/AdicionarCidadeModal";
-import { useTheme } from "@/context/ThemeContext";
+
 import { motion } from "framer-motion";
+import { useTheme } from "@/context/ThemeContext";
 
 
 export default function Sidebar() {
@@ -37,8 +38,8 @@ export default function Sidebar() {
         <>
             <motion.div
                 className="hidden md:flex md:flex-col md:fixed md:inset-y-0"
-                initial={{ width: sidebarVisible ? 256 : 80 }}
-                animate={{ width: sidebarVisible ? 256 : 80 }}
+                initial={{ width: sidebarVisible ? 256 : 65 }}
+                animate={{ width: sidebarVisible ? 256 : 65 }}
                 transition={{ duration: 0.2 }}>
                 <div className="flex flex-col flex-grow border-r border-border bg-card px-4 py-5 relative">
                     <div className="flex items-center justify-between h-14 mb-8">
@@ -47,13 +48,13 @@ export default function Sidebar() {
                             variant="ghost"
                             size="icon"
                             onClick={toggleSidebar}
-                            className="rounded-full"
+                            className="rounded-full text-primary"
                             aria-label={sidebarVisible ? "Ocultar menu" : "Mostrar menu"}
                         >
                             {sidebarVisible ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                         </Button>
                     </div>
-                    <nav className="flex-1 space-y-1 overflow-hidden">
+                    <nav className={`flex flex-col space-y-1 overflow-hidden ${sidebarVisible ? 'items-start justify-start' : "items-center justify-center"}`}>
                         {menuItems.map((item) => {
                             const isActive = pathname === item.href;
                             return (
