@@ -5,17 +5,20 @@ import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOutIcon, PlusCircle } from "lucide-react";
+import { LogOutIcon, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { AdicionarCidadeModal } from "../cidade/AdicionarCidadeModal";
+import { useTheme } from "@/context/ThemeContext";
+import { motion } from "framer-motion";
 
 
 export default function Sidebar() {
     const pathname = usePathname();
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
     const { fazerLogout } = useAuth();
     const [modalCidadeAberto, setModalCidadeAberto] = useState(false);
-    
+    const { sidebarVisible, toggleSidebar } = useTheme();
+
     const handleLogout = async () => {
         try {
             await fazerLogout();
@@ -25,75 +28,99 @@ export default function Sidebar() {
             toast.error('Ocorreu um erro ao fazer logout');
         }
     };
-    
+
     const abrirModalAdicionarCidade = () => {
         setModalCidadeAberto(true);
     };
+
     return (
-        <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
-            <div className="flex flex-col flex-grow border-r border-border bg-card px-4 py-5">
-                <div className="flex items-center justify-center h-14 mb-8">
-                    <h1 className="text-2xl font-bold text-primary">FibraDoc</h1>
-                </div>
-                <nav className="flex-1 space-y-1">
-                    {menuItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                    }`}
-                            >
-                                <span className="mr-3">{item.icon}</span>
-                                {item.label}
-                            </Link>
-                        );
-                    })}
-                </nav>
-                <div className="mt-auto">
-                    <div className="border-t border-border pt-4">
-                        <div className="flex items-center px-4 py-2">
-                            <div className="flex-shrink-0">
-                                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground" suppressHydrationWarning>
-                                    {session?.user?.name?.charAt(0) || 'U'}
-                                </div>
-                            </div>
-                            <div className="ml-3">
-                                <p className="text-sm font-medium" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
-                                <p className="text-xs text-muted-foreground" suppressHydrationWarning>{session?.user?.email}</p>
-                            </div>
-                        </div>
-                        <Button
-                            variant="outline"
-                            className="w-full mt-2 justify-start"
-                            onClick={abrirModalAdicionarCidade}
-                        >
-                            <PlusCircle className="h-5 w-5 mr-2" />
-                            Adicionar Cidade
-                        </Button>
+        <>
+            <motion.div
+                className="hidden md:flex md:flex-col md:fixed md:inset-y-0"
+                initial={{ width: sidebarVisible ? 256 : 80 }}
+                animate={{ width: sidebarVisible ? 256 : 80 }}
+                transition={{ duration: 0.2 }}>
+                <div className="flex flex-col flex-grow border-r border-border bg-card px-4 py-5 relative">
+                    <div className="flex items-center justify-between h-14 mb-8">
+                        <h1 className={`text-2xl font-bold text-primary ${!sidebarVisible && 'hidden'}`}>FibraDoc</h1>
                         <Button
                             variant="ghost"
-                            className="w-full mt-2 justify-start"
-                            onClick={handleLogout}
+                            size="icon"
+                            onClick={toggleSidebar}
+                            className="rounded-full"
+                            aria-label={sidebarVisible ? "Ocultar menu" : "Mostrar menu"}
                         >
-                            <LogOutIcon className="h-5 w-5 mr-2" />
-                            Sair
+                            {sidebarVisible ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                         </Button>
                     </div>
+                    <nav className="flex-1 space-y-1 overflow-hidden">
+                        {menuItems.map((item) => {
+                            const isActive = pathname === item.href;
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                        }`}
+                                    title={item.label}
+                                >
+                                    <span className={sidebarVisible ? "mr-3" : "mx-auto"}>{item.icon}</span>
+                                    {sidebarVisible && item.label}
+                                </Link>
+                            );
+                        })}
+                    </nav>
+                    <div className="mt-auto">
+                        <div className="border-t border-border pt-4">
+                            <div className={`flex items-center ${sidebarVisible ? 'px-4' : 'justify-center'} py-4`}>
+                                <div className="flex-shrink-0">
+                                    <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground" suppressHydrationWarning>
+                                        {session?.user?.name?.charAt(0) || 'U'}
+                                    </div>
+                                </div>
+                                {sidebarVisible && <div className="ml-3">
+                                    <p className="text-sm font-medium" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
+                                    <p className="text-xs text-muted-foreground" suppressHydrationWarning>{session?.user?.email}</p>
+                                </div>}
+                            </div>
+                            <Button
+                                variant="outline"
+                                className={`w-full mt-2 ${sidebarVisible ? 'justify-start' : 'justify-center'}`}
+                                onClick={abrirModalAdicionarCidade}
+                                title="Adicionar Cidade"
+                            >
+                                <PlusCircle className={`h-5 w-5 ${sidebarVisible ? 'mr-2' : ''}`} />
+                                {sidebarVisible && 'Adicionar Cidade'}
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                className={`w-full mt-2 ${sidebarVisible ? 'justify-start' : 'justify-center'}`}
+                                onClick={handleLogout}
+                                title="Sair"
+                            >
+                                <LogOutIcon className={`h-5 w-5 ${sidebarVisible ? 'mr-2' : ''}`} />
+                                {sidebarVisible && 'Sair'}
+                            </Button>
+                        </div>
+                    </div>
+
+
+                    <AdicionarCidadeModal
+                        aberto={modalCidadeAberto}
+                        aoMudarEstado={setModalCidadeAberto}
+                        aoAdicionar={() => {
+                            // Recarregar dados ou atualizar lista de cidades se necessário
+                        }}
+                    />
                 </div>
-            </div>
-            
-            {/* Modal para adicionar cidade */}
-            <AdicionarCidadeModal 
-                aberto={modalCidadeAberto} 
-                aoMudarEstado={setModalCidadeAberto} 
-                aoAdicionar={() => {
-                    // Recarregar dados ou atualizar lista de cidades se necessário
-                }}
-            />
-        </div>
+            </motion.div>
+
+
+
+
+
+        </>
     )
 }

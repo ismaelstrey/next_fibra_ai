@@ -24,6 +24,7 @@ import { toast } from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/context/ThemeContext';
 import { DashboardHeader } from '@/components/layout/dashboardHeader';
 import Sidebar from '@/components/layout/Sidebar';
 
@@ -51,6 +52,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { fazerLogout } = useAuth();
+  const { sidebarVisible } = useTheme();
   const [menuAberto, setMenuAberto] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [menu, setMenu] = useState<"top" | "left">("left");
@@ -191,7 +193,7 @@ export default function DashboardLayout({
       )}
 
       {/* Conteúdo principal */}
-      <div className="flex flex-col flex-1 md:pl-64">
+      <div className="flex flex-col flex-1 transition-all duration-200" style={{ paddingLeft: menu === "left" ? (sidebarVisible ? '16rem' : '4rem') : '0' }}>
         {/* Header do Dashboard */}
         {menu === "top" && <DashboardHeader />}
 

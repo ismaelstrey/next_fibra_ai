@@ -1,100 +1,98 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
-type Theme = 'light' | 'dark';
+type Theme = 'dark' | 'light' | 'system';
 
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
-/**
- * Hook para utilizar o contexto de tema
- * @returns {ThemeContextType} Objeto com o tema atual e funções para alterá-lo
- */
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme deve ser usado dentro de um ThemeProvider');
-  }
-  return context;
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
 };
 
-/**
- * Provedor de contexto de tema para a aplicação
- * Gerencia o estado do tema (claro/escuro) e sincroniza com localStorage e preferências do sistema
- */
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Estado para armazenar o tema atual (inicializado com 'light' para evitar diferenças entre SSR e cliente)
-  const [theme, setThemeState] = useState<Theme>('light');
-  // Estado para controlar se o componente está montado no cliente
-  const [isMounted, setIsMounted] = useState(false);
+type ThemeProviderState = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  sidebarVisible: boolean;
+  toggleSidebar: () => void;
+  setSidebarVisible: (visible: boolean) => void;
+};
 
-  // Efeito para carregar o tema do localStorage ou preferências do sistema
-  // Este efeito só é executado no cliente, não no servidor
+const initialState: ThemeProviderState = {
+  theme: 'system',
+  setTheme: () => null,
+  sidebarVisible: true,
+  toggleSidebar: () => null,
+  setSidebarVisible: () => null,
+};
+
+export const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
+
+export function ThemeProvider({
+  children,
+  defaultTheme = 'system',
+  ...props
+}: ThemeProviderProps) {
+  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
+
   useEffect(() => {
-    // Marca o componente como montado
-    setIsMounted(true);
-    
-    // Verifica se há um tema salvo no localStorage
-    const storedTheme = localStorage.getItem('theme') as Theme | null;
-    
-    // Se houver um tema salvo, usa-o
-    if (storedTheme) {
-      setThemeState(storedTheme);
-      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
-    } 
-    // Caso contrário, verifica as preferências do sistema
-    else {
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(systemPrefersDark ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', systemPrefersDark);
+    const root = window.document.documentElement;
+
+    root.classList.remove('light', 'dark');
+
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
+        .matches
+        ? 'dark'
+        : 'light';
+
+      root.classList.add(systemTheme);
+      return;
+    }
+
+    root.classList.add(theme);
+  }, [theme]);
+
+  // Recupera o estado da sidebar do localStorage ao iniciar
+  useEffect(() => {
+    const savedSidebarState = localStorage.getItem('sidebarVisible');
+    if (savedSidebarState !== null) {
+      setSidebarVisible(savedSidebarState === 'true');
     }
   }, []);
 
-  // Função para alternar entre os temas
-  const toggleTheme = () => {
-    setThemeState((prevTheme) => {
-      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-      if (isMounted) {
-        localStorage.setItem('theme', newTheme);
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-      }
-      return newTheme;
-    });
+  const toggleSidebar = () => {
+    const newState = !sidebarVisible;
+    localStorage.setItem('sidebarVisible', String(newState));
+    setSidebarVisible(newState);
   };
 
-  // Função para definir um tema específico
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    if (isMounted) {
-      localStorage.setItem('theme', newTheme);
-      document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    }
+  const value = {
+    theme,
+    setTheme: (theme: Theme) => {
+      localStorage.setItem('theme', theme);
+      setTheme(theme);
+    },
+    sidebarVisible,
+    toggleSidebar,
+    setSidebarVisible: (visible: boolean) => {
+      localStorage.setItem('sidebarVisible', String(visible));
+      setSidebarVisible(visible);
+    },
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={theme}
-          initial={{ opacity: 0.8 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0.8 }}
-          transition={{ duration: 0.15 }}
-          className="min-h-screen"
-          suppressHydrationWarning
-        > 
-
-             
-          {children}
-        </motion.div>
-      </AnimatePresence>
-    </ThemeContext.Provider>
+    <ThemeProviderContext.Provider {...props} value={value}>
+      {children}
+    </ThemeProviderContext.Provider>
   );
 }
+
+export const useTheme = () => {
+  const context = useContext(ThemeProviderContext);
+
+  if (context === undefined)
+    throw new Error('useTheme must be used within a ThemeProvider');
+
+  return context;
+};
