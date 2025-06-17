@@ -4,11 +4,9 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { MapIcon, SearchIcon } from 'lucide-react';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-
 import GoogleMapsComponent from '@/components/mapa/GoogleMapsComponent';
 import useMapa from '@/hooks/useMapa';
 import ToolsMap from '@/components/mapa/ToolsMap';

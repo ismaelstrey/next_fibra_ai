@@ -1,9 +1,11 @@
 'use client';
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import { GoogleMap, useJsApiLoader, DrawingManager, Polyline } from '@react-google-maps/api';
 import useMapa from '@/hooks/useMapa';
 import { getFiberColor } from '@/functions/color';
 import AddCaixaModal from './AddCaixaModal';
+import { DetalhesMarcadorModal } from './DetalhesMarcadorModal';
+import { Caixa } from '@/context/MapContext';
 
 
 import { mapContainerStyle, center, mapOptions, drawingManagerOptions, tiposCabos } from './config/mapConfig';
@@ -25,7 +27,11 @@ const GoogleMapsComponent = ({
 }: GoogleMapsComponentProps) => {
   // Referência para o mapa
   const mapRef = useRef<google.maps.Map | null>(null);
-  
+
+  // Estado para controlar o modal de detalhes do marcador
+  const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
+  const [marcadorSelecionado, setMarcadorSelecionado] = useState<Caixa | null>(null);
+
   // Função para lidar com o carregamento do mapa
   const handleMapLoaded = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -33,6 +39,21 @@ const GoogleMapsComponent = ({
       onMapLoad(map);
     }
   }, [onMapLoad]);
+
+  // Adiciona um listener para o evento personalizado 'marcador-clicado'
+  useEffect(() => {
+    const handleMarcadorClicado = (event: Event) => {
+      const customEvent = event as CustomEvent<Caixa>;
+      setMarcadorSelecionado(customEvent.detail);
+      setDetalhesModalAberto(true);
+    };
+
+    window.addEventListener('marcador-clicado', handleMarcadorClicado);
+
+    return () => {
+      window.removeEventListener('marcador-clicado', handleMarcadorClicado);
+    };
+  }, []);
 
   // Obtém o estado do mapa do hook useMapa
   const {
@@ -50,7 +71,6 @@ const GoogleMapsComponent = ({
 
   // Utiliza os hooks refatorados
   const {
-    marcadores,
     modalAberto,
     setModalAberto,
     posicaoClicada,
@@ -169,6 +189,13 @@ const GoogleMapsComponent = ({
           rotaAssociada={rotaAssociada}
         />
       )}
+
+      {/* Modal para exibir detalhes do marcador */}
+      <DetalhesMarcadorModal
+        aberto={detalhesModalAberto}
+        aoFechar={() => setDetalhesModalAberto(false)}
+        marcador={marcadorSelecionado}
+      />
     </GoogleMap>
   );
 };

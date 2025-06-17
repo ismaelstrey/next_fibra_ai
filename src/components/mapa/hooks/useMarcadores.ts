@@ -9,7 +9,7 @@ import { MarcadorInfo } from '../types/mapTypes';
 export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) => {
   // Estado para armazenar os marcadores (CTOs e CEOs)
   const [marcadores, setMarcadores] = useState<MarcadorInfo[]>([]);
-  
+
   // Estado para controlar o modal de adicionar CTO/CEO
   const [modalAberto, setModalAberto] = useState(false);
   const [posicaoClicada, setPosicaoClicada] = useState<google.maps.LatLngLiteral | null>(null);
@@ -26,29 +26,29 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
     adicionarCaixa,
     caixas, // Adicionado para acessar as caixas da API
   } = useMapa();
-  
+
   /**
    * Efeito para carregar os marcadores existentes da API
    */
   useEffect(() => {
     if (!mapRef.current || !caixas || caixas.length === 0) return;
-    
+
     // Importa a biblioteca de marcadores
     const carregarMarcadores = async () => {
       try {
         // Converte as caixas da API em marcadores
         const marcadoresDaAPI = caixas.map(caixa => {
           const iconUrl = caixa.tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
-          const title = caixa.rotaAssociada 
-            ? `${caixa.tipo} ${caixa.nome} - Vinculada à rota ${caixa.rotaAssociada}` 
+          const title = caixa.rotaAssociada
+            ? `${caixa.tipo} ${caixa.nome} - Vinculada à rota ${caixa.rotaAssociada}`
             : `${caixa.tipo} ${caixa.nome}`;
-          
+
           // Cria um objeto LatLng do Google Maps
           const position = new google.maps.LatLng(
             caixa.posicao.lat,
             caixa.posicao.lng
           );
-          
+
           return {
             position,
             icon: iconUrl,
@@ -58,17 +58,17 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
             visible: camadasVisiveis.caixas
           } as MarcadorInfo;
         });
-        
+
         // Atualiza o estado dos marcadores
         setMarcadores(marcadoresDaAPI);
-        
+
         // Recria os marcadores avançados no mapa
         criarMarcadoresAvancados(true);
       } catch (error) {
         console.error('Erro ao carregar marcadores da API:', error);
       }
     };
-    
+
     carregarMarcadores();
   }, [caixas, modoEdicao, camadasVisiveis.caixas]);
 
@@ -87,7 +87,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
       tipo: tipo,
       draggable: true
     };
-   
+
     setMarcadores(prev => [...prev, novoMarcador]);
 
     // Verifica se há uma cidade selecionada nos filtros
@@ -115,10 +115,10 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
    */
   const adicionarMarcadorNaRota = useCallback((event: google.maps.PolyMouseEvent, rota: any) => {
     if (!event.latLng || !mapRef.current) return;
-    
+
     const lat = event.latLng?.lat();
     const lng = event.latLng?.lng();
-    const latLng = {lat, lng};
+    const latLng = { lat, lng };
 
     if (latLng?.lat === undefined || latLng.lng === undefined) return;
 
@@ -126,11 +126,11 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
     if (modoEdicao === 'cto' || modoEdicao === 'ceo') {
       // Cria um novo marcador na posição do clique
       const tipo = modoEdicao === 'cto' ? 'CTO' : 'CEO';
-      
+
       if (!mapRef.current) return;
 
       const iconUrl = tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
-      
+
       const novoMarcador: MarcadorInfo = {
         position: event.latLng,
         icon: iconUrl,
@@ -160,7 +160,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão',
         capacidade: tipo === 'CTO' ? 8 : 12
       });
-      
+
       toast.success(`${tipo} adicionada e vinculada à rota ${rota.nome}`);
     }
   }, [modoEdicao, adicionarCaixa, filtros.cidade, mapRef]);
@@ -187,20 +187,20 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
    */
   const criarMarcadoresAvancados = useCallback(async (isLoaded: boolean) => {
     if (!isLoaded || !mapRef.current) return;
-    
+
     // Remove todos os marcadores avançados existentes
     advancedMarkersRef.current.forEach(marker => {
       marker.map = null;
     });
     advancedMarkersRef.current = [];
-    
+
     // Obtém os marcadores visíveis
     const marcadoresVisiveis = marcadoresFiltrados();
-    
+
     // Importa a biblioteca de marcadores
     try {
       const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
-      
+
       // Cria cada marcador
       marcadoresVisiveis.forEach(marcador => {
         // Cria o elemento para o ícone
@@ -208,25 +208,41 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         iconElement.src = marcador.icon;
         iconElement.style.width = '32px';
         iconElement.style.height = '32px';
-        
+
         // Cria o marcador avançado diretamente no mapa
         const advancedMarker = new AdvancedMarkerElement({
-     
+
           position: marcador.position,
           map: mapRef.current,
           title: marcador.title,
           content: iconElement,
           gmpDraggable: modoEdicao === 'editar',
           gmpClickable: true,
-        
+
 
         });
-        
+
         // Adiciona evento de clique ao marcador (usando gmp-click conforme recomendado para AdvancedMarkerElement)
         advancedMarker.addListener('gmp-click', () => {
-          // Se estiver no modo de edição, abre o modal
-
-          console.log('Clicou no marcador:', {...marcador});
+          console.log('Clicou no marcador:', { ...marcador });
+          
+          // Encontra a caixa correspondente ao marcador clicado
+          const caixaClicada = caixas?.find(caixa => {
+            // Compara as coordenadas para identificar a caixa correta
+            return (
+              caixa.posicao.lat === marcador.position.lat() &&
+              caixa.posicao.lng === marcador.position.lng() &&
+              caixa.tipo === marcador.tipo
+            );
+          });
+          
+          if (caixaClicada) {
+            // Emite evento para abrir o modal de detalhes
+            const event = new CustomEvent('marcador-clicado', { detail: caixaClicada });
+            window.dispatchEvent(event);
+          }
+          
+          // Se estiver no modo de edição, abre o modal de edição
           if (modoEdicao === 'editar') {
             setPosicaoClicada({
               lat: marcador.position.lat(),
@@ -238,7 +254,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
             setModalAberto(true);
           }
         });
-        
+
         // Armazena o marcador na referência
         advancedMarkersRef.current.push(advancedMarker);
       });

@@ -214,6 +214,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
    */
   const carregarDados = useCallback(async (cidadeId?: string) => {
     setIsLoading(true);
+    setModoEdicao(null)
     try {
       // Carrega as cidades
       const cidadesResponse = await api.cidades.listar({ limite: 100 });

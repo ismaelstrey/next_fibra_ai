@@ -49,7 +49,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Verifica se há uma cidade selecionada nos filtros
     if (!filtros.cidade) {
       toast.error(`Selecione uma cidade antes de adicionar uma ${tipoCaixa}`);
@@ -66,14 +66,14 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
       modelo,
       capacidade
     });
-    
+
     toast.success(`${tipoCaixa} adicionada com sucesso`);
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] text-primary">
         <DialogHeader>
           <DialogTitle>Adicionar {tipoCaixa}</DialogTitle>
           <DialogDescription>Adicionar {tipoCaixa}</DialogDescription>
@@ -94,7 +94,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="nome">Nome</Label>
             <Input
@@ -104,7 +104,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="modelo">Modelo</Label>
             <Input
@@ -114,7 +114,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
               required
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="capacidade">Capacidade</Label>
             <Input
@@ -125,7 +125,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
               required
             />
           </div>
-          
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
