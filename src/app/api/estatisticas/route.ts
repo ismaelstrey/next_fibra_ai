@@ -1,7 +1,7 @@
 // src/app/api/estatisticas/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/prisma/prisma";
+import { prisma } from "../../../prisma/prisma";
 import { verificarAutenticacao, tratarErro } from "../utils";
 import { consultaEstatisticasSchema } from "./schema";
 
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Prepara o filtro de período
-    const filtroData: any = {};
+    const filtroData: { gte?: Date; lte?: Date } = {};
     if (dataInicio) {
       filtroData.gte = new Date(dataInicio);
     }
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Prepara o filtro de cidade para usuários não gerentes
-    let filtroCidades: any = {};
+    let filtroCidades: { id?: string; OR?: Array<{ id: string }> } = {};
     if (token.cargo !== "Gerente" && !cidadeId) {
       // Busca as cidades que o usuário tem acesso
       const cidadesUsuario = await prisma.cidade.findMany({
@@ -71,11 +71,11 @@ export async function GET(req: NextRequest) {
 
       if (cidadesUsuario.length > 0) {
         filtroCidades = {
-          in: cidadesUsuario.map((cidade) => cidade.id),
+          OR: cidadesUsuario.map((cidade) => ({ id: cidade.id })),
         };
       }
     } else if (cidadeId) {
-      filtroCidades = cidadeId;
+      filtroCidades = { id: cidadeId };
     }
 
     // Obtém estatísticas com base no tipo solicitado
@@ -85,9 +85,9 @@ export async function GET(req: NextRequest) {
       case "manutencoes":
         estatisticas = await obterEstatisticasManutencoes({
           filtroData,
-          filtroCidades,
+          _filtroCidades: filtroCidades,
           usuarioId,
-          agruparPor,
+          _agruparPor: agruparPor,
         });
         break;
 
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
         estatisticas = await obterEstatisticasCaixas({
           filtroData,
           filtroCidades,
-          agruparPor,
+          _agruparPor: agruparPor,
         });
         break;
 
@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
         estatisticas = await obterEstatisticasRotas({
           filtroData,
           filtroCidades,
-          agruparPor,
+          _agruparPor: agruparPor,
         });
         break;
 
@@ -117,9 +117,9 @@ export async function GET(req: NextRequest) {
         }
         estatisticas = await obterEstatisticasUsuarios({
           filtroData,
-          filtroCidades,
+          _filtroCidades: filtroCidades,
           usuarioId: usuarioId || (token.sub as string),
-          agruparPor,
+          _agruparPor: agruparPor,
         });
         break;
 
@@ -127,7 +127,7 @@ export async function GET(req: NextRequest) {
         estatisticas = await obterEstatisticasCidades({
           filtroData,
           filtroCidades,
-          agruparPor,
+          _agruparPor: agruparPor,
         });
         break;
 
@@ -174,28 +174,30 @@ export async function GET(req: NextRequest) {
  */
 async function obterEstatisticasManutencoes({
   filtroData,
-  filtroCidades,
+  _filtroCidades,
   usuarioId,
-  agruparPor,
+  _agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
+  filtroData: { gte?: Date; lte?: Date };
+  _filtroCidades: { id?: string; OR?: Array<{ id: string }> };
   usuarioId?: string;
-  agruparPor: string;
+  _agruparPor: string;
 }) {
   // Filtro base para manutenções
-  const filtro: any = {};
+  const filtro: { data?: { gte?: Date; lte?: Date }; cidadeId?: string; OR?: Array<{ cidadeId: string }>; tecnicoId?: string; responsavelId?: string } = {};
 
   // Adiciona filtro de data se fornecido
   if (Object.keys(filtroData).length > 0) {
-    filtro.criadoEm = filtroData;
+    filtro.data = filtroData;
   }
 
   // Adiciona filtro de cidade se fornecido
-  if (typeof filtroCidades === "string") {
-    filtro.cidadeId = filtroCidades;
-  } else if (filtroCidades.in && filtroCidades.in.length > 0) {
-    filtro.cidadeId = filtroCidades;
+  if (typeof _filtroCidades === "string") {
+    filtro.cidadeId = _filtroCidades;
+  } else if (_filtroCidades.OR && _filtroCidades.OR.length > 0) {
+    filtro.OR = _filtroCidades.OR.map(cidade => ({ cidadeId: cidade.id }));
+  } else if (_filtroCidades.id) {
+    filtro.cidadeId = _filtroCidades.id;
   }
 
   // Adiciona filtro de usuário se fornecido
@@ -246,7 +248,7 @@ async function obterEstatisticasManutencoes({
   // Manutenções por período (dia, semana, mês, ano)
   let manutencoesAoLongo;
 
-  if (agruparPor === "dia") {
+  if (_agruparPor === "dia") {
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE("criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
@@ -254,7 +256,7 @@ async function obterEstatisticasManutencoes({
       GROUP BY DATE("criadoEm")
       ORDER BY data
     `;
-  } else if (agruparPor === "semana") {
+  } else if (_agruparPor === "semana") {
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('week', "criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
@@ -262,7 +264,7 @@ async function obterEstatisticasManutencoes({
       GROUP BY DATE_TRUNC('week', "criadoEm")
       ORDER BY data
     `;
-  } else if (agruparPor === "mes") {
+  } else if (_agruparPor === "mes") {
     manutencoesAoLongo = await prisma.$queryRaw`
       SELECT DATE_TRUNC('month', "criadoEm") as data, COUNT(*) as total
       FROM "Manutencao"
@@ -294,7 +296,7 @@ async function obterEstatisticasManutencoes({
       prioridade: item.prioridade,
       total: item._count,
     })),
-    tempoMedioResolucao: (tempoMedioResolucao as any)[0]?.tempoMedio || 0,
+    tempoMedioResolucao: (tempoMedioResolucao as { tempoMedio?: number }[])[0]?.tempoMedio || 0,
     aoLongoDoPeriodo: manutencoesAoLongo,
   };
 }
@@ -305,20 +307,22 @@ async function obterEstatisticasManutencoes({
 async function obterEstatisticasCaixas({
   filtroData,
   filtroCidades,
-  agruparPor,
+  _agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
-  agruparPor: string;
+  filtroData: { gte?: Date; lte?: Date };
+  filtroCidades: { id?: string; OR?: Array<{ id: string }> };
+  _agruparPor: string;
 }) {
   // Filtro base para caixas
-  const filtro: any = {};
+  const filtro: { criadoEm?: { gte?: Date; lte?: Date }; cidadeId?: string; OR?: Array<{ cidadeId: string }> } = {};
 
   // Adiciona filtro de cidade se fornecido
   if (typeof filtroCidades === "string") {
     filtro.cidadeId = filtroCidades;
-  } else if (filtroCidades.in && filtroCidades.in.length > 0) {
-    filtro.cidadeId = filtroCidades;
+  } else if (typeof filtroCidades === 'object' && 'OR' in filtroCidades && filtroCidades.OR && filtroCidades.OR.length > 0) {
+    filtro.OR = filtroCidades.OR.map(cidade => ({ cidadeId: cidade.id }));
+  } else if (typeof filtroCidades === 'object' && 'id' in filtroCidades && filtroCidades.id) {
+    filtro.cidadeId = filtroCidades.id;
   }
 
   // Contagem total de caixas
@@ -434,20 +438,24 @@ async function obterEstatisticasCaixas({
 async function obterEstatisticasRotas({
   filtroData,
   filtroCidades,
-  agruparPor,
+  _agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
-  agruparPor: string;
+  filtroData: { gte?: Date; lte?: Date };
+  filtroCidades: { id?: string; OR?: Array<{ id: string }> } | string | { in?: string[] };
+  _agruparPor: string;
 }) {
   // Filtro base para rotas
-  const filtro: any = {};
+  const filtro: { criadoEm?: { gte?: Date; lte?: Date }; cidadeId?: string | { in?: string[] }; OR?: Array<{ cidadeId: string }> } = {};
 
   // Adiciona filtro de cidade se fornecido
   if (typeof filtroCidades === "string") {
     filtro.cidadeId = filtroCidades;
-  } else if (filtroCidades.in && filtroCidades.in.length > 0) {
+  } else if (typeof filtroCidades === 'object' && 'in' in filtroCidades && filtroCidades.in && filtroCidades.in.length > 0) {
     filtro.cidadeId = filtroCidades;
+  } else if (typeof filtroCidades === 'object' && 'OR' in filtroCidades && filtroCidades.OR && filtroCidades.OR.length > 0) {
+    filtro.OR = filtroCidades.OR.map(cidade => ({ cidadeId: cidade.id }));
+  } else if (typeof filtroCidades === 'object' && 'id' in filtroCidades && filtroCidades.id) {
+    filtro.cidadeId = filtroCidades.id;
   }
 
   // Contagem total de rotas
@@ -562,32 +570,65 @@ async function obterEstatisticasRotas({
  */
 async function obterEstatisticasUsuarios({
   filtroData,
-  filtroCidades,
+  _filtroCidades,
   usuarioId,
-  agruparPor,
+  _agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
+  filtroData: { gte?: Date; lte?: Date };
+  _filtroCidades: { id?: string; OR?: Array<{ id: string }> };
   usuarioId?: string;
-  agruparPor: string;
+  _agruparPor: string;
 }) {
   // Filtro base para usuários
-  const filtro: any = {};
+  type UsuarioFiltro = {
+    id?: string;
+    cidades?: { some: { id: string | { in: string[] } } };
+    criadoEm?: { gte?: Date; lte?: Date };
+  };
+  
+  const filtro: UsuarioFiltro = {};
 
   // Adiciona filtro de usuário específico se fornecido
   if (usuarioId) {
     filtro.id = usuarioId;
   }
 
+  // Adiciona filtro de data se fornecido
+  if (filtroData && (filtroData.gte || filtroData.lte)) {
+    filtro.criadoEm = filtroData;
+  }
+
+  // Adiciona filtro de cidade se fornecido
+  if (_filtroCidades) {
+    if (typeof _filtroCidades === "string") {
+      filtro.cidades = { some: { id: _filtroCidades } };
+    } else if (typeof _filtroCidades === 'object') {
+      if ('OR' in _filtroCidades && Array.isArray(_filtroCidades.OR) && _filtroCidades.OR.length > 0) {
+        const cidadeIds = _filtroCidades.OR.map((cidade: { id: string }) => cidade.id);
+        filtro.cidades = { some: { id: { in: cidadeIds } } };
+      } else if ('id' in _filtroCidades && _filtroCidades.id) {
+        filtro.cidades = { some: { id: _filtroCidades.id } };
+      }
+    }
+  }
+
   // Contagem total de usuários
   const totalUsuarios = await prisma.usuario.count({
-    where: filtro,
+    where: {
+      ...(filtro.id ? { id: filtro.id } : {}),
+      ...(filtro.cidades ? { cidades: filtro.cidades } : {}),
+      ...(filtro.criadoEm ? { criadoEm: filtro.criadoEm } : {}),
+    },
   });
 
   // Contagem por cargo
   const contagemPorCargo = await prisma.usuario.groupBy({
     by: ["cargo"],
-    where: filtro,
+    where: {
+      ...(filtro.id ? { id: filtro.id } : {}),
+      ...(filtro.cidades ? { cidades: filtro.cidades } : {}),
+      ...(filtro.criadoEm ? { criadoEm: filtro.criadoEm } : {}),
+    },
     _count: {
       _all: true
     },
@@ -616,7 +657,7 @@ async function obterEstatisticasUsuarios({
   const usuariosComMaisManutencoes = await prisma.usuario.findMany({
     where: {
       id: {
-        in: manutencoesPorUsuario.map(item => item.responsavelId as string),
+        in: manutencoesPorUsuario.map(item => item.responsavelId as string).filter(Boolean),
       },
     },
     select: {
@@ -649,7 +690,7 @@ async function obterEstatisticasUsuarios({
   const usuariosComAtividades = await prisma.usuario.findMany({
     where: {
       id: {
-        in: Object.keys(atividadesAgrupadas),
+        in: Object.keys(atividadesAgrupadas).filter(Boolean),
       },
     },
     select: {
@@ -686,20 +727,22 @@ async function obterEstatisticasUsuarios({
 async function obterEstatisticasCidades({
   filtroData,
   filtroCidades,
-  agruparPor,
+  _agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
-  agruparPor: string;
+  filtroData: { gte?: Date; lte?: Date };
+  filtroCidades: { id?: string; OR?: Array<{ id: string }> } | string;
+  _agruparPor: string;
 }) {
   // Filtro base para cidades
-  const filtro: any = {};
+  const filtro: { id?: string | { in: string[] }; criadoEm?: { gte?: Date; lte?: Date } } = {};
 
   // Adiciona filtro de cidade específica se fornecido
   if (typeof filtroCidades === "string") {
     filtro.id = filtroCidades;
-  } else if (filtroCidades.in && filtroCidades.in.length > 0) {
-    filtro.id = filtroCidades;
+  } else if (filtroCidades.OR && Array.isArray(filtroCidades.OR) && filtroCidades.OR.length > 0) {
+    filtro.id = { in: filtroCidades.OR.map((cidade: { id: string }) => cidade.id) };
+  } else if (filtroCidades.id) {
+    filtro.id = filtroCidades.id;
   }
 
   // Contagem total de cidades
@@ -721,7 +764,10 @@ async function obterEstatisticasCidades({
     by: ["cidadeId"],
     where: {
       ...(typeof filtroCidades === "string" ? { cidadeId: filtroCidades } : {}),
-      ...(filtroCidades.in && filtroCidades.in.length > 0 ? { cidadeId: filtroCidades } : {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.OR && Array.isArray(filtroCidades.OR) && filtroCidades.OR.length > 0 ? 
+        { cidadeId: { in: filtroCidades.OR.map((cidade: { id: string }) => cidade.id) } } : 
+        {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.id ? { cidadeId: filtroCidades.id } : {}),
     },
     _count: {
       _all: true
@@ -733,7 +779,10 @@ async function obterEstatisticasCidades({
     by: ["cidadeId"],
     where: {
       ...(typeof filtroCidades === "string" ? { cidadeId: filtroCidades } : {}),
-      ...(filtroCidades.in && filtroCidades.in.length > 0 ? { cidadeId: filtroCidades } : {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.OR && Array.isArray(filtroCidades.OR) && filtroCidades.OR.length > 0 ? 
+        { cidadeId: { in: filtroCidades.OR.map((cidade: { id: string }) => cidade.id) } } : 
+        {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.id ? { cidadeId: filtroCidades.id } : {}),
     },
     _count: {
       _all: true
@@ -745,7 +794,10 @@ async function obterEstatisticasCidades({
     by: ["cidadeId"],
     where: {
       ...(typeof filtroCidades === "string" ? { cidadeId: filtroCidades } : {}),
-      ...(filtroCidades.in && filtroCidades.in.length > 0 ? { cidadeId: filtroCidades } : {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.OR && Array.isArray(filtroCidades.OR) && filtroCidades.OR.length > 0 ? 
+        { cidadeId: { in: filtroCidades.OR.map((cidade: { id: string }) => cidade.id) } } : 
+        {}),
+      ...(typeof filtroCidades !== "string" && filtroCidades.id ? { cidadeId: filtroCidades.id } : {}),
       ...(Object.keys(filtroData).length > 0 ? { criadoEm: filtroData } : {}),
     },
     _count: true,
@@ -790,13 +842,13 @@ async function obterEstatisticasEventos({
   usuarioId,
   agruparPor,
 }: {
-  filtroData: any;
-  filtroCidades: any;
+  filtroData: { gte?: Date; lte?: Date };
+  filtroCidades: { id?: string; OR?: Array<{ id: string }> };
   usuarioId?: string;
   agruparPor: string;
 }) {
   // Filtro base para eventos
-  const filtro: any = {};
+  const filtro: { dataInicio?: { gte?: Date; lte?: Date }; cidadeId?: string | { in: string[] }; OR?: Array<{ cidadeId: string }>; usuarioId?: string; criadorId?: string } = {};
 
   // Adiciona filtro de data se fornecido
   if (Object.keys(filtroData).length > 0) {
@@ -806,8 +858,10 @@ async function obterEstatisticasEventos({
   // Adiciona filtro de cidade se fornecido
   if (typeof filtroCidades === "string") {
     filtro.cidadeId = filtroCidades;
-  } else if (filtroCidades.in && filtroCidades.in.length > 0) {
-    filtro.cidadeId = filtroCidades;
+  } else if (typeof filtroCidades !== "string" && filtroCidades.OR && Array.isArray(filtroCidades.OR) && filtroCidades.OR.length > 0) {
+    filtro.cidadeId = { in: filtroCidades.OR.map((cidade: { id: string }) => cidade.id) };
+  } else if (typeof filtroCidades !== "string" && filtroCidades.id) {
+    filtro.cidadeId = filtroCidades.id;
   }
 
   // Adiciona filtro de usuário se fornecido
@@ -893,12 +947,12 @@ async function obterEstatisticasAtividade({
   usuarioId,
   agruparPor,
 }: {
-  filtroData: any;
+  filtroData: { gte?: Date; lte?: Date };
   usuarioId?: string;
   agruparPor: string;
 }) {
   // Filtro base para atividades
-  const filtro: any = {};
+  const filtro: { criadoEm?: { gte?: Date; lte?: Date }; usuarioId?: string } = {};
 
   // Adiciona filtro de data se fornecido
   if (Object.keys(filtroData).length > 0) {

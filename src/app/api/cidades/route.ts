@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const skip = (pagina - 1) * limite;
 
     // Constrói o filtro
-    const where: any = {};
+    const where: { nome?: { contains: string } } = {};
     
     // Adiciona filtro de busca por nome
     if (busca) {

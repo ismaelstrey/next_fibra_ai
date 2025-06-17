@@ -74,7 +74,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const status = searchParams.get("status"); // Livre, Ocupada, Reservada, Defeito
 
     // Constrói o filtro
-    const where: any = { caixaId: id };
+    const where: { caixaId: string; status?: string } = { caixaId: id };
     
     // Adiciona filtro por status
     if (status) {
