@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -59,8 +59,16 @@ export function DiagramaFusao({ cabos = [], splitters = [], onConexaoRealizada }
   // Gerenciamento de conexões
   const { onConnect } = useConexaoManager({ setEdges, onConexaoRealizada });
 
-  // Inicialização do diagrama
-  useDiagramaInitializer({ cabos, splitters, setNodes, setNodeCounter });
+  // Inicialização do diagrama com os cabos e splitters fornecidos como props
+  // 
+
+  useEffect(() => {
+    // Só inicializa se houver dados para carregar e os nós ainda não foram inicializados
+    if ((cabos.length > 0 || splitters.length > 0) && nodes.length === 0) {
+      useDiagramaInitializer({ cabos, splitters, setNodes, setNodeCounter });
+      // Código de inicialização existente...
+    }
+  }, [cabos, splitters, setNodes, setNodeCounter, nodes.length]);
 
   return (
     <Card className="w-full h-[800px] shadow-lg">

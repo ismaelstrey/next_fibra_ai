@@ -41,10 +41,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Toaster position="bottom-center"/>
+        <Toaster position="bottom-center" />
         <ThemeProvider>
           <AuthProvider>
-            <MapProvider>         
+            <MapProvider>
               {children}
             </MapProvider>
           </AuthProvider>

@@ -27,24 +27,37 @@ export function useCaboManager({ nodeCounter, setNodeCounter, setNodes }: UseCab
     let numTubos = 1;
     let fibrasPerTubo = numFibras;
 
-    if (numFibras <= 12) {
-      // Cabos de 2 a 12 fibras: 2 fibras por tubo loose (exceto cabos de tubo único)
-      if (numFibras === 6 || numFibras === 12) {
-        // Caso especial: cabo de tubo único (muito usado no Brasil)
+    // Configuração específica para cada tipo de cabo
+    switch (tipoCaboSelecionado) {
+      case '6':
+        // Cabo de 6 FO: 1 tubo com 6 fibras
         numTubos = 1;
-        fibrasPerTubo = numFibras;
-      } else {
-        numTubos = Math.ceil(numFibras / 2);
-        fibrasPerTubo = 2;
-      }
-    } else if (numFibras <= 36) {
-      // Cabos de 18 a 36 fibras: 6 fibras por tubo loose
-      numTubos = Math.ceil(numFibras / 6);
-      fibrasPerTubo = 6;
-    } else {
-      // Cabos de 48 a 288 fibras: 12 fibras por tubo loose
-      numTubos = Math.ceil(numFibras / 12);
-      fibrasPerTubo = 12;
+        fibrasPerTubo = 6;
+        break;
+      case '12':
+        // Cabo de 12 FO: 1 tubo com 12 fibras
+        numTubos = 1;
+        fibrasPerTubo = 12;
+        break;
+      case '24':
+        // Cabo de 24 FO: 2 tubos com 12 fibras cada
+        numTubos = 2;
+        fibrasPerTubo = 12;
+        break;
+      case '48':
+        // Cabo de 48 FO: 4 tubos com 12 fibras cada
+        numTubos = 4;
+        fibrasPerTubo = 12;
+        break;
+      case '96':
+        // Cabo de 96 FO: 8 tubos com 12 fibras cada
+        numTubos = 8;
+        fibrasPerTubo = 12;
+        break;
+      default:
+        // Configuração padrão
+        numTubos = Math.ceil(numFibras / 12);
+        fibrasPerTubo = 12;
     }
 
     // Cria os tubos e fibras
