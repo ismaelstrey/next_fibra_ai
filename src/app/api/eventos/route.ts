@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { verificarPermissao, tratarErro, verificarAutenticacao, registrarLog } from "../utils";
+import { tratarErro, verificarAutenticacao, registrarLog } from "../utils";
 import { eventoSchema } from "./schema";
 
 /**
@@ -271,7 +271,6 @@ export async function GET(req: NextRequest) {
           cidadeId: true,
           caixaId: true,
           rotaId: true,
-          manutencao: true,
           usuarioId: true,
           _count: {
             select: {
@@ -434,7 +433,6 @@ export async function POST(req: NextRequest) {
         cidadeId,
         caixaId,
         rotaId,
-        manutencaoId,
         usuarioId: acesso.token?.id as string,
 
       },

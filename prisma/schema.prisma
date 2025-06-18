@@ -311,6 +311,7 @@ model Evento {
   descricao    String?
   tipo         String
   status       String
+  localizacao       String?
   dataInicio   DateTime
   dataFim      DateTime?
   prioridade   String?
