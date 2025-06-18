@@ -27,6 +27,8 @@ model Usuario {
   relatorios            Relatorio[]
   cidades               Cidade[]              @relation("CidadeToUsuario")
   notificacoesRecebidas Notificacao[]         @relation("notificacoesRecebidas")
+
+  Participante Participante[]
 }
 
 model Cidade {
@@ -167,6 +169,7 @@ model Manutencao {
   cidade         Cidade        @relation(fields: [cidadeId], references: [id])
   notificacoes   Notificacao[]
   relatorios     Relatorio[]
+  evento Evento[]
 }
 
 model Responsavel {
@@ -323,7 +326,9 @@ model Evento {
   caixa        Caixa?        @relation(fields: [caixaId], references: [id])
   rota         Rota?         @relation(fields: [rotaId], references: [id])
   cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
+  manutencao   Manutencao[]
   notificacoes Notificacao[]
+  participantes Participante[]
 }
 
 model Relatorio {
@@ -350,4 +355,17 @@ model Relatorio {
   rota         Rota?         @relation(fields: [rotaId], references: [id])
   caixa        Caixa?        @relation(fields: [caixaId], references: [id])
   cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
+  participantes Participante[]
+
+  
 }
+model Participante {
+  id           String        @id @default(cuid())
+  nome         String
+  usuarios     Usuario[]
+  relatorio Relatorio[]
+  evento Evento[]
+}
+
+
+

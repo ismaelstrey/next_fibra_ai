@@ -13,7 +13,8 @@ const cidadesSchema = z.object({
 /**
  * GET - Lista todas as cidades associadas a um usuário
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     const token = await verificarAutenticacao(req);
@@ -83,7 +84,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PUT - Atualiza as cidades associadas a um usuário
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     

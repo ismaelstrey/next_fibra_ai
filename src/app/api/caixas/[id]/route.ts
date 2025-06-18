@@ -62,7 +62,8 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
 /**
  * GET - Obtém uma caixa específica por ID
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -158,7 +159,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza uma caixa específica por ID
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Verifica se o usuário tem permissão (Engenheiros e Gerentes podem atualizar caixas)
     const permissaoErro = await verificarPermissao(req, ["Engenheiro", "Gerente"]);
@@ -405,7 +407,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove uma caixa específica por ID
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Verifica se o usuário tem permissão (apenas Gerentes podem excluir caixas)
     const permissaoErro = await verificarPermissao(req, ["Gerente"]);

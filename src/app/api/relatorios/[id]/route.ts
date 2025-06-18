@@ -222,7 +222,8 @@ async function verificarAcessoEntidade(req: NextRequest, cidadeId?: string, caix
 /**
  * GET - Obtém detalhes de um relatório específico
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -313,7 +314,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza um relatório específico
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -428,7 +430,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove um relatório específico
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 

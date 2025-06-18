@@ -61,7 +61,8 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
 /**
  * GET - Lista todas as portas de uma caixa específica
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -137,7 +138,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PUT - Atualiza múltiplas portas de uma caixa em lote
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Verifica se o usuário tem permissão (Técnicos, Engenheiros e Gerentes podem atualizar portas)
     const permissaoErro = await verificarPermissao(req, ["Técnico", "Engenheiro", "Gerente"]);

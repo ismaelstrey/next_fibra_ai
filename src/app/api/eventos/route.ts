@@ -266,13 +266,12 @@ export async function GET(req: NextRequest) {
           dataFim: true,
           tipo: true,
           status: true,
-          localizacao: true,
           criadoEm: true,
           atualizadoEm: true,
           cidadeId: true,
           caixaId: true,
           rotaId: true,
-          manutencaoId: true,
+          manutencao: true,
           usuarioId: true,
           _count: {
             select: {

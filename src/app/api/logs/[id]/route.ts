@@ -8,7 +8,8 @@ import { verificarPermissao, tratarErro, verificarAutenticacao } from "../../uti
  * GET - Obtém detalhes de um log específico
  * Apenas usuários com cargo de Gerente podem acessar os logs
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 

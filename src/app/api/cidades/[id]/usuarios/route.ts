@@ -8,7 +8,8 @@ import { usuariosCidadeSchema } from "../../schema";
 /**
  * GET - Lista todos os usuários associados a uma cidade
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     
@@ -59,7 +60,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PUT - Atualiza os usuários associados a uma cidade
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     

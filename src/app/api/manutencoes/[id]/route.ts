@@ -111,7 +111,8 @@ async function verificarAcessoManutencao(req: NextRequest, manutencaoId: string)
 /**
  * GET - Obtém detalhes de uma manutenção específica
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -129,7 +130,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza uma manutenção específica
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Verifica se o usuário tem permissão (Técnicos, Engenheiros e Gerentes podem atualizar manutenções)
     const permissaoErro = await verificarPermissao(req, ["Técnico", "Engenheiro", "Gerente"]);
@@ -210,7 +212,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove uma manutenção específica
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     // Verifica se o usuário tem permissão (Engenheiros e Gerentes podem excluir manutenções)
     const permissaoErro = await verificarPermissao(req, ["Engenheiro", "Gerente"]);

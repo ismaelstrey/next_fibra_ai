@@ -68,9 +68,10 @@ async function verificarAcessoPorta(req: NextRequest, caixaId: string, portaId: 
 /**
  * GET - Obtém detalhes de uma porta específica
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string; portaId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; portaId: string }>}) {
+  const { id, portaId } = await params;
   try {
-    const { id, portaId } = params;
+  
 
     // Verifica se o usuário tem acesso à porta
     const acesso = await verificarAcessoPorta(req, id, portaId);
@@ -86,13 +87,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string; 
 /**
  * PATCH - Atualiza uma porta específica
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; portaId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; portaId: string }> }) {
   try {
     // Verifica se o usuário tem permissão (Técnicos, Engenheiros e Gerentes podem atualizar portas)
     const permissaoErro = await verificarPermissao(req, ["Técnico", "Engenheiro", "Gerente"]);
     if (permissaoErro) return permissaoErro;
 
-    const { id, portaId } = params;
+    const { id, portaId } = await params;
 
     // Verifica se o usuário tem acesso à porta
     const acesso = await verificarAcessoPorta(req, id, portaId);

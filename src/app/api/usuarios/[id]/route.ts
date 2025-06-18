@@ -9,7 +9,8 @@ import { compare, hash } from "bcrypt";
 /**
  * GET - Obtém um usuário específico pelo ID
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     const token = await verificarAutenticacao(req);
@@ -79,7 +80,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza um usuário específico pelo ID
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     const token = await verificarAutenticacao(req);
@@ -212,7 +214,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove um usuário específico pelo ID
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
     

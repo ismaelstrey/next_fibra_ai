@@ -20,10 +20,17 @@ async function verificarAcessoEvento(req: NextRequest, eventoId: string) {
     select: {
       id: true,
       titulo: true,
-      criadorId: true,
       cidadeId: true,
       caixaId: true,
       rotaId: true,
+      usuarioId: true,  
+      participantes:{
+        select:{
+          id: true,
+          nome: true,
+          evento: true,
+        }
+      },
       cidade: {
         select: {
           id: true,
@@ -73,15 +80,7 @@ async function verificarAcessoEvento(req: NextRequest, eventoId: string) {
           },
         },
       },
-      participantes: {
-        where: {
-          id: token.id as string,
-        },
-        select: {
-          id: true,
-        },
-      },
-    },
+    }
   });
 
   if (!evento) {
@@ -89,7 +88,7 @@ async function verificarAcessoEvento(req: NextRequest, eventoId: string) {
   }
 
   // Verifica se o usuário é o criador do evento
-  const ehCriador = evento.criadorId === token.id;
+  const ehCriador = evento.usuarioId=== token.id;
 
   // Verifica se o usuário é um participante do evento
   const ehParticipante = evento.participantes.length > 0;
@@ -232,7 +231,8 @@ async function verificarAcessoEntidade(req: NextRequest, cidadeId?: string, caix
 /**
  * GET - Obtém detalhes de um evento específico
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -251,15 +251,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         dataFim: true,
         tipo: true,
         status: true,
-        localizacao: true,
         criadoEm: true,
         atualizadoEm: true,
         cidadeId: true,
         caixaId: true,
         rotaId: true,
-        manutencaoId: true,
-        criadorId: true,
-        criador: {
+        usuarioId: true,
+        usuario: {
           select: {
             id: true,
             nome: true,
@@ -315,9 +313,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           select: {
             id: true,
             nome: true,
-            email: true,
-            cargo: true,
-            imagem: true,
+            usuarios:{
+              select:{
+                id: true,
+                nome: true,
+                email: true,
+                cargo: true,
+                imagem: true,
+              }
+            }
           },
         },
       },
@@ -332,7 +336,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza um evento específico
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 
@@ -381,9 +386,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (cidadeId || caixaId || rotaId) {
       const acessoEntidade = await verificarAcessoEntidade(
         req, 
-        cidadeId || acesso.evento?.cidadeId, 
-        caixaId || acesso.evento?.caixaId, 
-        rotaId || acesso.evento?.rotaId
+        cidadeId || acesso.evento?.cidadeId || undefined, 
+        caixaId || acesso.evento?.caixaId || undefined, 
+        rotaId || acesso.evento?.rotaId || undefined
       );
       if (acessoEntidade.erro) return acessoEntidade.erro;
     }
@@ -486,7 +491,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove um evento específico
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { id } = params;
 

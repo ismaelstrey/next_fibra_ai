@@ -8,7 +8,8 @@ import { atualizarConfiguracaoGlobalSchema } from "../schema";
 /**
  * GET - Obtém detalhes de uma configuração global específica
  */
-export async function GET(req: NextRequest, { params }: { params: { chave: string } }) {
+export async function GET(req: NextRequest, props: { params: Promise<{ chave: string }> }) {
+  const params = await props.params;
   try {
     const { chave } = params;
 
@@ -38,7 +39,8 @@ export async function GET(req: NextRequest, { params }: { params: { chave: strin
 /**
  * PATCH - Atualiza uma configuração global específica
  */
-export async function PATCH(req: NextRequest, { params }: { params: { chave: string } }) {
+export async function PATCH(req: NextRequest, props: { params: Promise<{ chave: string }> }) {
+  const params = await props.params;
   try {
     const { chave } = params;
 
@@ -127,7 +129,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { chave: str
  * DELETE - Remove uma configuração global específica
  * Apenas usuários com cargo de Gerente podem excluir configurações
  */
-export async function DELETE(req: NextRequest, { params }: { params: { chave: string } }) {
+export async function DELETE(req: NextRequest, props: { params: Promise<{ chave: string }> }) {
+  const params = await props.params;
   try {
     const { chave } = params;
 

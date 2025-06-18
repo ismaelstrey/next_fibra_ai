@@ -61,9 +61,9 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
 /**
  * GET - Lista todas as bandejas de uma caixa específica
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Verifica se o usuário tem acesso à caixa
     const acesso = await verificarAcessoCaixa(req, id);
@@ -134,13 +134,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PUT - Atualiza múltiplas bandejas de uma caixa em lote
  */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Verifica se o usuário tem permissão (Engenheiros e Gerentes podem atualizar bandejas)
     const permissaoErro = await verificarPermissao(req, ["Engenheiro", "Gerente"]);
     if (permissaoErro) return permissaoErro;
 
-    const { id } = params;
+    const { id } = await params;
 
     // Verifica se o usuário tem acesso à caixa
     const acesso = await verificarAcessoCaixa(req, id);
