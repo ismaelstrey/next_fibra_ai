@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { verificarPermissao, tratarErro, verificarAutenticacao, registrarLog } from "../utils";
 import { cidadeSchema } from "./schema";
+import { Busca } from "@/types/busca";
 
 /**
  * GET - Lista todas as cidades com paginação e filtros
@@ -31,11 +32,11 @@ export async function GET(req: NextRequest) {
     const skip = (pagina - 1) * limite;
 
     // Constrói o filtro
-    const where: { nome?: { contains: string } } = {};
+    const where: Busca = {};
     
     // Adiciona filtro de busca por nome
     if (busca) {
-      where.nome = { contains: busca };
+      where.nome =  busca ;
     }
 
     // Adiciona filtro por estado
@@ -45,11 +46,10 @@ export async function GET(req: NextRequest) {
 
     // Filtra apenas cidades do usuário se solicitado
     if (apenasMinhasCidades) {
-      where.usuarios = {
-        some: {
-          id: token.id as string,
-        },
-      };
+      where.OR = [
+        { caixas: { some: { cidade: { usuarios: { some: { id: token.id as string } } } } } },
+        { rotas: { some: { cidade: { usuarios: { some: { id: token.id as string } } } } } },
+      ];
     }
 
     // Consulta as cidades com paginação e filtros

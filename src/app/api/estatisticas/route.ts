@@ -307,7 +307,6 @@ async function obterEstatisticasManutencoes({
 async function obterEstatisticasCaixas({
   filtroData,
   filtroCidades,
-  _agruparPor,
 }: {
   filtroData: { gte?: Date; lte?: Date };
   filtroCidades: { id?: string; OR?: Array<{ id: string }> };
@@ -438,7 +437,6 @@ async function obterEstatisticasCaixas({
 async function obterEstatisticasRotas({
   filtroData,
   filtroCidades,
-  _agruparPor,
 }: {
   filtroData: { gte?: Date; lte?: Date };
   filtroCidades: { id?: string; OR?: Array<{ id: string }> } | string | { in?: string[] };
@@ -572,7 +570,6 @@ async function obterEstatisticasUsuarios({
   filtroData,
   _filtroCidades,
   usuarioId,
-  _agruparPor,
 }: {
   filtroData: { gte?: Date; lte?: Date };
   _filtroCidades: { id?: string; OR?: Array<{ id: string }> };
@@ -727,7 +724,6 @@ async function obterEstatisticasUsuarios({
 async function obterEstatisticasCidades({
   filtroData,
   filtroCidades,
-  _agruparPor,
 }: {
   filtroData: { gte?: Date; lte?: Date };
   filtroCidades: { id?: string; OR?: Array<{ id: string }> } | string;

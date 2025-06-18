@@ -8,9 +8,9 @@ import { atualizarCidadeSchema } from "../schema";
 /**
  * GET - Obtém uma cidade específica pelo ID
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Verifica se o usuário está autenticado
     const token = await verificarAutenticacao(req);
@@ -75,9 +75,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /**
  * PATCH - Atualiza uma cidade específica pelo ID
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Verifica se o usuário tem permissão (apenas Gerentes podem atualizar cidades)
     const permissaoErro = await verificarPermissao(req, ["Gerente"]);
@@ -167,9 +167,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /**
  * DELETE - Remove uma cidade específica pelo ID
  */
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     
     // Verifica se o usuário tem permissão (apenas Gerentes podem excluir cidades)
     const permissaoErro = await verificarPermissao(req, ["Gerente"]);

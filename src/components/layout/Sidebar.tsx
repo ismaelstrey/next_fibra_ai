@@ -56,9 +56,10 @@ export default function Sidebar() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    
                                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors ${isActive
-                                        ? 'bg-primary text-primary-foreground'
-                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                        ? 'text-primary'
+                                        : 'text-muted-foreground hover:text-accent-foreground bg-transparent hover:bg-transparent'
                                         }`}
                                     title={item.label}
                                 >
@@ -77,13 +78,16 @@ export default function Sidebar() {
                                     </div>
                                 </div>
                                 {sidebarVisible && <div className="ml-3">
-                                    <p className="text-sm font-medium" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
+                                    <p className="text-sm font-medium text-primary/90" suppressHydrationWarning>{session?.user?.name || 'Usuário'}</p>
                                     <p className="text-xs text-muted-foreground" suppressHydrationWarning>{session?.user?.email}</p>
                                 </div>}
                             </div>
-                            <Button
+                        
+                        </div>
+                        <div className="flex w-full justify-center flex-col">
+                          <Button
                                 variant="outline"
-                                className={`w-full mt-2 ${sidebarVisible ? 'justify-start' : 'justify-center'}`}
+                                className={`flex text-primary/50  cursor-pointer  ${sidebarVisible ? 'justify-start' : 'justify-center p-0 border-0 bg-transparent hover:bg-transparent hover:text-primary'}`}
                                 onClick={abrirModalAdicionarCidade}
                                 title="Adicionar Cidade"
                             >
@@ -91,15 +95,16 @@ export default function Sidebar() {
                                 {sidebarVisible && 'Adicionar Cidade'}
                             </Button>
                             <Button
+
                                 variant="ghost"
-                                className={`w-full mt-2 ${sidebarVisible ? 'justify-start' : 'justify-center'}`}
+                                className={` text-rose-500 cursor-pointer ${sidebarVisible ? 'justify-start w-full mt-2' : 'justify-center p-0 border-0 bg-transparent hover:bg-transparent hover:text-primary'}`}
                                 onClick={handleLogout}
                                 title="Sair"
                             >
                                 <LogOutIcon className={`h-5 w-5 ${sidebarVisible ? 'mr-2' : ''}`} />
                                 {sidebarVisible && 'Sair'}
                             </Button>
-                        </div>
+                          </div>
                     </div>
                     <AdicionarCidadeModal
                         aberto={modalCidadeAberto}

@@ -7,6 +7,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, PencilIcon, BoxIcon, MapPinIcon, ZapIcon, ScissorsIcon, MergeIcon, SettingsIcon, RefreshCcw } from 'lucide-react';
+import { toast } from 'sonner';
 
 /**
  * Componente de ferramentas para o mapa
@@ -24,6 +25,7 @@ export default function ToolsMap() {
         carregarDados,
         atualizarFiltros,
         cidades,
+        isLoading,
     } = useMapa();
 
     // Estado para controlar a expansão do painel
@@ -109,7 +111,7 @@ export default function ToolsMap() {
                                         aria-label="Desenhar rota"
                                         onClick={() => alternarModoEdicao('rota')}
                                     >
-                                        <PencilIcon className={`h-4 w-4 ${modoEdicao === "rota" ?"text-primary":"text-primary/50"}`} />
+                                        <PencilIcon className={`h-4 w-4 ${modoEdicao === "rota" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -126,7 +128,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CTO"
                                         onClick={() => alternarModoEdicao('cto')}
                                     >
-                                        <BoxIcon  className={`h-4 w-4 ${modoEdicao === "cto" ?"text-primary":"text-primary/50"}`} />
+                                        <BoxIcon  className={`h-4 w-4 ${modoEdicao === "cto" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -143,7 +145,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CEO"
                                         onClick={() => alternarModoEdicao('ceo')}
                                     >
-                                        <MapPinIcon  className={`h-4 w-4 ${modoEdicao === "ceo" ?"text-primary":"text-primary/50"}`} />
+                                        <MapPinIcon  className={`h-4 w-4 ${modoEdicao === "ceo" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -160,7 +162,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar ponto de fusão"
                                         onClick={() => alternarModoEdicao('fusao')}
                                     >
-                                        <ZapIcon  className={`h-4 w-4 ${modoEdicao === "fusao" ?"text-primary":"text-primary/50"}`} />
+                                        <ZapIcon  className={`h-4 w-4 ${modoEdicao === "fusao" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -177,7 +179,7 @@ export default function ToolsMap() {
                                         aria-label="Editar elementos"
                                         onClick={() => alternarModoEdicao('editar')}
                                     >
-                                        <PencilIcon  className={`h-4 w-4 ${modoEdicao === "editar" ?"text-primary":"text-primary/50"}`} />
+                                        <PencilIcon  className={`h-4 w-4 ${modoEdicao === "editar" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -194,7 +196,7 @@ export default function ToolsMap() {
                                         aria-label="Cortar rota"
                                         onClick={() => alternarModoEdicao('cortar')}
                                     >
-                                        <ScissorsIcon  className={`h-4 w-4 ${modoEdicao === "cortar" ?"text-primary":"text-primary/50"}`} />
+                                        <ScissorsIcon  className={`h-4 w-4 ${modoEdicao === "cortar" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -211,7 +213,7 @@ export default function ToolsMap() {
                                         aria-label="Mesclar rotas"
                                         onClick={() => alternarModoEdicao('mesclar')}
                                     >
-                                        <MergeIcon  className={`h-4 w-4 ${modoEdicao === "mesclar" ?"text-primary":"text-primary/50"}`} />
+                                        <MergeIcon  className={`h-4 w-4 ${modoEdicao === "mesclar" ?"text-primary":"text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -228,11 +230,15 @@ export default function ToolsMap() {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
-                                    variant="ghost"
+                                    variant="secondary"
                                     size="icon"
-                                    onClick={() => carregarDados(cidadeSelecionada)}
+                                    onClick={() => {
+                                        carregarDados(cidadeSelecionada)
+                                    toast.info('Mapa atualizado com sucesso ',{icon: <RefreshCcw className='animate-spin text-primary'/>});
+                                    }}
+                                    
                                 >
-                                    <RefreshCcw className="h-4 w-4" />
+                                    <RefreshCcw className={`h-4 w-4 ${isLoading && 'animate-spin text-primary'}`} />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent side="right">
@@ -270,18 +276,19 @@ export default function ToolsMap() {
 
                         {/* Seleção de tipo de cabo */}
                         <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-muted-foreground">Tipo de Cabo</h4>
+                            <h4 className="text-xs font-medium text-muted-foreground">Tipo de Cabo : {(Number(tipoCaboSelecionado))}</h4>
                             <ToggleGroup
                                 type="single"
                                 value={tipoCaboSelecionado}
                                 onValueChange={(value) => value && setTipoCaboSelecionado(value as '6' | '12' | '24' | '48' | '96')}
-                                className="flex justify-between"
+                                className="flex justify-between text-foreground"
+                                
                             >
-                                <ToggleGroupItem value="6" className="h-8 text-xs flex-1">6</ToggleGroupItem>
-                                <ToggleGroupItem value="12" className="h-8 text-xs flex-1">12</ToggleGroupItem>
-                                <ToggleGroupItem value="24" className="h-8 text-xs flex-1">24</ToggleGroupItem>
-                                <ToggleGroupItem value="48" className="h-8 text-xs flex-1">48</ToggleGroupItem>
-                                <ToggleGroupItem value="96" className="h-8 text-xs flex-1">96</ToggleGroupItem>
+                                <ToggleGroupItem variant={'outline'} value="6" className={`h-8 text-xs flex-1 active:bg-primary`}>6</ToggleGroupItem>
+                                <ToggleGroupItem variant={'outline'} value="12" className={`h-8 text-xs flex-1 active:bg-primary`}>12</ToggleGroupItem>
+                                <ToggleGroupItem variant={'outline'} value="24" className={`h-8 text-xs flex-1 active:bg-primary `}>24</ToggleGroupItem>
+                                <ToggleGroupItem variant={'outline'} value="48" className={`h-8 text-xs flex-1 active:bg-primary `}>48</ToggleGroupItem>
+                                <ToggleGroupItem variant={'outline'} value="96" className={`h-8 text-xs flex-1 active:bg-primary `}>96</ToggleGroupItem>
                             </ToggleGroup>
                         </div>
 

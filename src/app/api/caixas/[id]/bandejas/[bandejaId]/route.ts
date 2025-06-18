@@ -73,9 +73,9 @@ async function verificarAcessoBandeja(req: NextRequest, caixaId: string, bandeja
 /**
  * GET - Obtém detalhes de uma bandeja específica
  */
-export async function GET(req: NextRequest, { params }: { params: { id: string; bandejaId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; bandejaId: string }> }) {
   try {
-    const { id, bandejaId } = params;
+    const { id, bandejaId } = await params;
 
     // Verifica se o usuário tem acesso à bandeja
     const acesso = await verificarAcessoBandeja(req, id, bandejaId);
@@ -100,13 +100,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string; 
 /**
  * PATCH - Atualiza uma bandeja específica
  */
-export async function PATCH(req: NextRequest, { params }: { params: { id: string; bandejaId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string; bandejaId: string }> }) {
   try {
     // Verifica se o usuário tem permissão (Engenheiros e Gerentes podem atualizar bandejas)
     const permissaoErro = await verificarPermissao(req, ["Engenheiro", "Gerente"]);
     if (permissaoErro) return permissaoErro;
 
-    const { id, bandejaId } = params;
+    const { id, bandejaId } = await params;
 
     // Verifica se o usuário tem acesso à bandeja
     const acesso = await verificarAcessoBandeja(req, id, bandejaId);

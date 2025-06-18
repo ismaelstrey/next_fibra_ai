@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { verificarPermissao, tratarErro, verificarAutenticacao, registrarLog } from "../../utils";
+import { tratarErro, verificarAutenticacao, registrarLog } from "../../utils";
 import { atualizarComentarioSchema } from "../schema";
 
 /**

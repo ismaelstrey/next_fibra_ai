@@ -21,7 +21,7 @@ export default function DashboardLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const { sidebarVisible } = useTheme();
   const [carregando, setCarregando] = useState(true);
@@ -58,6 +58,7 @@ export default function DashboardLayout({
       {/* Conteúdo principal */}
       <div className="flex flex-col flex-1 transition-all duration-200" style={{ paddingLeft: menu === "left" ? (sidebarVisible ? '16rem' : '4rem') : '0' }}>
         {/* Header do Dashboard */}
+        <button onClick={() => setMenu(menu === "left"? "top" : "left")} className="md:hidden">Menu</button>
         {menu === "top" && <DashboardHeader />}
         <main className="flex-1 overflow-y-auto">
           {children}

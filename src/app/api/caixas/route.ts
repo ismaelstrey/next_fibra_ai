@@ -31,12 +31,28 @@ export async function GET(req: NextRequest) {
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
 
+    interface Busca {
+  
+        nome?: string;
+      cidadeId?: string;
+      rotaId?: string;
+      tipo?: string;
+      cidade?: {
+        usuarios: {
+          some: {
+            id: string;
+          };
+        };
+      }
+     
+    }
+
     // Constrói o filtro
-    const where: any = {};
+    const where: Busca  = { nome: undefined, cidadeId: undefined, rotaId: undefined, tipo: undefined};
     
     // Adiciona filtro de busca por nome
     if (busca) {
-      where.nome = { contains: busca };
+      where.nome =  busca
     }
 
     // Adiciona filtro por cidade

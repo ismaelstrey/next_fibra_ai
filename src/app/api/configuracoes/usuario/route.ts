@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
 import { verificarAutenticacao, tratarErro, registrarLog } from "../../utils";
-import { configuracaoUsuarioSchema, atualizarConfiguracaoUsuarioSchema } from "../schema";
+import { configuracaoUsuarioSchema} from "../schema";
 
 /**
  * GET - Lista configurações do usuário autenticado

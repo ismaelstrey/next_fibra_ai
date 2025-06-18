@@ -110,7 +110,7 @@ export function AdicionarCidadeModal({ aberto, aoMudarEstado, aoAdicionar }: Adi
   
   return (
     <Dialog open={aberto} onOpenChange={aoMudarEstado}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md text-primary">
         <DialogHeader>
           <DialogTitle>Adicionar Nova Cidade</DialogTitle>
           <DialogDescription>

@@ -2,18 +2,32 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wrench, Search, Plus, Filter, ArrowUpDown, Eye, Edit, Trash2, Calendar, Clock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Wrench, Search, Plus, Filter, ArrowUpDown, Eye, Edit, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+interface Manutencao {
+  id: number;
+  tipo: string;
+  titulo: string;
+  descricao: string;
+  local: string;
+  dataAgendada: string;
+  dataRealizada: string | null;
+  status: string;
+  tecnico: string;
+  observacoes: string;
+  prioridade: string;
+}
 
 /**
  * Página de gerenciamento de manutenções
@@ -29,7 +43,7 @@ export default function ManutencoesPage() {
   
   // Estado para controle do modal de detalhes
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
-  const [manutencaoSelecionada, setManutencaoSelecionada] = useState<any>(null);
+  const [manutencaoSelecionada, setManutencaoSelecionada] = useState<Manutencao | null>(null);
 
   // Estado para controle do modal de formulário
   const [modalFormularioAberto, setModalFormularioAberto] = useState(false);
@@ -164,7 +178,7 @@ export default function ManutencoesPage() {
   };
 
   // Função para abrir modal de detalhes
-  const abrirDetalhes = (manutencao: any) => {
+  const abrirDetalhes = (manutencao: Manutencao) => {
     setManutencaoSelecionada(manutencao);
     setModalDetalhesAberto(true);
   };
@@ -187,7 +201,7 @@ export default function ManutencoesPage() {
   };
 
   // Função para abrir formulário de edição
-  const abrirEdicao = (manutencao: any) => {
+  const abrirEdicao = (manutencao: Manutencao) => {
     setModoEdicao(true);
     setFormulario({
       tipo: manutencao.tipo,
@@ -535,7 +549,7 @@ export default function ManutencoesPage() {
             <Button variant="outline" onClick={() => setModalDetalhesAberto(false)}>Fechar</Button>
             <Button onClick={() => {
               setModalDetalhesAberto(false);
-              abrirEdicao(manutencaoSelecionada);
+               manutencaoSelecionada && abrirEdicao(manutencaoSelecionada);
             }}>Editar</Button>
           </DialogFooter>
         </DialogContent>
