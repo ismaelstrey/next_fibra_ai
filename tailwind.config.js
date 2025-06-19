@@ -19,6 +19,9 @@ const config = {
       },
     },
     extend: {
+      // backgroundImage:{
+      //   spliter: "url('/spliter.svg')",
+      // },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -43,13 +43,13 @@ export function CaboNode({ data, id }: NodeProps) {
   console.log(data)
 
   return (
-    <div className="border-2 border-gray-300 rounded-md p-2 bg-white shadow-md w-72">
-      <div className="font-bold text-center bg-blue-100 p-1 rounded mb-2">
+    <div className="flex flex-col h-auto border-2 border-gray-300 rounded-md p-2 bg-background tetx-primary shadow-md w-72">
+      <div className="border-2 border-gray-300 rounded-md font-bold text-center bg-foreground/10 p-1 mb-2">
         Cabo: {data.nome} ({data.tipo} FO)
       </div>
-      <div className="flex justify-end mb-1">
+      <div className=" flex justify-end mb-1">
         <button
-          className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+          className="border-2 border-gray-300 text-xs hover:bg-foreground/20 px-2 py-1 rounded"
           onClick={toggleAllTubos}
         >
           {data.tubos.every((tubo: TuboLoose) => expandedTubos[tubo.id]) ? 'Recolher Todos' : 'Expandir Todos'}
@@ -71,43 +71,27 @@ export function CaboNode({ data, id }: NodeProps) {
             </div>
 
             {expandedTubos[tubo.id] && (
-              <div className="mt-1 pl-6 grid grid-cols-4 gap-1">
+              <div className="flex">
 
-                {tubo.fibras.map((fibra) => (
-                  <div key={fibra.id} className="flex flex-col items-center">
-                    <div
-                      className="w-3 h-3 rounded-full mb-1"
-                      style={{ backgroundColor: CORES_FIBRAS[fibra.numero as keyof typeof CORES_FIBRAS].hex }}
-                    />
-                    <span className="text-[10px]">{fibra.numero}</span>
-                    <Handle
+                {tubo.fibras.map((fibra: Fibra, key:number) => (  
+               <Handle
+               onClick={(e)=>console.log(e)}
+               key={key}
                       type="source"
                       position={Position.Right}
                       id={fibra.id}
+                      className='hover:scale-125 rounded-4xl'
                       style={{
                         backgroundColor: CORES_FIBRAS[fibra.numero as keyof typeof CORES_FIBRAS].hex,
-                        border: '1px solid black',
-                        width: 10,
-                        height: 10,
-                        top: 'auto',
-                        bottom: 'auto',
+                        border: '2px solid black',
+                        width: 60,
+                        height: 20,
+                        top: 20*(key+10),
+                        bottom: 20*(key+10),              
+
                       }}
                     />
-                    <span className="text-[10px]">{fibra.numero}</span>
-                    <Handle
-                      type="target"
-                      position={Position.Left}
-                      id={fibra.id}
-                      style={{
-                        backgroundColor: CORES_FIBRAS[fibra.numero as keyof typeof CORES_FIBRAS].hex,
-                        border: '1px solid black',
-                        width: 10,
-                        height: 10,
-                        top: 'auto',
-                        bottom: 'auto',
-                      }}
-                    />
-                  </div>
+             
                 ))}
               </div>
             )}
