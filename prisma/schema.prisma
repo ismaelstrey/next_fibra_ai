@@ -6,6 +6,10 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
+// datasource db {
+//   provider = "postgresql"
+//   url      = "postgresql://postgres:postgres@localhost:5432/next_fibra_ai?schema=public"
+// }
 
 model Usuario {
   id                    String                @id @default(cuid())
@@ -110,6 +114,8 @@ model Porta {
   atualizadoEm DateTime @updatedAt
   caixaId      String
   caixa        Caixa    @relation(fields: [caixaId], references: [id])
+
+  Cliente Cliente[]
 }
 
 model Bandeja {
@@ -366,6 +372,86 @@ model Participante {
   usuarios     Usuario[]
   relatorio Relatorio[]
   evento Evento[]
+}
+
+model Cabo {
+  id           String        @id @default(cuid())
+  nome         String
+  tipo         String // AS ASU
+  origem       String
+  destino      String
+  comprimento  Float
+  status       String
+  tipoCabo     String
+  material     String
+  potencia     Float
+  tensao       Float
+  cor          String
+  tipoCorte    String // sangria ou corte
+  capilares    Capilar[]
+}
+
+model Capilar {
+  id           String        @id @default(cuid())
+  numero       Int
+  tipo         String
+  comprimento  Float
+  status       String 
+  potencia     Float 
+  cor          String
+  caboId   String
+  cabo     Cabo      @relation(fields: [caboId], references: [id])  
+  saidas   Emenda[]  @relation("CapilarSaida")
+  entradas Emenda[]  @relation("CapilarEntrada")
+  spliter_saida Spliter[] @relation("CapilarSaida")
+  spliter_entrada Spliter[] @relation("CapilarEntrada")
+}
+
+model Emenda {
+  id           String        @id @default(cuid())
+  localizacao     String
+  capilarSaidaId  String
+  capilarEntradaId String 
+  capilarSaida    Capilar  @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada  Capilar  @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+}
+
+
+model Cliente {
+  id           String        @id @default(cuid())
+  nome         String
+  email        String       @unique
+  senha        String?
+  telefone     String?
+  apartamento  String?
+  endereco     String?
+  casa         String?
+  numero       Int
+  potencia     Float
+  wifi         String
+  senhaWifi    String 
+  neutraId     String
+  neutra       Neutra     @relation(fields: [neutraId], references: [id]) 
+  portaId      String
+  porta        Porta   @relation(fields: [portaId], references: [id]) 
+}
+
+model Neutra {
+  id           String        @id @default(cuid())
+  nome         String
+  vlan         Int 
+  Cliente Cliente[]
+}
+
+model Spliter {
+  id           String        @id @default(cuid())
+  nome         String
+  vlan         Int 
+  tipo         String
+   capilarSaidaId  String
+  capilarEntradaId String
+  capilarSaida    Capilar  @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada  Capilar  @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
 }
 
 
