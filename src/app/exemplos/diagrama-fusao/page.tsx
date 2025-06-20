@@ -17,22 +17,22 @@ export default function DiagramaFusaoExemplo() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className=" h-screen mt-0 bg-red-600">
+      {/* <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Diagrama de Fusão de Cabos</h1>
-      </div>
+      </div> */}
 
-      <Alert>
+      {/* <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertTitle>Informação</AlertTitle>
         <AlertDescription>
           Este é um exemplo de diagrama para fusão de cabos de fibra óptica. Você pode adicionar cabos e splitters, 
           e conectar as fibras entre si arrastando das saídas (direita) para as entradas (esquerda).
         </AlertDescription>
-      </Alert>
+      </Alert> */}
 
       <Tabs defaultValue="diagrama" className="w-full">
-        <TabsList>
+        <TabsList className='fixed right-4 top-8'>
           <TabsTrigger value="diagrama">Diagrama</TabsTrigger>
           <TabsTrigger value="conexoes">Conexões Realizadas</TabsTrigger>
         </TabsList>

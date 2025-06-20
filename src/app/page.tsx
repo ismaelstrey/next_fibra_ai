@@ -37,19 +37,7 @@ export default function Home() {
     }
   };
 
-  const logoVariants = {
-    hidden: { scale: 0.8, opacity: 0 },
-    visible: { 
-      scale: 1, 
-      opacity: 1,
-      transition: { 
-        delay: 0.5,
-        duration: 0.8,
-        type: 'spring',
-        stiffness: 100
-      }
-    }
-  };
+
 
   return (
     <motion.div 
@@ -60,7 +48,19 @@ export default function Home() {
     >
       <motion.div
         className="flex flex-col items-center gap-8"
-        variants={logoVariants}
+        variants={{
+          hidden: { scale: 0.8, opacity: 0 },
+          visible: {
+            scale: 1,
+            opacity: 1,
+            transition: {
+              delay: 0.5,
+              duration: 0.8,
+              type: "spring" as const,
+              stiffness: 100
+            }
+          }
+        }}
       >
         {/* Aqui você pode adicionar o logo da sua empresa */}
         <div className="relative w-32 h-32 mb-4">

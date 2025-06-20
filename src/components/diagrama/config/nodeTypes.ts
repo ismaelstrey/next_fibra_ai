@@ -1,5 +1,5 @@
 import { NodeTypes, EdgeTypes } from 'reactflow';
-import { CaboNode } from '../nodes/CaboNode';
+import { CaboNode } from '../nodes/CaboNode2';
 import { SplitterNode } from '../nodes/SplitterNode';
 import { ConexaoEdge } from '../edges/ConexaoEdge';
 

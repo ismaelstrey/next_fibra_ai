@@ -71,7 +71,7 @@ export function DiagramaFusao({ cabos = [], splitters = [], onConexaoRealizada }
   }, [cabos, splitters, setNodes, setNodeCounter, nodes.length]);
 
   return (
-    <Card className="w-full h-[800px] shadow-lg">
+    <Card className="w-full h-screen shadow-lg">
       <CardHeader>
         <CardTitle>Diagrama de Fusão de Cabos</CardTitle>
       </CardHeader>
@@ -103,8 +103,8 @@ export function DiagramaFusao({ cabos = [], splitters = [], onConexaoRealizada }
           >
             <Background />
             <Controls />
-            <MiniMap />
-            <DiagramaLegenda />
+            {/* <MiniMap /> */}
+            {/* <DiagramaLegenda /> */}
           </ReactFlow>
         </div>
       </CardContent>

@@ -2,6 +2,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -72,6 +73,10 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans);
+  margin: 0 !important;
+  padding: 0 !important;
+
+
 }
 
 @theme inline {

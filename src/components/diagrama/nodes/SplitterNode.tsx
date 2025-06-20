@@ -3,7 +3,7 @@
 import React from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import Image from 'next/image';
-import { getColor, getFiberColor, styleObjectToString } from '@/functions/color';
+import { getColor} from '@/functions/color';
 
 
 /**
@@ -29,20 +29,22 @@ export function SplitterNode({ data, id }: NodeProps) {
             const cor = getColor(((index === 0) ? 1 :index+1))
             const handleStyle = { 
               backgroundColor: cor, 
-              top: 20*index 
+              top: 20*index,
             };
             
    
             console.log(`Handle ${index} style string:`, cor);
             
             return (
-              <Handle
+        <div className=''>
+                <Handle
                 key={index}
                 type="source"
                 position={Position.Right}
                 id={porta}
                 style={handleStyle}
-              />        
+              /> 
+        </div>       
             );
           })}
 
