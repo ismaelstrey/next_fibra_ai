@@ -1,3 +1,5 @@
+import { SplitterInfo } from "@/types/fibra";
+
 export function getFiberColor(fiberType: string): string {
   const colorMap: { [key: string]: string } = {
     '6': '#FF0000',   // Red
@@ -48,4 +50,17 @@ const color = {
  */
 export function getColor(numero: number): string {
   return color[numero as keyof typeof color]?.hex ?? '#000000';
+}
+
+export function getColorSpliter(spliter: SplitterInfo) {
+  switch (spliter.tipo) {
+    case '1/8':
+      return '#FF0000'; // Red
+    case '1/16':
+      return '#00FF00'; // Green
+    case '1/2':
+      return '#0000FF'; // Blue
+    default:
+      return '#000000'; // Black
+  }
 }

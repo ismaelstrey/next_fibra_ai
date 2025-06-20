@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Maximize2, Minimize2 } from 'lucide-react';
+import { PortaCliente } from './PortaCliente';
+import { ParteInternaCTO } from './ParteInternaCTO';
 
 interface Cliente {
     id: number;
@@ -126,12 +128,12 @@ export function CTO({
     };
 
     return (
-        <Card className={`border-2 border-primary shadow-lg transition-all duration-300 ${expandida ? 'fixed top-0 left-0 w-full h-full' : 'w-full max-w-md mx-auto'}`}>
+        <Card className={`border-2 border-primary shadow-lg transition-all duration-300 ${expandida ? 'fixed top-0 left-0 w-full h-full' : 'w-full max-w-full mx-auto'}`}>
             <div className="relative">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 z-10"
+                    className="absolute top-8 right-0 z-10"
                     onClick={toggleExpandir}
                     title={expandida ? "Contrair" : "Expandir"}
                 >
@@ -177,24 +179,13 @@ export function CTO({
                         </CardHeader>
                         <CardContent className="pt-4">
                             <div className="grid grid-cols-2 gap-3">
-
                                 {portasClientes.map((porta) => (
-                                    <div
+                                    <PortaCliente
                                         key={porta.id}
-                                        className={`p-3 rounded-md border ${porta.ativa ? 'bg-green-100 border-green-500' : 'bg-gray-100 border-gray-300'}`}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-medium">Porta {porta.id}</span>
-                                            <Badge variant={porta.ativa ? 'default' : 'outline'}>
-                                                {porta.ativa ? 'Ativa' : 'Inativa'}
-                                            </Badge>
-                                        </div>
-                                        {porta.ativa && porta.cliente && (
-                                            <div className="text-sm mt-1 text-muted-foreground">
-                                                Cliente: {porta?.cliente?.nome || 'Sem cliente'}
-                                            </div>
-                                        )}
-                                    </div>
+                                        id={porta.id}
+                                        ativa={porta.ativa}
+                                        cliente={porta.cliente}
+                                    />
                                 ))}
                             </div>
                         </CardContent>
@@ -202,63 +193,10 @@ export function CTO({
 
                     {/* Conteúdo da aba "Parte Interna" */}
                     <TabsContent value="interna">
-                        <CardHeader className="border-b pb-4">
-                            <CardTitle className="text-lg">Parte Interna</CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-4">
-                            <div className="space-y-4">
-                                {/* Seção de Splitters */}
-                                <div>
-                                    <h3 className="font-medium mb-2">Splitters Instalados</h3>
-                                    {splitters.length > 0 ? (
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {splitters.map((splitter, index) => (
-                                                <div key={index} className="p-3 rounded-md border border-blue-300 bg-blue-50">
-                                                    <div className="flex items-center justify-between">
-                                                        <span>Splitter {splitter.tipo}</span>
-                                                        <Badge variant="secondary">Posição {splitter.posicao}</Badge>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="text-sm text-muted-foreground italic">
-                                            Nenhum splitter instalado
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Seção de Cabos AS */}
-                                <div>
-                                    <h3 className="font-medium mb-2">Cabos AS</h3>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        {cabosConectados.map((cabo) => (
-                                            <div
-                                                key={cabo.id}
-                                                className={`p-3 rounded-md border ${cabo.ativo ? 'bg-amber-100 border-amber-500' : 'bg-gray-100 border-gray-300'}`}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <span>{cabo.nome}</span>
-                                                    <Badge variant={cabo.ativo ? 'secondary' : 'outline'}>
-                                                        {cabo.ativo ? 'Conectado' : 'Livre'}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Área de Fusões */}
-                                <div>
-                                    <h3 className="font-medium mb-2">Área de Fusões</h3>
-                                    <div className="p-4 rounded-md border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
-                                        <span className="text-sm text-muted-foreground">
-                                            Área para acomodação de fusões de fibra óptica
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
+                        <ParteInternaCTO
+                            splitters={splitters}
+                            cabosAS={cabosConectados}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
