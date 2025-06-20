@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
     const skip = (pagina - 1) * limite;
 
     interface Busca {
-  
-        nome?: string;
+
+      nome?: string;
       cidadeId?: string;
       rotaId?: string;
       tipo?: string;
@@ -44,15 +44,15 @@ export async function GET(req: NextRequest) {
           };
         };
       }
-     
+
     }
 
     // Constrói o filtro
-    const where: Busca  = { nome: undefined, cidadeId: undefined, rotaId: undefined, tipo: undefined};
-    
+    const where: Busca = { nome: undefined, cidadeId: undefined, rotaId: undefined, tipo: undefined };
+
     // Adiciona filtro de busca por nome
     if (busca) {
-      where.nome =  busca
+      where.nome = busca
     }
 
     // Adiciona filtro por cidade
@@ -98,6 +98,7 @@ export async function GET(req: NextRequest) {
           atualizadoEm: true,
           cidadeId: true,
           rotaId: true,
+          spliters: true,
           cidade: {
             select: {
               nome: true,
@@ -109,6 +110,7 @@ export async function GET(req: NextRequest) {
               nome: true,
               tipoCabo: true,
             },
+
           },
           _count: {
             select: {
@@ -119,7 +121,7 @@ export async function GET(req: NextRequest) {
               arquivos: true,
               manutencoes: true,
             },
-          },
+          }
         },
         skip,
         take: limite,
@@ -156,10 +158,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = caixaSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -167,23 +169,23 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    const { 
-      nome, 
-      tipo, 
-      modelo, 
-      capacidade, 
-      coordenadas, 
-      observacoes, 
-      cidadeId, 
-      rotaId 
+
+    const {
+      nome,
+      tipo,
+      modelo,
+      capacidade,
+      coordenadas,
+      observacoes,
+      cidadeId,
+      rotaId
     } = result.data;
-    
+
     // Verifica se a cidade existe
     const cidade = await prisma.cidade.findUnique({
       where: { id: cidadeId },
     });
-    
+
     if (!cidade) {
       return NextResponse.json(
         { erro: "Cidade não encontrada" },
@@ -195,7 +197,7 @@ export async function POST(req: NextRequest) {
     const rota = await prisma.rota.findUnique({
       where: { id: rotaId },
     });
-    
+
     if (!rota) {
       return NextResponse.json(
         { erro: "Rota não encontrada" },
@@ -232,7 +234,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     // Cria a caixa no banco de dados
     const novaCaixa = await prisma.caixa.create({
       data: {
@@ -285,7 +287,7 @@ export async function POST(req: NextRequest) {
         detalhes: { nome, tipo, cidadeId, rotaId },
       });
     }
-    
+
     // Retorna os dados da caixa criada
     return NextResponse.json(
       { mensagem: "Caixa criada com sucesso", caixa: novaCaixa },

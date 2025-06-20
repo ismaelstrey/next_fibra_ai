@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Caixa, useMapContext } from '@/context/MapContext';
 import { Badge } from '@/components/ui/badge';
 import { MapPinIcon, BoxIcon, CableIcon, InfoIcon } from 'lucide-react';
+import Link from 'next/link';
 
 interface DetalhesMarcadorModalProps {
   /**
@@ -98,12 +99,13 @@ export function DetalhesMarcadorModal({ aberto, aoFechar, marcador }: DetalhesMa
           <Button variant="outline" onClick={aoFechar}>
             Fechar
           </Button>
-          <Button variant="default" onClick={() => {
-            // Aqui poderia ser implementada a funcionalidade de edição
-            aoFechar();
-          }}>
-            Editar
-          </Button>
+          <Link href={`/dashboard/detalhes/${marcador.tipo.toLowerCase()}/${marcador.id}`}>
+            <Button variant="default" onClick={() => {
+              // Aqui poderia ser implementada a funcionalidade de edição
+              aoFechar();
+            }}>Editar</Button></Link>
+
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -152,6 +152,9 @@ export function CTO({
                     <TabsContent value="fechada">
                         <CardHeader className="text-center border-b pb-4">
                             <CardTitle className="text-xl font-bold">{nome}</CardTitle>
+                            <CardDescription className="text-sm text-muted-foreground">
+                                {modelo}
+                            </CardDescription>
                             <div className="flex justify-center gap-2 mt-2">
                                 <Badge variant="outline">{modelo}</Badge>
                                 <Badge>{capacidade} portas</Badge>

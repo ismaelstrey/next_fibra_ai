@@ -6,10 +6,6 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
-// datasource db {
-//   provider = "postgresql"
-//   url      = "postgresql://postgres:postgres@localhost:5432/next_fibra_ai?schema=public"
-// }
 
 model Usuario {
   id                    String                @id @default(cuid())
@@ -31,8 +27,10 @@ model Usuario {
   relatorios            Relatorio[]
   cidades               Cidade[]              @relation("CidadeToUsuario")
   notificacoesRecebidas Notificacao[]         @relation("notificacoesRecebidas")
-
-  Participante Participante[]
+  Participante          Participante[]
+  incidentes            Incidente[]
+  equipamentos          Equipamento[]
+  Arquivo               Arquivo[]
 }
 
 model Cidade {
@@ -49,6 +47,10 @@ model Cidade {
   relatorios   Relatorio[]
   rotas        Rota[]
   usuarios     Usuario[]     @relation("CidadeToUsuario")
+  equipamento  Equipamento[]
+  emenda       Emenda[]
+  cliente      Cliente[]
+  capilar      Capilar[]
 }
 
 model Rota {
@@ -74,6 +76,7 @@ model Rota {
   manutencoes  Manutencao[]
   notificacoes Notificacao[]
   relatorios   Relatorio[]
+  capilares    Capilar[]
   cidade       Cidade        @relation(fields: [cidadeId], references: [id])
 }
 
@@ -101,6 +104,9 @@ model Caixa {
   notificacoes Notificacao[]
   portas       Porta[]
   relatorios   Relatorio[]
+  spliters     Spliter[]
+  equipamentos Equipamento[]
+  incidentes   Incidente[]
 }
 
 model Porta {
@@ -123,6 +129,7 @@ model Bandeja {
   numero       Int
   capacidade   Int
   observacoes  String?
+  status       String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   caixaId      String
@@ -175,7 +182,7 @@ model Manutencao {
   cidade         Cidade        @relation(fields: [cidadeId], references: [id])
   notificacoes   Notificacao[]
   relatorios     Relatorio[]
-  evento Evento[]
+  evento         Evento[]
 }
 
 model Responsavel {
@@ -209,21 +216,34 @@ model Comentario {
 }
 
 model Arquivo {
-  id           String      @id @default(cuid())
-  nome         String
-  tipo         String
-  url          String
-  criadoEm     DateTime    @default(now())
-  rotaId       String?
-  caixaId      String?
-  manutencaoId String?
-  eventoId     String?
-  relatorioId  String?
-  relatorio    Relatorio?  @relation(fields: [relatorioId], references: [id])
-  evento       Evento?     @relation(fields: [eventoId], references: [id])
-  manutencao   Manutencao? @relation(fields: [manutencaoId], references: [id])
-  caixa        Caixa?      @relation(fields: [caixaId], references: [id])
-  rota         Rota?       @relation(fields: [rotaId], references: [id])
+  id            String       @id @default(cuid())
+  nome          String
+  tipo          String
+  url           String
+  criadoEm      DateTime     @default(now())
+  rotaId        String?
+  caixaId       String?
+  manutencaoId  String?
+  eventoId      String?
+  relatorioId   String?
+  tamanho       Int?
+  usuarioId     String?
+  capilarId     String?
+  emendaId      String?
+  clienteId     String?
+  equipamentoId String?
+  relatorio     Relatorio?   @relation(fields: [relatorioId], references: [id])
+  evento        Evento?      @relation(fields: [eventoId], references: [id])
+  manutencao    Manutencao?  @relation(fields: [manutencaoId], references: [id])
+  caixa         Caixa?       @relation(fields: [caixaId], references: [id])
+  rota          Rota?        @relation(fields: [rotaId], references: [id])
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id])
+  capilar       Capilar?     @relation(fields: [capilarId], references: [id])
+  emenda        Emenda?      @relation(fields: [emendaId], references: [id])
+  cliente       Cliente?     @relation(fields: [clienteId], references: [id])
+  equipamento   Equipamento? @relation(fields: [equipamentoId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 }
 
 model Log {
@@ -312,115 +332,103 @@ model NotificacaoLida {
 }
 
 model Evento {
-  id           String        @id @default(cuid())
-  titulo       String
-  descricao    String?
-  tipo         String
-  status       String
-  localizacao       String?
-  dataInicio   DateTime
-  dataFim      DateTime?
-  prioridade   String?
-  criadoEm     DateTime      @default(now())
-  atualizadoEm DateTime      @updatedAt
-  cidadeId     String?
-  rotaId       String?
-  caixaId      String?
-  usuarioId    String?
-  arquivos     Arquivo[]
-  comentarios  Comentario[]
-  usuario      Usuario?      @relation(fields: [usuarioId], references: [id])
-  caixa        Caixa?        @relation(fields: [caixaId], references: [id])
-  rota         Rota?         @relation(fields: [rotaId], references: [id])
-  cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
-  manutencao   Manutencao[]
-  notificacoes Notificacao[]
+  id            String         @id @default(cuid())
+  titulo        String
+  descricao     String?
+  tipo          String
+  status        String
+  localizacao   String?
+  dataInicio    DateTime
+  dataFim       DateTime?
+  prioridade    String?
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+  cidadeId      String?
+  rotaId        String?
+  caixaId       String?
+  usuarioId     String?
+  arquivos      Arquivo[]
+  comentarios   Comentario[]
+  usuario       Usuario?       @relation(fields: [usuarioId], references: [id])
+  caixa         Caixa?         @relation(fields: [caixaId], references: [id])
+  rota          Rota?          @relation(fields: [rotaId], references: [id])
+  cidade        Cidade?        @relation(fields: [cidadeId], references: [id])
+  manutencao    Manutencao[]
+  notificacoes  Notificacao[]
   participantes Participante[]
 }
 
 model Relatorio {
-  id           String        @id @default(cuid())
-  titulo       String
-  descricao    String
-  tipo         String
-  dataInicio   DateTime
-  dataFim      DateTime
-  dados        Json?
-  observacoes  String?
-  criadoEm     DateTime      @default(now())
-  atualizadoEm DateTime      @updatedAt
-  cidadeId     String?
-  caixaId      String?
-  rotaId       String?
-  manutencaoId String?
-  criadorId    String
-  arquivos     Arquivo[]
-  comentarios  Comentario[]
-  notificacoes Notificacao[]
-  criador      Usuario       @relation(fields: [criadorId], references: [id])
-  manutencao   Manutencao?   @relation(fields: [manutencaoId], references: [id])
-  rota         Rota?         @relation(fields: [rotaId], references: [id])
-  caixa        Caixa?        @relation(fields: [caixaId], references: [id])
-  cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
+  id            String         @id @default(cuid())
+  titulo        String
+  descricao     String
+  tipo          String
+  dataInicio    DateTime
+  dataFim       DateTime
+  dados         Json?
+  observacoes   String?
+  criadoEm      DateTime       @default(now())
+  atualizadoEm  DateTime       @updatedAt
+  cidadeId      String?
+  caixaId       String?
+  rotaId        String?
+  manutencaoId  String?
+  criadorId     String
+  arquivos      Arquivo[]
+  comentarios   Comentario[]
+  notificacoes  Notificacao[]
+  criador       Usuario        @relation(fields: [criadorId], references: [id])
+  manutencao    Manutencao?    @relation(fields: [manutencaoId], references: [id])
+  rota          Rota?          @relation(fields: [rotaId], references: [id])
+  caixa         Caixa?         @relation(fields: [caixaId], references: [id])
+  cidade        Cidade?        @relation(fields: [cidadeId], references: [id])
   participantes Participante[]
-
-  
 }
+
 model Participante {
-  id           String        @id @default(cuid())
-  nome         String
-  usuarios     Usuario[]
+  id        String      @id @default(cuid())
+  nome      String
+  usuarios  Usuario[]
   relatorio Relatorio[]
-  evento Evento[]
-}
-
-model Cabo {
-  id           String        @id @default(cuid())
-  nome         String
-  tipo         String // AS ASU
-  origem       String
-  destino      String
-  comprimento  Float
-  status       String
-  tipoCabo     String
-  material     String
-  potencia     Float
-  tensao       Float
-  cor          String
-  tipoCorte    String // sangria ou corte
-  capilares    Capilar[]
+  evento    Evento[]
 }
 
 model Capilar {
-  id           String        @id @default(cuid())
-  numero       Int
-  tipo         String
-  comprimento  Float
-  status       String 
-  potencia     Float 
-  cor          String
-  caboId   String
-  cabo     Cabo      @relation(fields: [caboId], references: [id])  
-  saidas   Emenda[]  @relation("CapilarSaida")
-  entradas Emenda[]  @relation("CapilarEntrada")
-  spliter_saida Spliter[] @relation("CapilarSaida")
-  spliter_entrada Spliter[] @relation("CapilarEntrada")
+  id              String      @id @default(cuid())
+  numero          Int
+  tipo            String
+  comprimento     Float
+  status          String
+  potencia        Float
+  cidadeId        String?
+  cidade          Cidade?     @relation(fields: [cidadeId], references: [id])
+  saidas          Emenda[]    @relation("CapilarSaida")
+  entradas        Emenda[]    @relation("CapilarEntrada")
+  spliter_saida   Spliter[]   @relation("CapilarSaida")
+  spliter_entrada Spliter[]   @relation("CapilarEntrada")
+  rota            Rota[]
+  arquivo         Arquivo[]
+  incidentes      Incidente[]
 }
 
 model Emenda {
-  id           String        @id @default(cuid())
-  localizacao     String
-  capilarSaidaId  String
-  capilarEntradaId String 
-  capilarSaida    Capilar  @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
-  capilarEntrada  Capilar  @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  id               String        @id @default(cuid())
+  localizacao      String
+  capilarSaidaId   String
+  capilarEntradaId String
+  cidadeId         String?
+  cidade           Cidade?       @relation(fields: [cidadeId], references: [id])
+  capilarSaida     Capilar       @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada   Capilar       @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  arquivo          Arquivo[]
+  equipamentos     Equipamento[]
+  incidentes       Incidente[]
 }
-
 
 model Cliente {
   id           String        @id @default(cuid())
   nome         String
-  email        String       @unique
+  email        String        @unique
   senha        String?
   telefone     String?
   apartamento  String?
@@ -429,30 +437,87 @@ model Cliente {
   numero       Int
   potencia     Float
   wifi         String
-  senhaWifi    String 
+  senhaWifi    String
   neutraId     String
-  neutra       Neutra     @relation(fields: [neutraId], references: [id]) 
+  cidadeId     String?
+  cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
+  neutra       Neutra        @relation(fields: [neutraId], references: [id])
   portaId      String
-  porta        Porta   @relation(fields: [portaId], references: [id]) 
+  porta        Porta         @relation(fields: [portaId], references: [id])
+  arquivo      Arquivo[]
+  equipamentos Equipamento[]
+  incidentes   Incidente[]
 }
 
 model Neutra {
-  id           String        @id @default(cuid())
-  nome         String
-  vlan         Int 
+  id      String    @id @default(cuid())
+  nome    String
+  vlan    Int
   Cliente Cliente[]
 }
 
 model Spliter {
-  id           String        @id @default(cuid())
-  nome         String
-  vlan         Int 
-  tipo         String
-   capilarSaidaId  String
+  id               String  @id @default(cuid())
+  nome             String
+  atendimento      Boolean @default(true)
+  tipo             String
+  caixaId          String
+  caixa            Caixa   @relation(fields: [caixaId], references: [id])
+  capilarSaidaId   String
   capilarEntradaId String
-  capilarSaida    Capilar  @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
-  capilarEntrada  Capilar  @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  capilarSaida     Capilar @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada   Capilar @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
 }
 
+model Equipamento {
+  id             String      @id @default(cuid())
+  nome           String
+  modelo         String
+  fabricante     String
+  numeroSerie    String?
+  dataInstalacao DateTime?
+  status         String      @default("Ativo")
+  tipo           String
+  descricao      String?
+  observacoes    String?
+  criadoEm       DateTime    @default(now())
+  atualizadoEm   DateTime    @updatedAt
+  caixaId        String?
+  emendaId       String?
+  clienteId      String?
+  usuarioId      String?
+  cidadeId       String?
+  cidade         Cidade?     @relation(fields: [cidadeId], references: [id])
+  caixa          Caixa?      @relation(fields: [caixaId], references: [id])
+  emenda         Emenda?     @relation(fields: [emendaId], references: [id])
+  cliente        Cliente?    @relation(fields: [clienteId], references: [id])
+  usuario        Usuario?    @relation(fields: [usuarioId], references: [id])
+  arquivos       Arquivo[]
+  incidentes     Incidente[]
+}
 
-
+model Incidente {
+  id             String       @id @default(cuid())
+  titulo         String
+  descricao      String
+  dataOcorrencia DateTime
+  dataResolucao  DateTime?
+  status         String
+  prioridade     String
+  impacto        String
+  solucao        String?
+  criadoEm       DateTime     @default(now())
+  atualizadoEm   DateTime     @updatedAt
+  caixaId        String?
+  capilarId      String?
+  emendaId       String?
+  clienteId      String?
+  equipamentoId  String?
+  usuarioId      String
+  caixa          Caixa?       @relation(fields: [caixaId], references: [id])
+  capilar        Capilar?     @relation(fields: [capilarId], references: [id])
+  emenda         Emenda?      @relation(fields: [emendaId], references: [id])
+  cliente        Cliente?     @relation(fields: [clienteId], references: [id])
+  equipamento    Equipamento? @relation(fields: [equipamentoId], references: [id])
+  usuario        Usuario      @relation(fields: [usuarioId], references: [id])
+}
