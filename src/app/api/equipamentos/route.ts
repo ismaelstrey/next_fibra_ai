@@ -76,7 +76,7 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, emend
       return { erro: NextResponse.json({ erro: "Emenda não encontrada" }, { status: 404 }) };
     }
 
-    if (emenda.cidade.usuarios.length === 0) {
+    if (emenda?.cidade?.usuarios.length === 0) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a esta emenda" }, { status: 403 }) };
     }
   }
@@ -107,7 +107,7 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, emend
       return { erro: NextResponse.json({ erro: "Cliente não encontrado" }, { status: 404 }) };
     }
 
-    if (cliente.cidade.usuarios.length === 0) {
+    if (cliente?.cidade?.usuarios.length === 0) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a este cliente" }, { status: 403 }) };
     }
   }
@@ -205,7 +205,7 @@ export async function GET(req: NextRequest) {
       where,
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: { criadoEm: "desc" },
       include: {
         caixa: {
           select: {

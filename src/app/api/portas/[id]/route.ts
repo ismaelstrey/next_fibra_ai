@@ -49,7 +49,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
           },
         },
 
-        Cliente: {
+        cliente: {
           select: {
             id: true,
             nome: true,
@@ -96,7 +96,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     const portaExistente = await prisma.porta.findUnique({
       where: { id },
       include: {
-        Cliente: true,
+        cliente: true,
       },
     });
 
@@ -124,7 +124,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     const dadosAtualizacao = result.data;
 
     // Se estiver alterando o status e a porta estiver em uso por um cliente
-    if (dadosAtualizacao.status && dadosAtualizacao.status !== "Em uso" && portaExistente.Cliente) {
+    if (dadosAtualizacao.status && dadosAtualizacao.status !== "Em uso" && portaExistente.cliente) {
       return NextResponse.json(
         { erro: "Não é possível alterar o status de uma porta que está em uso por um cliente" },
         { status: 400 }
@@ -248,7 +248,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     const porta = await prisma.porta.findUnique({
       where: { id },
       include: {
-        Cliente: true,
+        cliente: true,
       },
     });
 
@@ -260,7 +260,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     }
 
     // Verifica se a porta está em uso por um cliente
-    if (porta.Cliente) {
+    if (porta.cliente) {
       return NextResponse.json(
         { erro: "Não é possível excluir uma porta que está em uso por um cliente" },
         { status: 400 }

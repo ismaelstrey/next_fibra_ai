@@ -63,7 +63,6 @@ export async function GET(req: NextRequest) {
           numero: true,
           status: true,
           caixaId: true,
-          splitterId: true,
           caixa: {
             select: {
               id: true,
@@ -71,14 +70,14 @@ export async function GET(req: NextRequest) {
               tipo: true,
             },
           },
-          splitter: {
+          spliter: {
             select: {
               id: true,
               nome: true,
               tipo: true,
             },
           },
-          Cliente: {
+          cliente: {
             select: {
               id: true,
               nome: true,
@@ -189,8 +188,7 @@ export async function POST(req: NextRequest) {
       data: {
         numero,
         status,
-        caixaId,
-        splitterId,
+        caixaId
       },
     });
 

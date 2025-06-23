@@ -3,33 +3,18 @@
 import React, { useState } from 'react';
 import { DiagramaFusao } from '@/components/diagrama/DiagramaFusao';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
 
 export default function DiagramaFusaoExemplo() {
-  const [conexoes, setConexoes] = useState<{origem: string, destino: string}[]>([]);
+  const [conexoes, setConexoes] = useState<{ origem: string, destino: string }[]>([]);
 
   // Função para registrar conexões realizadas
   const handleConexaoRealizada = (sourceId: string, targetId: string) => {
-    setConexoes(prev => [...prev, {origem: sourceId, destino: targetId}]);
+    setConexoes(prev => [...prev, { origem: sourceId, destino: targetId }]);
   };
 
   return (
     <div className=" h-screen mt-0 bg-red-600">
-      {/* <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Diagrama de Fusão de Cabos</h1>
-      </div> */}
-
-      {/* <Alert>
-        <InfoIcon className="h-4 w-4" />
-        <AlertTitle>Informação</AlertTitle>
-        <AlertDescription>
-          Este é um exemplo de diagrama para fusão de cabos de fibra óptica. Você pode adicionar cabos e splitters, 
-          e conectar as fibras entre si arrastando das saídas (direita) para as entradas (esquerda).
-        </AlertDescription>
-      </Alert> */}
 
       <Tabs defaultValue="diagrama" className="w-full">
         <TabsList className='fixed right-4 top-8'>

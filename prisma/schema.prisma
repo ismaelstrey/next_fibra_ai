@@ -120,8 +120,10 @@ model Porta {
   atualizadoEm DateTime @updatedAt
   caixaId      String
   caixa        Caixa    @relation(fields: [caixaId], references: [id])
+  spliterId    String?
+  spliter      Spliter? @relation(fields: [spliterId], references: [id])
 
-  Cliente Cliente[]
+  cliente Cliente[]
 }
 
 model Bandeja {
@@ -467,6 +469,8 @@ model Spliter {
   capilarEntradaId String
   capilarSaida     Capilar @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
   capilarEntrada   Capilar @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+
+  Porta Porta[]
 }
 
 model Equipamento {

@@ -76,7 +76,7 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, capil
       return { erro: NextResponse.json({ erro: "Capilar não encontrado" }, { status: 404 }) };
     }
 
-    if (capilar.cidade.usuarios.length === 0) {
+    if (capilar?.cidade?.usuarios.length === 0) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a este capilar" }, { status: 403 }) };
     }
   }
@@ -107,7 +107,7 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, capil
       return { erro: NextResponse.json({ erro: "Emenda não encontrada" }, { status: 404 }) };
     }
 
-    if (emenda.cidade.usuarios.length === 0) {
+    if (emenda?.cidade?.usuarios.length === 0) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a esta emenda" }, { status: 403 }) };
     }
   }
@@ -138,7 +138,7 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, capil
       return { erro: NextResponse.json({ erro: "Cliente não encontrado" }, { status: 404 }) };
     }
 
-    if (cliente.cidade.usuarios.length === 0) {
+    if (cliente?.cidade?.usuarios.length === 0) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a este cliente" }, { status: 403 }) };
     }
   }
@@ -208,18 +208,18 @@ async function verificarAcessoEntidade(req: NextRequest, caixaId?: string, capil
 
     // Verifica se o usuário tem acesso à cidade da caixa, emenda ou cliente associado ao equipamento
     let temAcesso = false;
-    
+
     if (equipamento.caixa && equipamento.caixa.cidade?.usuarios?.length > 0) {
       temAcesso = true;
     }
-    
-    if (!temAcesso && equipamento.emenda && equipamento.emenda.cidade?.usuarios?.length > 0) {
-      temAcesso = true;
-    }
-    
-    if (!temAcesso && equipamento.cliente && equipamento.cliente.cidade?.usuarios?.length > 0) {
-      temAcesso = true;
-    }
+
+    // if (!temAcesso && equipamento.emenda && equipamento.emenda.cidade?.usuarios?.length > 0) {
+    //   temAcesso = true;
+    // }
+
+    // if (!temAcesso && equipamento.cliente && equipamento.cliente.cidade?.usuarios?.length > 0) {
+    //   temAcesso = true;
+    // }
 
     if (!temAcesso) {
       return { erro: NextResponse.json({ erro: "Você não tem acesso a este equipamento" }, { status: 403 }) };
@@ -332,7 +332,7 @@ export async function GET(req: NextRequest) {
       where,
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: { criadoEm: "desc" },
       include: {
         caixa: {
           select: {

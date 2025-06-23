@@ -1,8 +1,8 @@
 
-import { LayersIcon, FilterIcon } from 'lucide-react';
+import { LayersIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import useMapa, { CamadasVisiveis, FiltrosMapa } from '@/hooks/useMapa';
+import useMapa, { CamadasVisiveis } from '@/hooks/useMapa';
 import React from 'react';
 
 export default function CamadasMaps() {

@@ -17,11 +17,11 @@ export async function verificarAutenticacao(req: NextRequest) {
  * Verifica se o usuário tem permissão para acessar a rota
  * @param req - Requisição Next.js
  * @param cargosPermitidos - Lista de cargos permitidos
- * @returns Resposta de erro ou null se autorizado
+ * @returns Resposta de erro ou null se autorizado ou id do usuário
  */
 export async function verificarPermissao(req: NextRequest, cargosPermitidos: string[] = []) {
   const token = await verificarAutenticacao(req);
-  
+
   if (!token) {
     return NextResponse.json(
       { erro: "Não autorizado" },
@@ -42,6 +42,7 @@ export async function verificarPermissao(req: NextRequest, cargosPermitidos: str
       { status: 403 }
     );
   }
+
 
   return null;
 }
@@ -65,11 +66,11 @@ export function tratarErroValidacao(error: ZodError) {
  */
 export function tratarErro(error: unknown) {
   console.error("Erro na API:", error);
-  
+
   if (error instanceof ZodError) {
     return tratarErroValidacao(error);
   }
-  
+
   return NextResponse.json(
     { erro: "Erro interno do servidor" },
     { status: 500 }

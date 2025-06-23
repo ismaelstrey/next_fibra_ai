@@ -5,6 +5,7 @@ import { prisma } from "@/prisma/prisma";
 import { verificarPermissao, tratarErro, verificarAutenticacao, registrarLog } from "../../utils";
 import { atualizarFusaoSchema } from "../schema";
 
+
 /**
  * Função auxiliar para verificar se o usuário tem acesso à fusão
  */
@@ -156,12 +157,12 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       // Verifica se a bandeja tem capacidade disponível
       if (bandeja._count.fusoes >= bandeja.capacidade) {
         return NextResponse.json(
-          { 
-            erro: "A bandeja não tem capacidade disponível", 
-            detalhes: { 
-              capacidade: bandeja.capacidade, 
-              fusoesExistentes: bandeja._count.fusoes 
-            } 
+          {
+            erro: "A bandeja não tem capacidade disponível",
+            detalhes: {
+              capacidade: bandeja.capacidade,
+              fusoesExistentes: bandeja._count.fusoes
+            }
           },
           { status: 400 }
         );
@@ -216,7 +217,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
       // Se estiver alterando a caixa, remove a bandeja (a menos que uma nova bandeja seja especificada)
       if (!dadosAtualizacao.bandejaId) {
-        dadosAtualizacao.bandejaId = null;
+        dadosAtualizacao.bandejaId = undefined
       }
     }
 
@@ -277,8 +278,8 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         entidade: "Fusão",
         entidadeId: id,
         detalhes: {
-          origem: acesso.fusao?.origem,
-          destino: acesso.fusao?.destino,
+          origem: acesso.fusao?.fibraOrigem,
+          destino: acesso.fusao?.fibraDestino,
           caixaId: acesso.fusao?.caixaId,
           bandejaId: acesso.fusao?.bandejaId,
         },

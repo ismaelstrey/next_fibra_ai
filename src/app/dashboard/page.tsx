@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { MapIcon, BoxIcon, CableIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,7 +55,8 @@ export default function DashboardPage() {
       opacity: 1,
       transition: {
         type: 'spring',
-        stiffness: 100
+        stiffness: 100,
+        delay: 0.1
       }
     }
   };
@@ -67,13 +68,13 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Painel de controle do sistema FibraDoc</p>
       </header>
 
-      <motion.div 
+      <motion.div
         className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants as Variants}>
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/dashboard/mapa')}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xl font-medium">Mapa</CardTitle>
@@ -86,7 +87,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants as Variants}>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/dashboard/caixas')}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xl font-medium">Caixas</CardTitle>
@@ -99,7 +101,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants as Variants}>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/dashboard/rotas')}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xl font-medium">Rotas</CardTitle>
@@ -112,7 +115,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants as Variants}>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/dashboard/usuarios')}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xl font-medium">Usuários</CardTitle>
@@ -125,7 +129,8 @@ export default function DashboardPage() {
           </Card>
         </motion.div>
 
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants as Variants}>
+
           <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push('/dashboard/configuracoes')}>
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-xl font-medium">Configurações</CardTitle>

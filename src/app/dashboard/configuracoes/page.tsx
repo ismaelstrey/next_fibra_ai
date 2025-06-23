@@ -30,7 +30,7 @@ export default function ConfiguracoesPage() {
   });
 
   // Acesso ao contexto de tema
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
 
   // Sincroniza o estado do modo escuro com o tema atual
   useEffect(() => {
@@ -330,6 +330,7 @@ export default function ConfiguracoesPage() {
                       checked={configGerais.modoEscuro}
                       onCheckedChange={(checked) => {
                         setConfigGerais({ ...configGerais, modoEscuro: checked });
+                        // Usa setTheme diretamente para garantir o tema específico
                         setTheme(checked ? 'dark' : 'light');
                       }}
                     />

@@ -241,7 +241,7 @@ export async function POST(req: NextRequest) {
       if (bandejaIds.size > 0) {
         const bandejas = await prisma.bandeja.findMany({
           where: {
-            id: { in: Array.from(bandejaIds) || [] },
+            id: { in: Array.from(bandejaIds).filter((id): id is string => id !== undefined) },
             caixaId,
           },
           select: {
@@ -421,7 +421,7 @@ export async function POST(req: NextRequest) {
           acao: "Criação",
           entidade: "Fusão",
           entidadeId: novaFusao.id,
-          detalhes: { origem, destino, caixaId, bandejaId },
+          detalhes: { fibraOrigem, fibraDestino, caixaId, bandejaId },
         });
       }
 

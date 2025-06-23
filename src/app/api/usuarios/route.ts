@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { verificarPermissao, tratarErro } from "../utils";
+import { verificarPermissao, tratarErro, verificarAutenticacao } from "../utils";
 import { criarUsuarioSchema } from "./schema";
 import { hash } from "bcrypt";
 
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por nome ou email
     if (busca) {
       where.OR = [
@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = criarUsuarioSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -107,24 +107,24 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     const { nome, email, senha, cargo, imagem } = result.data;
-    
+
     // Verifica se o email já está em uso
     const usuarioExistente = await prisma.usuario.findUnique({
       where: { email },
     });
-    
+
     if (usuarioExistente) {
       return NextResponse.json(
         { erro: "Email já está em uso" },
         { status: 409 }
       );
     }
-    
+
     // Criptografa a senha
     const senhaHash = await hash(senha, 10);
-    
+
     // Cria o usuário no banco de dados
     const novoUsuario = await prisma.usuario.create({
       data: {
@@ -144,13 +144,15 @@ export async function POST(req: NextRequest) {
         atualizadoEm: true,
       },
     });
-
+    const permicao = await verificarPermissao(req)
+    console.log(permicao)
     // Registra a ação no log de auditoria
-    const token = await verificarPermissao(req);
+    const token = await verificarAutenticacao(req);
+
     if (token) {
       await prisma.log.create({
         data: {
-          usuarioId: token.id as string,
+          usuarioId: token?.id,
           acao: "Criação",
           entidade: "Usuario",
           entidadeId: novoUsuario.id,
@@ -158,7 +160,7 @@ export async function POST(req: NextRequest) {
         },
       });
     }
-    
+
     // Retorna os dados do usuário criado (sem a senha)
     return NextResponse.json(
       { mensagem: "Usuário criado com sucesso", usuario: novoUsuario },

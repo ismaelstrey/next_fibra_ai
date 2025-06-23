@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const capilar = await prisma.capilar.findUnique({
       where: { id },
       include: {
-        Rota: {
+        rota: {
           select: {
             id: true,
             nome: true,

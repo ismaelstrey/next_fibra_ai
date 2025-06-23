@@ -87,15 +87,15 @@ async function verificarAcessoManutencao(req: NextRequest, manutencaoId: string)
 
   // Verifica se o usuário tem acesso à cidade da caixa ou rota
   let temAcesso = false;
-  
-  if (manutencao.caixa && manutencao.caixa.cidade?.usuarios?.length > 0) {
-    temAcesso = true;
-  }
-  
-  if (!temAcesso && manutencao.rota && manutencao.rota.cidade?.usuarios?.length > 0) {
-    temAcesso = true;
-  }
-  
+
+  // if (manutencao.caixa && manutencao.caixa?.cidade?.usuarios?.length > 0) {
+  //   temAcesso = true;
+  // }
+
+  // if (!temAcesso && manutencao.rota && manutencao.rota?.cidade?.usuarios?.length > 0) {
+  //   temAcesso = true;
+  // }
+
   // O usuário que criou a manutenção também tem acesso
   if (manutencao.usuarioId === token.id) {
     temAcesso = true;
@@ -172,14 +172,18 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     if (dadosAtualizacao.caixaId || dadosAtualizacao.rotaId) {
       const caixaId = dadosAtualizacao.caixaId || acesso.manutencao?.caixaId;
       const rotaId = dadosAtualizacao.rotaId || acesso.manutencao?.rotaId;
-      
+
       const acessoEntidade = await verificarAcessoEntidade(req, caixaId, rotaId);
       if (acessoEntidade.erro) return acessoEntidade.erro;
     }
 
-    // Converte a data de manutenção para objeto Date, se fornecida
+    // Converte as datas para objeto Date, se fornecidas
     if (dadosAtualizacao.dataManutencao) {
-      dadosAtualizacao.dataManutencao = new Date(dadosAtualizacao.dataManutencao);
+      dadosAtualizacao.dataManutencao = new Date(dadosAtualizacao.dataManutencao).toString();
+    }
+
+    if (dadosAtualizacao.dataInicio) {
+      dadosAtualizacao.dataInicio = new Date(dadosAtualizacao.dataInicio).toString();
     }
 
     // Atualiza a manutenção no banco de dados

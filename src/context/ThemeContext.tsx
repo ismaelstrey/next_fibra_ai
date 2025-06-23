@@ -12,6 +12,7 @@ type ThemeProviderProps = {
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   sidebarVisible: boolean;
   toggleSidebar: () => void;
   setSidebarVisible: (visible: boolean) => void;
@@ -20,6 +21,7 @@ type ThemeProviderState = {
 const initialState: ThemeProviderState = {
   theme: 'system',
   setTheme: () => null,
+  toggleTheme: () => null,
   sidebarVisible: true,
   toggleSidebar: () => null,
   setSidebarVisible: () => null,
@@ -34,6 +36,14 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [sidebarVisible, setSidebarVisible] = useState<boolean>(true);
+
+  // Recupera o tema salvo no localStorage ao iniciar
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    }
+  }, []);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -67,12 +77,29 @@ export function ThemeProvider({
     setSidebarVisible(newState);
   };
 
+  const toggleTheme = () => {
+    let newTheme: Theme;
+    
+    if (theme === 'system') {
+      // Se o tema atual for 'system', verifica o tema do sistema e alterna para o oposto
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      newTheme = systemTheme === 'light' ? 'dark' : 'light';
+    } else {
+      // Se o tema atual for 'light' ou 'dark', alterna entre eles
+      newTheme = theme === 'light' ? 'dark' : 'light';
+    }
+    
+    localStorage.setItem('theme', newTheme);
+    setTheme(newTheme);
+  };
+
   const value = {
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem('theme', theme);
       setTheme(theme);
     },
+    toggleTheme,
     sidebarVisible,
     toggleSidebar,
     setSidebarVisible: (visible: boolean) => {

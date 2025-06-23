@@ -30,6 +30,7 @@ export function DashboardHeader() {
     { href: '/dashboard/manutencoes', label: 'Manutenções' },
     { href: '/dashboard/relatorios', label: 'Relatórios' },
     { href: '/dashboard/configuracoes', label: 'Configurações' },
+    { href: '/dashboard/manutencoes', label: 'Manutenções' },
   ];
 
   // Função para verificar se um link está ativo

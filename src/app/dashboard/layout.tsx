@@ -58,7 +58,7 @@ export default function DashboardLayout({
       {/* Conteúdo principal */}
       <div className="flex flex-col flex-1 transition-all duration-200" style={{ paddingLeft: menu === "left" ? (sidebarVisible ? '16rem' : '4rem') : '0' }}>
         {/* Header do Dashboard */}
-        <button onClick={() => setMenu(menu === "left"? "top" : "left")} className="md:hidden">Menu</button>
+        <button onClick={() => setMenu(menu === "left" ? "top" : "left")} className="md:hidden">Menu</button>
         {menu === "top" && <DashboardHeader />}
         <main className="flex-1 overflow-y-auto">
           {children}

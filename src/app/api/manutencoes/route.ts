@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por título ou descrição
     if (busca) {
       where.OR = [
@@ -148,11 +148,11 @@ export async function GET(req: NextRequest) {
     // Adiciona filtro por data
     if (dataInicio || dataFim) {
       where.dataManutencao = {};
-      
+
       if (dataInicio) {
         where.dataManutencao.gte = new Date(dataInicio);
       }
-      
+
       if (dataFim) {
         where.dataManutencao.lte = new Date(dataFim);
       }
@@ -294,10 +294,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = manutencaoSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -305,35 +305,42 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    const { 
-      titulo, 
-      descricao, 
-      dataManutencao, 
-      status, 
-      tipo, 
-      caixaId, 
-      rotaId 
+
+    const {
+      titulo,
+      descricao,
+      dataManutencao,
+      status,
+      tipo,
+      caixaId,
+      rotaId,
+      cidadeId,
+      prioridade,
+      dataInicio
     } = result.data;
-    
+
     // Verifica se o usuário tem acesso à caixa ou rota
     const acesso = await verificarAcessoEntidade(req, caixaId, rotaId);
     if (acesso.erro) return acesso.erro;
-    
+
     // Cria a manutenção no banco de dados
     const novaManutencao = await prisma.manutencao.create({
       data: {
+        cidadeId: cidadeId!,
+        prioridade,
+        dataInicio: dataInicio || new Date(),
         titulo,
         descricao,
         dataManutencao: new Date(dataManutencao),
         status,
         tipo,
-        caixaId,
-        rotaId,
+        caixaId: caixaId || '',
+        rotaId: rotaId || '',
         usuarioId: acesso.token?.id as string,
+
       },
     });
-    
+
     // Registra a ação no log de auditoria
     if (acesso.token) {
       await registrarLog({
@@ -345,7 +352,7 @@ export async function POST(req: NextRequest) {
         detalhes: { titulo, status, tipo, caixaId, rotaId },
       });
     }
-    
+
     // Retorna os dados da manutenção criada
     return NextResponse.json(
       { mensagem: "Manutenção criada com sucesso", manutencao: novaManutencao },
