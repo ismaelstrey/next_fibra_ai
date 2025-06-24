@@ -1,51 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { TuboLoose, Fibra } from '../types';
-import { CORES_FIBRAS, CORES_TUBOS } from '../constants/cores';
+import { CORES_FIBRAS } from '../constants/cores';
 
 /**
  * Componente de nó personalizado para Cabo
  */
-export function CaboNode({ data, id }: NodeProps) {
+export function CaboNode({ data }: NodeProps) {
   // Inicializa o estado com todos os tubos expandidos
-  const [expandedTubos, setExpandedTubos] = useState<Record<string, boolean>>(() => {
-    const initialState: Record<string, boolean> = {};
-    data.tubos.forEach((tubo: TuboLoose) => {
-      initialState[tubo.id] = true; // Todos os tubos começam expandidos
-    });
-    return initialState;
-  });
+  // const [expandedTubos, setExpandedTubos] = useState<Record<string, boolean>>(() => {
+  //   const initialState: Record<string, boolean> = {};
+  //   data.tubos.forEach((tubo: TuboLoose) => {
+  //     initialState[tubo.id] = true; // Todos os tubos começam expandidos
+  //   });
+  //   return initialState;
+  // });
 
-  const toggleTubo = (tuboId: string) => {
-    setExpandedTubos((prev) => ({
-      ...prev,
-      [tuboId]: !prev[tuboId],
-    }));
-  };
+  // const toggleTubo = (tuboId: string) => {
+  //   setExpandedTubos((prev) => ({
+  //     ...prev,
+  //     [tuboId]: !prev[tuboId],
+  //   }));
+  // };
 
   // Função para expandir ou recolher todos os tubos
-  const toggleAllTubos = () => {
-    // Verifica se todos os tubos estão expandidos
-    const allExpanded = data.tubos.every((tubo: TuboLoose) => expandedTubos[tubo.id]);
+  // const toggleAllTubos = () => {
+  //   // Verifica se todos os tubos estão expandidos
+  //   const allExpanded = data.tubos.every((tubo: TuboLoose) => expandedTubos[tubo.id]);
 
-    // Cria um novo estado com todos expandidos ou todos recolhidos
-    const newState: Record<string, boolean> = {};
-    data.tubos.forEach((tubo: TuboLoose) => {
-      newState[tubo.id] = !allExpanded;
-    });
+  //   // Cria um novo estado com todos expandidos ou todos recolhidos
+  //   const newState: Record<string, boolean> = {};
+  //   data.tubos.forEach((tubo: TuboLoose) => {
+  //     newState[tubo.id] = !allExpanded;
+  //   });
 
-    setExpandedTubos(newState);
-  };
+  //   setExpandedTubos(newState);
+  // };
 
 
-  console.log(data)
+
 
   return (
     <div>    
-        {data.tubos.map((tubo: TuboLoose) => (    
-             <div style={{
+        {data.tubos.map((tubo: TuboLoose, key:number) => (    
+             <div  key={key} style={{
                 backgroundColor:"red", 
                 width:90, 
                 height:"auto",

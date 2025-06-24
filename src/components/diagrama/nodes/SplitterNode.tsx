@@ -9,7 +9,7 @@ import { getColor} from '@/functions/color';
 /**
  * Componente de nó personalizado para Splitter
  */
-export function SplitterNode({ data, id }: NodeProps) {
+export function SplitterNode({ data }: NodeProps) {
   return (
     <div className="h-auto">
 
@@ -36,9 +36,8 @@ export function SplitterNode({ data, id }: NodeProps) {
             console.log(`Handle ${index} style string:`, cor);
             
             return (
-        <div className=''>
-                <Handle
-                key={index}
+        <div key={index} className=''>
+                <Handle                
                 type="source"
                 position={Position.Right}
                 id={porta}

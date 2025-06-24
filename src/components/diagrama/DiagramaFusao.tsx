@@ -25,7 +25,6 @@ import { useDiagramaInitializer } from './hooks/useDiagramaInitializer';
 
 // Importação de componentes
 import { DiagramaControles } from './controls/DiagramaControles';
-import { DiagramaLegenda } from './controls/DiagramaLegenda';
 
 /**
  * Componente para criação de diagramas de fusão de cabos de fibra óptica
@@ -63,11 +62,11 @@ export function DiagramaFusao({ cabos = [], splitters = [], onConexaoRealizada }
   // 
 
   useEffect(() => {
-    // Só inicializa se houver dados para carregar e os nós ainda não foram inicializados
-    if ((cabos.length > 0 || splitters.length > 0) && nodes.length === 0) {
-      useDiagramaInitializer({ cabos, splitters, setNodes, setNodeCounter });
-      // Código de inicialização existente...
-    }
+    // // Só inicializa se houver dados para carregar e os nós ainda não foram inicializados
+    // if ((cabos.length > 0 || splitters.length > 0) && nodes.length === 0) {
+    //   useDiagramaInitializer({ cabos, splitters, setNodes, setNodeCounter });
+    //   // Código de inicialização existente...
+    // }
   }, [cabos, splitters, setNodes, setNodeCounter, nodes.length]);
 
   return (

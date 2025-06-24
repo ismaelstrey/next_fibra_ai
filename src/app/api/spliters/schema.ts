@@ -10,8 +10,9 @@ export const spliterSchema = z.object({
   atendimento: z.boolean().default(true),
   tipo: z.string().min(2, "Tipo deve ter pelo menos 2 caracteres"),
   caixaId: z.string(),
-  capilarSaidaId: z.string(),
-  capilarEntradaId: z.string(),
+  capilarSaidaId: z.string().optional().nullable(),
+  capilarEntradaId: z.string().optional().nullable(),
+
 });
 
 /**

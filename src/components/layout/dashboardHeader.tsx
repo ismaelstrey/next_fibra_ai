@@ -11,6 +11,7 @@ import { ThemeToggle } from '@/components/ui/themeToggle';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import Image from 'next/image';
 
 /**
  * Componente de cabeçalho para o dashboard
@@ -42,7 +43,7 @@ export function DashboardHeader() {
         {/* Logo e título */}
         <div className="flex items-center gap-2">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <img src="/logo-fibra.svg" alt="FibraDoc" className="h-8 w-8" />
+            <Image src="/logo-fibra.svg" alt="FibraDoc" className="h-8 w-8" />
             <span className="hidden font-bold text-primary md:inline-block">FibraDoc</span>
           </Link>
         </div>

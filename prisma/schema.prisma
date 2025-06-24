@@ -465,10 +465,10 @@ model Spliter {
   tipo             String
   caixaId          String
   caixa            Caixa   @relation(fields: [caixaId], references: [id])
-  capilarSaidaId   String
-  capilarEntradaId String
-  capilarSaida     Capilar @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
-  capilarEntrada   Capilar @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  capilarSaidaId   String?
+  capilarEntradaId String?
+  capilarSaida     Capilar? @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada   Capilar? @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
 
   Porta Porta[]
 }

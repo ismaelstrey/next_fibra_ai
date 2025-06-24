@@ -5,6 +5,7 @@ import { CTO } from '@/components/mapa/CTO';
 import { ConfiguracoesCTO } from '@/components/mapa/ConfiguracoesCTO';
 import { usePathname } from 'next/navigation';
 import { useMapContext } from '@/context/MapContext';
+import { useSpliter } from '@/hooks/useSpliter';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -14,6 +15,8 @@ export default function ExemploCTOPage() {
   const [portasAtivas, setPortasAtivas] = useState<number[]>([1, 3, 5]);
   const [splitters, setSplitters] = useState<Array<{ tipo: '1/8' | '1/16' | '1/2'; posicao: number }>>([]);
   const [cabosAtivos, setCabosAtivos] = useState<number[]>([1]);
+
+  const {criarSpliter} = useSpliter()
 
   const path = usePathname();
   const id = path.split('/')[4];
@@ -54,6 +57,14 @@ export default function ExemploCTOPage() {
   // Adiciona um splitter
   const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
     if (splitters.length < 2) {
+criarSpliter({
+  atendimento:true,
+  tipo,
+  caixaId:cto.id,
+  nome:"Spliter"+cto.nome,
+  capilarEntradaId:"",
+  capilarSaidaId:""
+})
       setSplitters([...splitters, { tipo, posicao: splitters.length + 1 }]);
     }
   };

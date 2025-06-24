@@ -27,7 +27,7 @@ const GoogleMapsComponent = ({
 }: GoogleMapsComponentProps) => {
   // Referência para o mapa
   const mapRef = useRef<google.maps.Map | null>(null);
-  console.log(onRotaDesenhada)
+
   // Estado para controlar o modal de detalhes do marcador
   const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
   const [marcadorSelecionado, setMarcadorSelecionado] = useState<Caixa | null>(null);
@@ -106,6 +106,7 @@ const GoogleMapsComponent = ({
   if (isLoaded && mapRef.current) {
     criarMarcadoresAvancados(isLoaded);
   }
+
 
   // Renderiza mensagem de erro se houver problema ao carregar a API
   if (loadError) {

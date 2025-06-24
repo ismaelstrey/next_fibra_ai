@@ -49,3 +49,5 @@ export function useDiagramaInitializer({ cabos, splitters, setNodes, setNodeCoun
     }
   }, [cabos, splitters, setNodes, setNodeCounter]);
 }
+
+// No hook useDiagramaInitializer

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,9 +45,9 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 /**
- * Página de login
+ * Componente interno do formulário de login
  */
-export default function LoginPage() {
+function LoginForm() {
   const [carregando, setCarregando] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -173,5 +173,16 @@ export default function LoginPage() {
         </Card>
       </motion.div>
     </div>
+  );
+}
+
+/**
+ * Página de login com Suspense boundary
+ */
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }
