@@ -209,6 +209,70 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Determina a quantidade de capilares baseado no tipo de cabo
+    const quantidadeDeCapilares = parseInt(tipoCabo) || 0;
+    
+    // Cria os capilares automaticamente se a quantidade for válida
+    if (quantidadeDeCapilares > 0) {
+      // Verifica se já existem capilares para esta rota e cidade
+      const capilaresExistentes = await prisma.capilar.findMany({
+        where: {
+          cidadeId: cidadeId,
+          tipo: tipoCabo,
+          rota: {
+            some: {
+              id: novaRota.id,
+            },
+          },
+        },
+      });
+      
+      // Só cria capilares se não existirem para esta rota
+      if (capilaresExistentes.length === 0) {
+        const capilaresData = [];
+        
+        for (let i = 1; i <= quantidadeDeCapilares; i++) {
+          capilaresData.push({
+            numero: i,
+            tipo: tipoCabo,
+            comprimento: distancia || 0,
+            status: "Ativo",
+            potencia: 0,
+            cidadeId: cidadeId,
+          });
+        }
+        
+        // Cria todos os capilares em uma única operação
+        const capilaresCriados = await prisma.capilar.createMany({
+          data: capilaresData,
+        });
+        
+        // Busca os capilares criados para conectá-los à rota
+        const capilares = await prisma.capilar.findMany({
+          where: {
+            cidadeId: cidadeId,
+            tipo: tipoCabo,
+            numero: {
+              gte: 1,
+              lte: quantidadeDeCapilares,
+            },
+          },
+          orderBy: { numero: 'asc' },
+          take: quantidadeDeCapilares,
+        });
+        
+        // Conecta os capilares à rota
+        await prisma.rota.update({
+          where: { id: novaRota.id },
+          data: {
+            capilares: {
+              connect: capilares.map(capilar => ({ id: capilar.id })),
+            },
+          },
+        });
+      }
+    }
+
     // Registra a ação no log de auditoria
     if (token) {
       await registrarLog({
@@ -217,7 +281,7 @@ export async function POST(req: NextRequest) {
         acao: "Criação",
         entidade: "Rota",
         entidadeId: novaRota.id,
-        detalhes: { nome, cidadeId },
+        detalhes: { nome, cidadeId, quantidadeCapilares: quantidadeDeCapilares },
       });
     }
     

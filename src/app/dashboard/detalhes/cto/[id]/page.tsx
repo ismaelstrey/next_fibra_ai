@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CTO } from '@/components/mapa/CTO';
+import React, { useEffect, useState } from 'react';
 import { ConfiguracoesCTO } from '@/components/mapa/ConfiguracoesCTO';
 import { usePathname } from 'next/navigation';
-import { useMapContext } from '@/context/MapContext';
 import { useSpliter } from '@/hooks/useSpliter';
+import useCaixa from '@/hooks/useCaixa';
+import { CaixaAPI } from '@/hooks/useCaixa';
+import { CTO } from '@/components/mapa/CTO';
+import { useCapilar } from '@/hooks/useCapilar';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -15,18 +17,33 @@ export default function ExemploCTOPage() {
   const [portasAtivas, setPortasAtivas] = useState<number[]>([1, 3, 5]);
   const [splitters, setSplitters] = useState<Array<{ tipo: '1/8' | '1/16' | '1/2'; posicao: number }>>([]);
   const [cabosAtivos, setCabosAtivos] = useState<number[]>([1]);
+  const [cto, setCto] = useState<CaixaAPI>()
 
-  const {criarSpliter} = useSpliter()
+
+  const {criarSpliter} = useSpliter()  
+
+  const {buscarCapilarPorRota} = useCapilar()
 
   const path = usePathname();
   const id = path.split('/')[4];
   console.log(path, id)
-  const { caixas } = useMapContext();
-  const cto = caixas.find(c => c.id === id);
-  if (!cto) {
-    return null;
-  }
-  console.log(cto)
+
+  const {obterCaixaPorId} = useCaixa()
+useEffect(()=>{
+    obterCaixaPorId(id).then((ctoBusca)=>{
+    ctoBusca && setCto(ctoBusca.data)
+    buscarCapilarPorRota(ctoBusca?.data?.id || '').then((capilar)=>{
+      console.log(capilar)
+    })
+
+  })
+},[id])
+
+console.log(cto)
+
+
+
+
 
   // Gera as portas com base na capacidade e portas ativas
   const gerarPortas = () => {
@@ -60,8 +77,8 @@ export default function ExemploCTOPage() {
 criarSpliter({
   atendimento:true,
   tipo,
-  caixaId:cto.id,
-  nome:"Spliter"+cto.nome,
+  caixaId:cto?.id ||  '',
+  nome:"Spliter"+cto?.nome,
   capilarEntradaId:"",
   capilarSaidaId:""
 })
@@ -96,12 +113,12 @@ criarSpliter({
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold text-primary mb-6">{cto.nome || 'Exemplo de CTO'}</h1>
+      <h1 className="text-2xl font-bold text-primary mb-6">{cto?.nome || 'Exemplo de CTO'}</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <ConfiguracoesCTO
-            capacidade={cto.capacidade as 8 | 16 || capacidade}
+            capacidade={cto?.capacidade as 8 | 16 || capacidade}
             setCapacidade={setCapacidade}
             portasAtivas={portasAtivas}
             alternarPorta={alternarPorta}
@@ -115,14 +132,14 @@ criarSpliter({
 
         <div>
           <CTO
-            id={cto.id || "CTO-EXEMPLO-01"}
-            nome={cto.nome || "CTO Exemplo"}
-            modelo={cto.modelo || "Modelo Demonstração"}
+            id={cto?.id || "CTO-EXEMPLO-01"}
+            nome={cto?.nome || "CTO Exemplo"}
+            modelo={cto?.modelo || "Modelo Demonstração"}
             capacidade={capacidade}
             portas={gerarPortas()}
             splitters={splitters}
             cabosAS={gerarCabosAS()}
-            observacoes={cto.observacoes || "Sem observações"}
+            observacoes={cto?.observacoes || "Sem observações"}
           />
         </div>
       </div>

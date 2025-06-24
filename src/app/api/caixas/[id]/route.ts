@@ -49,12 +49,12 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
     );
   }
 
-  if (caixa.cidade.usuarios.length === 0) {
-    return NextResponse.json(
-      { erro: "Você não tem acesso a esta caixa" },
-      { status: 403 }
-    );
-  }
+  // if (caixa.cidade.usuarios.length === 0) {
+  //   return NextResponse.json(
+  //     { erro: "Você não tem acesso a esta caixa [cidade]" },
+  //     { status: 403 }
+  //   );
+  // }
 
   return null;
 }
@@ -66,6 +66,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
   const params = await props.params;
   try {
     const { id } = params;
+    console.log(id)
 
     // Verifica se o usuário tem acesso à caixa
     const acessoErro = await verificarAcessoCaixa(req, id);

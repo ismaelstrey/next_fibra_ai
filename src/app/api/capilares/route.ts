@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get("status");
     const rotaId = searchParams.get("rotaId");
 
+    console.log(rotaId)
+
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
 
@@ -54,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     // Adiciona filtro por rota
     if (rotaId) {
-      where.Rota = {
+      where.rota = {
         some: {
           id: rotaId
         }
