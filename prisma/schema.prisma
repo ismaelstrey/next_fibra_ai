@@ -1,6 +1,10 @@
 generator client {
   provider = "prisma-client-js"
 }
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./ERD/diagram.svg"
+}
 
 datasource db {
   provider = "sqlite"
@@ -416,12 +420,16 @@ model Capilar {
 model Emenda {
   id               String        @id @default(cuid())
   localizacao      String
-  capilarSaidaId   String
-  capilarEntradaId String
+  capilarSaidaId   String?
+  capilarEntradaId String?
   cidadeId         String?
+  spliterSaidaId         String?
+  spliterEntradaId         String?
   cidade           Cidade?       @relation(fields: [cidadeId], references: [id])
-  capilarSaida     Capilar       @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
-  capilarEntrada   Capilar       @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  capilarSaida     Capilar?       @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarEntrada   Capilar?       @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
+  spliterEntrada Spliter? @relation("SpliterEntrada", fields: [spliterEntradaId], references: [id])
+  spliterSaida Spliter? @relation("SpliterSaida", fields: [spliterSaidaId], references: [id])
   arquivo          Arquivo[]
   equipamentos     Equipamento[]
   incidentes       Incidente[]
@@ -469,8 +477,9 @@ model Spliter {
   capilarEntradaId String?
   capilarSaida     Capilar? @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
   capilarEntrada   Capilar? @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
-
   Porta Porta[]
+  spliterEntrada Emenda[] @relation("SpliterEntrada")
+  spliterSaida Emenda[] @relation("SpliterSaida")
 }
 
 model Equipamento {

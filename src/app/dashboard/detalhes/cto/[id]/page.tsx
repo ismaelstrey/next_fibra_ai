@@ -9,6 +9,16 @@ import { CaixaAPI } from '@/hooks/useCaixa';
 import { CTO } from '@/components/mapa/CTO';
 import { useCapilar } from '@/hooks/useCapilar';
 
+interface CapilarProps {
+  comprimento: number,
+  id: string,
+  numero: number,
+  tipo: string,
+  capilarEntradaId?: string,
+  capilarSaidaId?: string,
+
+}
+
 /**
  * Página de exemplo para demonstrar o componente CTO
  */
@@ -18,32 +28,50 @@ export default function ExemploCTOPage() {
   const [splitters, setSplitters] = useState<Array<{ tipo: '1/8' | '1/16' | '1/2'; posicao: number }>>([]);
   const [cabosAtivos, setCabosAtivos] = useState<number[]>([1]);
   const [cto, setCto] = useState<CaixaAPI>()
+  const [capilares, setCapilares] = useState<CapilarProps>()
 
 
-  const {criarSpliter} = useSpliter()  
+  const { criarSpliter } = useSpliter()
 
-  const {buscarCapilarPorRota} = useCapilar()
+  const { buscarCapilarPorRota } = useCapilar()
 
   const path = usePathname();
   const id = path.split('/')[4];
   console.log(path, id)
 
-  const {obterCaixaPorId} = useCaixa()
-useEffect(()=>{
-    obterCaixaPorId(id).then((ctoBusca)=>{
-    ctoBusca && setCto(ctoBusca.data)
-    buscarCapilarPorRota(ctoBusca?.data?.id || '').then((capilar)=>{
-      console.log(capilar)
+  const { obterCaixaPorId, isLoading } = useCaixa()
+  useEffect(() => {
+    obterCaixaPorId(id).then((ctoBusca) => {
+      ctoBusca && setCto(ctoBusca.data)
+      buscarCapilarPorRota(ctoBusca?.data?.rotaId || '').then((capilar) => {
+
+        const { capilares } = capilar.data || { comprimento: 0, id: '', numero: 0 }
+        // comprimento,id,numero && setCapilares({capila,id,numero} as CapilarProps)
+        const capilarSaidaId = capilares.map((s) => { console.log(s) })
+        const capilarEntradaId = capilares[0].entradas
+
+        console.log(capilarEntradaId, capilarSaidaId)
+
+        capilares.length > 0 && setCapilares({
+          id: capilares[0].id,
+          numero: capilares[0].numero,
+          comprimento: capilares[0].comprimento,
+          tipo: capilares[0].tipo,
+          // capilarSaidaId: capilares[0].saidas?.map((c) => c.capilarEntrada?.id || ''),
+          // capilarEntradaId: capilares[0].entradas?.map((c) => c.capilarSaida?.id),
+        })
+
+      })
+
     })
-
-  })
-},[id])
-
-console.log(cto)
+  }, [id])
 
 
+  console.log(capilares)
 
-
+  if (isLoading) {
+    return <div>Carregando</div>
+  }
 
   // Gera as portas com base na capacidade e portas ativas
   const gerarPortas = () => {
@@ -74,14 +102,13 @@ console.log(cto)
   // Adiciona um splitter
   const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
     if (splitters.length < 2) {
-criarSpliter({
-  atendimento:true,
-  tipo,
-  caixaId:cto?.id ||  '',
-  nome:"Spliter"+cto?.nome,
-  capilarEntradaId:"",
-  capilarSaidaId:""
-})
+      criarSpliter({
+        atendimento: true,
+        tipo,
+        caixaId: cto?.id || '',
+        nome: "Spliter" + cto?.nome
+
+      })
       setSplitters([...splitters, { tipo, posicao: splitters.length + 1 }]);
     }
   };
@@ -114,6 +141,7 @@ criarSpliter({
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold text-primary mb-6">{cto?.nome || 'Exemplo de CTO'}</h1>
+      <h3 className='text-sidebar-foreground'>ROTA: {cto?.rota?.id}</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>

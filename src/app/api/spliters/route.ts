@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
     const caixaId = searchParams.get("caixaId");
     const capilarSaidaId = searchParams.get("capilarSaidaId");
     const capilarEntradaId = searchParams.get("capilarEntradaId");
-    const atendimento = searchParams.get("atendimento") === "true" ? true : 
-                       searchParams.get("atendimento") === "false" ? false : undefined;
+    const atendimento = searchParams.get("atendimento") === "true" ? true :
+      searchParams.get("atendimento") === "false" ? false : undefined;
 
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
@@ -177,10 +177,10 @@ export async function POST(req: NextRequest) {
     // Verifica se os capilares existem
     const [capilarSaida, capilarEntrada] = await Promise.all([
       prisma.capilar.findUnique({
-        where: { id: capilarSaidaId },
+        where: { id: capilarSaidaId || '' },
       }),
       prisma.capilar.findUnique({
-        where: { id: capilarEntradaId },
+        where: { id: capilarEntradaId || '' },
       }),
     ]);
 
