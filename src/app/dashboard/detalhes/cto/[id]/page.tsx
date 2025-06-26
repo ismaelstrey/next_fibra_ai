@@ -8,6 +8,7 @@ import useCaixa from '@/hooks/useCaixa';
 import { CaixaAPI } from '@/hooks/useCaixa';
 import { CTO } from '@/components/mapa/CTO';
 import { useCapilar } from '@/hooks/useCapilar';
+import { usePorta } from '@/hooks/usePorta';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -28,7 +29,8 @@ export default function ExemploCTOPage() {
   const id = path.split('/')[4];
   console.log(path, id)
 
-  const { obterCaixaPorId, atualizarCaixa } = useCaixa()
+  const { obterCaixaPorId } = useCaixa()
+  const { atualizar } = usePorta()
 
   useEffect(() => {
     obterCaixaPorId(id).then((ctoBusca) => {
@@ -40,7 +42,7 @@ export default function ExemploCTOPage() {
     })
   }, [id])
 
-  console.log(cto?.capacidade)
+  console.log(cto?.portas)
 
 
 
@@ -97,7 +99,9 @@ export default function ExemploCTOPage() {
   // Alterna o estado de uma porta
   const alternarPorta = (portaId: number) => {
     console.log(portaId)
+    const portaCto = cto?.portas?.filter(({ numero }) => (numero === portaId))[0]
 
+    console.log(portaCto)
 
 
     if (portasAtivas.includes(portaId)) {
