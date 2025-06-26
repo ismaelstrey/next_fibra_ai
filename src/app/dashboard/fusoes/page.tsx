@@ -274,15 +274,64 @@ export default function FusoesPage() {
   };
 
   // Função para exportar dados
-  const exportarDados = () => {
-    // Em um sistema real, isso geraria um arquivo CSV ou Excel
-    toast.success('Exportação iniciada. O arquivo será baixado em instantes.');
+  const exportarDados = (formato: 'csv' | 'pdf' = 'csv') => {
+    // Simulação de exportação de dados
+    if (formato === 'csv') {
+      // Gera CSV simples
+      const header = 'Caixa,Bandeja,Porta,Fibra,Destino,Destino Porta,Destino Fibra,Status,Data de Criação,Observações';
+      const rows = fusoes.map(f => `${f.caixa},${f.bandeja},${f.porta},${f.fibra},${f.destino},${f.destinoPorta},${f.destinoFibra},${f.status},${f.dataCriacao},${f.observacoes}`);
+      const csvContent = [header, ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fusoes.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Exportação CSV concluída!');
+    } else {
+      toast('Exportação PDF não implementada nesta demo.');
+    }
   };
 
   // Função para importar dados
-  const importarDados = () => {
-    // Em um sistema real, isso abriria um seletor de arquivos
-    toast.success('Selecione um arquivo CSV ou Excel para importar.');
+  const importarDados = (event?: React.ChangeEvent<HTMLInputElement>) => {
+    if (event && event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        // Simples parse de CSV (apenas para demo)
+        const lines = text.split('\n').slice(1); // ignora header
+        const novasFusoes = lines.filter(Boolean).map((line, idx) => {
+          const [caixa, bandeja, porta, fibra, destino, destinoPorta, destinoFibra, status, dataCriacao, observacoes] = line.split(',');
+          return {
+            id: Math.max(...fusoes.map(f => f.id)) + idx + 1,
+            caixa,
+            tipoCaixa: caixa.startsWith('CTO') ? 'CTO' : 'CEO',
+            bandeja: Number(bandeja),
+            porta: Number(porta),
+            fibra,
+            destino,
+            destinoPorta: Number(destinoPorta),
+            destinoFibra,
+            status,
+            dataCriacao,
+            criadoPor: 'Importado',
+            ultimaAtualizacao: dataCriacao,
+            observacoes
+          };
+        });
+        setFusoes([...fusoes, ...novasFusoes]);
+        toast.success('Importação concluída!');
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Função para acionar input de importação
+  const abrirInputImportacao = () => {
+    document.getElementById('input-importar-fusoes')?.click();
   };
 
   // Animações
@@ -308,13 +357,18 @@ export default function FusoesPage() {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button onClick={exportarDados} variant="outline" className="flex items-center gap-1">
+          <Button onClick={() => exportarDados('csv')} variant="outline" className="flex items-center gap-1">
             <Download className="h-4 w-4" />
-            Exportar
+            Exportar CSV
           </Button>
-          <Button onClick={importarDados} variant="outline" className="flex items-center gap-1">
+          <Button onClick={() => exportarDados('pdf')} variant="outline" className="flex items-center gap-1">
+            <Download className="h-4 w-4" />
+            Exportar PDF
+          </Button>
+          <input id="input-importar-fusoes" type="file" accept=".csv" style={{ display: 'none' }} onChange={importarDados} />
+          <Button onClick={abrirInputImportacao} variant="outline" className="flex items-center gap-1">
             <Upload className="h-4 w-4" />
-            Importar
+            Importar CSV
           </Button>
           <Button onClick={abrirNovaFusao} className="flex items-center gap-1">
             <Plus className="h-4 w-4" />

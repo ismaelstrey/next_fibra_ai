@@ -55,20 +55,31 @@ export interface PontoFusao {
 
 /**
  * Interface para os filtros do mapa
+ * Agora inclui filtros avançados: status, cliente, incidente, manutenção, busca global
  */
 export interface FiltrosMapa {
   tipoCaixa?: 'CTO' | 'CEO' | '';
   tipoCabo?: '6' | '12' | '24' | '48' | '96' | '';
   cidade?: string;
+  status?: string;
+  cliente?: string;
+  incidente?: string;
+  manutencao?: string;
+  busca?: string;
 }
 
 /**
  * Interface para as camadas visíveis no mapa
+ * Agora inclui clientes, incidentes, manutenção, spliters
  */
 export interface CamadasVisiveis {
   caixas: boolean;
   rotas: boolean;
   fusoes: boolean;
+  spliters?: boolean;
+  clientes?: boolean;
+  incidentes?: boolean;
+  manutencoes?: boolean;
 }
 
 /**
@@ -207,7 +218,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [camadasVisiveis, setCamadasVisiveis] = useState<CamadasVisiveis>({
     caixas: true,
     rotas: true,
-    fusoes: true
+    fusoes: true,
+    spliters: true,
+    clientes: false,
+    incidentes: false,
+    manutencoes: false
   });
 
   // Estado para o modo de edição atual
@@ -564,11 +579,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   /**
    * Atualiza os filtros do mapa e recarrega os dados
+   * Agora suporta busca global e filtros avançados
    */
   const atualizarFiltros = (novosFiltros: FiltrosMapa) => {
     setFiltros(prev => {
       const filtrosAtualizados = { ...prev, ...novosFiltros };
-      // Recarrega os dados com os novos filtros
       carregarDados(filtrosAtualizados.cidade);
       return filtrosAtualizados;
     });
@@ -582,54 +597,18 @@ export function MapProvider({ children }: { children: ReactNode }) {
   };
 
   /**
-   * Calcula a distância total de uma rota em metros
-   */
-  const calcularDistanciaRota = (path: { lat: number; lng: number }[]): number => {
-    if (path.length < 2) return 0;
-
-    let distanciaTotal = 0;
-
-    for (let i = 0; i < path.length - 1; i++) {
-      const p1 = path[i];
-      const p2 = path[i + 1];
-
-      // Fórmula de Haversine para calcular distância entre dois pontos geográficos
-      const R = 6371e3; // raio da Terra em metros
-      const φ1 = p1.lat * Math.PI / 180;
-      const φ2 = p2.lat * Math.PI / 180;
-      const Δφ = (p2.lat - p1.lat) * Math.PI / 180;
-      const Δλ = (p2.lng - p1.lng) * Math.PI / 180;
-
-      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-        Math.cos(φ1) * Math.cos(φ2) *
-        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distancia = R * c;
-
-      distanciaTotal += distancia;
-    }
-
-    return Math.round(distanciaTotal);
-  };
-
-  /**
-   * Busca elementos no mapa por texto
+   * Busca global no mapa por texto, cliente, incidente, status, etc.
+   * Agora inclui spliters, clientes e incidentes
    */
   const buscarNoMapa = (texto: string) => {
     const textoBusca = texto.toLowerCase();
-
-    const rotasEncontradas = rotas.filter(rota =>
-      rota.nome.toLowerCase().includes(textoBusca) ||
-      rota.observacoes?.toLowerCase().includes(textoBusca)
-    );
-
-    const caixasEncontradas = caixas.filter(caixa =>
-      caixa.nome.toLowerCase().includes(textoBusca) ||
-      caixa.modelo?.toLowerCase().includes(textoBusca)
-    );
-
-    return { rotas: rotasEncontradas, caixas: caixasEncontradas };
+    return {
+      rotas: rotas.filter(rota => rota.nome.toLowerCase().includes(textoBusca) || rota.observacoes?.toLowerCase().includes(textoBusca)),
+      caixas: caixas.filter(caixa => caixa.nome.toLowerCase().includes(textoBusca) || caixa.modelo?.toLowerCase().includes(textoBusca)),
+      spliters: spliters.filter(spliter => spliter.nome?.toLowerCase().includes(textoBusca) || spliter.tipo?.toLowerCase().includes(textoBusca)),
+      clientes: clientes.filter(cliente => cliente.nome?.toLowerCase().includes(textoBusca) || cliente.email?.toLowerCase().includes(textoBusca)),
+      incidentes: incidentes.filter(incidente => incidente.titulo?.toLowerCase().includes(textoBusca) || incidente.status?.toLowerCase().includes(textoBusca)),
+    };
   };
 
   /**
@@ -762,4 +741,28 @@ export interface Relatorio {
   rotaId?: string;
   manutencaoId?: string;
   observacoes?: string;
+}
+
+/**
+ * Calcula a distância total de uma rota baseada em um array de objetos {lat, lng}.
+ * @param path Array de coordenadas representando a rota
+ * @returns Distância total em metros
+ */
+function calcularDistanciaRota(path: { lat: number; lng: number }[]): number {
+  if (!Array.isArray(path) || path.length < 2) return 0;
+  let distancia = 0;
+  for (let i = 1; i < path.length; i++) {
+    const { lat: lat1, lng: lng1 } = path[i - 1];
+    const { lat: lat2, lng: lng2 } = path[i];
+    // Fórmula de Haversine para calcular distância entre dois pontos geográficos
+    const R = 6371000; // Raio da Terra em metros
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    distancia += R * c;
+  }
+  return Math.round(distancia);
 }
