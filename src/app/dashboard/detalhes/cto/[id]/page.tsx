@@ -20,26 +20,27 @@ export default function ExemploCTOPage() {
   const [cto, setCto] = useState<CaixaAPI>()
 
 
-  const {criarSpliter} = useSpliter()  
+  const { criarSpliter } = useSpliter()
 
-  const {buscarCapilarPorRota} = useCapilar()
+  const { buscarCapilarPorRota } = useCapilar()
 
   const path = usePathname();
   const id = path.split('/')[4];
   console.log(path, id)
 
-  const {obterCaixaPorId} = useCaixa()
-useEffect(()=>{
-    obterCaixaPorId(id).then((ctoBusca)=>{
-    ctoBusca && setCto(ctoBusca.data)
-    buscarCapilarPorRota(ctoBusca?.data?.id || '').then((capilar)=>{
-      console.log(capilar)
+  const { obterCaixaPorId, atualizarCaixa } = useCaixa()
+
+  useEffect(() => {
+    obterCaixaPorId(id).then((ctoBusca) => {
+      ctoBusca && setCto(ctoBusca.data)
+      buscarCapilarPorRota(ctoBusca?.data?.id || '').then((capilar) => {
+        console.log(capilar)
+      })
+
     })
+  }, [id])
 
-  })
-},[id])
-
-console.log(cto)
+  console.log(cto?.capacidade)
 
 
 
@@ -74,14 +75,14 @@ console.log(cto)
   // Adiciona um splitter
   const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
     if (splitters.length < 2) {
-criarSpliter({
-  atendimento:true,
-  tipo,
-  caixaId:cto?.id ||  '',
-  nome:"Spliter"+cto?.nome,
-  capilarEntradaId:"",
-  capilarSaidaId:""
-})
+      criarSpliter({
+        atendimento: true,
+        tipo,
+        caixaId: cto?.id || '',
+        nome: "Spliter" + cto?.nome,
+        capilarEntradaId: "",
+        capilarSaidaId: ""
+      })
       setSplitters([...splitters, { tipo, posicao: splitters.length + 1 }]);
     }
   };
@@ -95,6 +96,10 @@ criarSpliter({
 
   // Alterna o estado de uma porta
   const alternarPorta = (portaId: number) => {
+    console.log(portaId)
+
+
+
     if (portasAtivas.includes(portaId)) {
       setPortasAtivas(portasAtivas.filter(id => id !== portaId));
     } else {
@@ -110,7 +115,14 @@ criarSpliter({
       setCabosAtivos([...cabosAtivos, caboId]);
     }
   };
+  const portasLivres = cto?.portas?.filter((item) => item.status === 'Livre').map((item) => item.numero) || []
+  const portasOcupadas = cto?.portas?.filter((item) => item.status === 'Ocupado').map((item) => item.numero) || []
 
+  console.log(portasLivres, portasOcupadas)
+
+
+  console.log(cto?.portas?.filter((item) => item.status === 'Livre'))
+  console.log(portasAtivas)
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold text-primary mb-6">{cto?.nome || 'Exemplo de CTO'}</h1>
@@ -120,7 +132,7 @@ criarSpliter({
           <ConfiguracoesCTO
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
             setCapacidade={setCapacidade}
-            portasAtivas={portasAtivas}
+            portasAtivas={portasOcupadas}
             alternarPorta={alternarPorta}
             splitters={splitters}
             adicionarSplitter={adicionarSplitter}

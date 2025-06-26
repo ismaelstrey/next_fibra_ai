@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, PencilIcon, BoxIcon, MapPinIcon, ZapIcon, ScissorsIcon, MergeIcon, SettingsIcon, RefreshCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PencilIcon, BoxIcon, MapPinIcon, ZapIcon, ScissorsIcon, MergeIcon, SettingsIcon, RefreshCcw, Unplug, GitBranch } from 'lucide-react';
 import { toast } from 'sonner';
 
 /**
@@ -15,12 +15,12 @@ import { toast } from 'sonner';
  */
 export default function ToolsMap() {
     // Contexto do mapa
-    const { 
-        modoEdicao, 
-        setModoEdicao, 
-        tipoCaboSelecionado, 
-        setTipoCaboSelecionado, 
-        camadasVisiveis, 
+    const {
+        modoEdicao,
+        setModoEdicao,
+        tipoCaboSelecionado,
+        setTipoCaboSelecionado,
+        camadasVisiveis,
         atualizarCamadasVisiveis,
         carregarDados,
         atualizarFiltros,
@@ -33,7 +33,7 @@ export default function ToolsMap() {
 
     // Estado para controlar a visibilidade das configurações avançadas
     const [mostrarConfiguracoes, setMostrarConfiguracoes] = useState(false);
-    
+
     // Estado para armazenar a cidade selecionada
     const [cidadeSelecionada, setCidadeSelecionada] = useState<string>("");
 
@@ -111,7 +111,7 @@ export default function ToolsMap() {
                                         aria-label="Desenhar rota"
                                         onClick={() => alternarModoEdicao('rota')}
                                     >
-                                        <PencilIcon className={`h-4 w-4 ${modoEdicao === "rota" ?"text-primary":"text-accent-foreground"}`} />
+                                        <GitBranch className={`h-4 w-4 ${modoEdicao === "rota" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -128,7 +128,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CTO"
                                         onClick={() => alternarModoEdicao('cto')}
                                     >
-                                        <BoxIcon  className={`h-4 w-4 ${modoEdicao === "cto" ?"text-primary":"text-accent-foreground"}`} />
+                                        <BoxIcon className={`h-4 w-4 ${modoEdicao === "cto" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -145,7 +145,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar CEO"
                                         onClick={() => alternarModoEdicao('ceo')}
                                     >
-                                        <MapPinIcon  className={`h-4 w-4 ${modoEdicao === "ceo" ?"text-primary":"text-accent-foreground"}`} />
+                                        <MapPinIcon className={`h-4 w-4 ${modoEdicao === "ceo" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -162,7 +162,7 @@ export default function ToolsMap() {
                                         aria-label="Adicionar ponto de fusão"
                                         onClick={() => alternarModoEdicao('fusao')}
                                     >
-                                        <ZapIcon  className={`h-4 w-4 ${modoEdicao === "fusao" ?"text-primary":"text-accent-foreground"}`} />
+                                        <Unplug className={`h-4 w-4 ${modoEdicao === "fusao" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -179,7 +179,7 @@ export default function ToolsMap() {
                                         aria-label="Editar elementos"
                                         onClick={() => alternarModoEdicao('editar')}
                                     >
-                                        <PencilIcon  className={`h-4 w-4 ${modoEdicao === "editar" ?"text-primary":"text-accent-foreground"}`} />
+                                        <PencilIcon className={`h-4 w-4 ${modoEdicao === "editar" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -196,7 +196,7 @@ export default function ToolsMap() {
                                         aria-label="Cortar rota"
                                         onClick={() => alternarModoEdicao('cortar')}
                                     >
-                                        <ScissorsIcon  className={`h-4 w-4 ${modoEdicao === "cortar" ?"text-primary":"text-accent-foreground"}`} />
+                                        <ScissorsIcon className={`h-4 w-4 ${modoEdicao === "cortar" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -213,7 +213,7 @@ export default function ToolsMap() {
                                         aria-label="Mesclar rotas"
                                         onClick={() => alternarModoEdicao('mesclar')}
                                     >
-                                        <MergeIcon  className={`h-4 w-4 ${modoEdicao === "mesclar" ?"text-primary":"text-accent-foreground"}`} />
+                                        <MergeIcon className={`h-4 w-4 ${modoEdicao === "mesclar" ? "text-primary" : "text-accent-foreground"}`} />
                                     </ToggleGroupItem>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
@@ -234,9 +234,9 @@ export default function ToolsMap() {
                                     size="icon"
                                     onClick={() => {
                                         carregarDados(cidadeSelecionada)
-                                    toast.info('Mapa atualizado com sucesso ',{icon: <RefreshCcw className='animate-spin text-primary'/>});
+                                        toast.info('Mapa atualizado com sucesso ', { icon: <RefreshCcw className='animate-spin text-primary' /> });
                                     }}
-                                    
+
                                 >
                                     <RefreshCcw className={`h-4 w-4 ${isLoading && 'animate-spin text-primary'}`} />
                                 </Button>
@@ -253,8 +253,8 @@ export default function ToolsMap() {
                         {/* Seleção de cidade */}
                         <div className="space-y-2">
                             <h4 className="text-xs font-medium text-muted-foreground">Cidade</h4>
-                            <Select 
-                                value={cidadeSelecionada} 
+                            <Select
+                                value={cidadeSelecionada}
                                 onValueChange={(value) => {
                                     setCidadeSelecionada(value);
                                     // Atualiza o filtro de cidade no contexto do mapa
@@ -282,7 +282,7 @@ export default function ToolsMap() {
                                 value={tipoCaboSelecionado}
                                 onValueChange={(value) => value && setTipoCaboSelecionado(value as '6' | '12' | '24' | '48' | '96')}
                                 className="flex justify-between text-foreground"
-                                
+
                             >
                                 <ToggleGroupItem variant={'outline'} value="6" className={`h-8 text-xs flex-1 active:bg-primary`}>6</ToggleGroupItem>
                                 <ToggleGroupItem variant={'outline'} value="12" className={`h-8 text-xs flex-1 active:bg-primary`}>12</ToggleGroupItem>
@@ -299,7 +299,7 @@ export default function ToolsMap() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className={`h-8 text-xs ${modoEdicao === 'rota'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
+                                    className={`h-8 text-xs ${modoEdicao === 'rota' ? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
                                     onClick={adicionarCabo}
                                 >
                                     <PencilIcon className="h-3 w-3 mr-1" />
@@ -308,7 +308,7 @@ export default function ToolsMap() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className={`h-8 text-xs ${modoEdicao === 'cto'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
+                                    className={`h-8 text-xs ${modoEdicao === 'cto' ? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
 
                                     onClick={adicionarCTO}
                                 >
@@ -318,7 +318,7 @@ export default function ToolsMap() {
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className={`h-8 text-xs ${modoEdicao === 'ceo'? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
+                                    className={`h-8 text-xs ${modoEdicao === 'ceo' ? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground'}`}
                                     onClick={adicionarCEO}
                                 >
                                     <MapPinIcon className="h-3 w-3 mr-1" />
