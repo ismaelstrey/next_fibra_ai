@@ -20,6 +20,25 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Main Features and Usage Flows
+
+- **Map and Diagram Management:**
+  - Visualize, add, edit, and remove routes, boxes (CTO/CEO), fusion points, and splitters.
+  - Use the global context to access and manipulate routes (`rotas`), boxes (`caixas`), fusion points (`pontosFusao`), splitters (`spliters`), clients (`clientes`), incidents (`incidentes`), and reports (`relatorios`).
+  - Use the provided context functions to load (`carregar*`), add, and remove these entities.
+
+- **Clients, Incidents, and Reports:**
+  - Manage clients and their associations with ports and boxes.
+  - Register and track incidents, linking them to network elements.
+  - Generate and consult reports for maintenance, installation, performance, and incidents.
+
+- **Permissions and Authentication:**
+  - The system uses JWT authentication and role-based permissions (Técnico, Engenheiro, Gerente).
+  - Only authorized users can access or modify certain resources.
+
+- **API Documentation:**
+  - See `api_doc.md` for detailed API endpoints, parameters, and responses for all resources.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

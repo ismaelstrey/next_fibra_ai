@@ -334,12 +334,109 @@ export const useApiService = () => {
         }, [request])
     };
 
+    const spliters = {
+        listar: useCallback(async (params?: {
+            pagina?: number;
+            limite?: number;
+            busca?: string;
+            cidadeId?: string;
+            caixaId?: string;
+        }) => {
+            return request<{ spliters: any[], paginacao: any }>('GET', '/spliters', undefined, params);
+        }, [request]),
+        obterPorId: useCallback(async (id: string) => {
+            return request<{ spliter: any }>('GET', `/spliters/${id}`);
+        }, [request]),
+        criar: useCallback(async (spliter: any) => {
+            return request<{ mensagem: string, spliter: any }>('POST', '/spliters', spliter);
+        }, [request]),
+        atualizar: useCallback(async (id: string, spliter: Partial<any>) => {
+            return request<{ mensagem: string, spliter: any }>('PATCH', `/spliters/${id}`, spliter);
+        }, [request]),
+        excluir: useCallback(async (id: string) => {
+            return request<{ mensagem: string }>('DELETE', `/spliters/${id}`);
+        }, [request])
+    };
+
+    const clientes = {
+        listar: useCallback(async (params?: {
+            pagina?: number;
+            limite?: number;
+            busca?: string;
+            cidadeId?: string;
+        }) => {
+            return request<{ clientes: any[], paginacao: any }>('GET', '/clientes', undefined, params);
+        }, [request]),
+        obterPorId: useCallback(async (id: string) => {
+            return request<{ cliente: any }>('GET', `/clientes/${id}`);
+        }, [request]),
+        criar: useCallback(async (cliente: any) => {
+            return request<{ mensagem: string, cliente: any }>('POST', '/clientes', cliente);
+        }, [request]),
+        atualizar: useCallback(async (id: string, cliente: Partial<any>) => {
+            return request<{ mensagem: string, cliente: any }>('PATCH', `/clientes/${id}`, cliente);
+        }, [request]),
+        excluir: useCallback(async (id: string) => {
+            return request<{ mensagem: string }>('DELETE', `/clientes/${id}`);
+        }, [request])
+    };
+
+    const incidentes = {
+        listar: useCallback(async (params?: {
+            pagina?: number;
+            limite?: number;
+            busca?: string;
+            cidadeId?: string;
+        }) => {
+            return request<{ incidentes: any[], paginacao: any }>('GET', '/incidentes', undefined, params);
+        }, [request]),
+        obterPorId: useCallback(async (id: string) => {
+            return request<{ incidente: any }>('GET', `/incidentes/${id}`);
+        }, [request]),
+        criar: useCallback(async (incidente: any) => {
+            return request<{ mensagem: string, incidente: any }>('POST', '/incidentes', incidente);
+        }, [request]),
+        atualizar: useCallback(async (id: string, incidente: Partial<any>) => {
+            return request<{ mensagem: string, incidente: any }>('PATCH', `/incidentes/${id}`, incidente);
+        }, [request]),
+        excluir: useCallback(async (id: string) => {
+            return request<{ mensagem: string }>('DELETE', `/incidentes/${id}`);
+        }, [request])
+    };
+
+    const relatorios = {
+        listar: useCallback(async (params?: {
+            pagina?: number;
+            limite?: number;
+            busca?: string;
+            cidadeId?: string;
+        }) => {
+            return request<{ relatorios: any[], paginacao: any }>('GET', '/relatorios', undefined, params);
+        }, [request]),
+        obterPorId: useCallback(async (id: string) => {
+            return request<{ relatorio: any }>('GET', `/relatorios/${id}`);
+        }, [request]),
+        criar: useCallback(async (relatorio: any) => {
+            return request<{ mensagem: string, relatorio: any }>('POST', '/relatorios', relatorio);
+        }, [request]),
+        atualizar: useCallback(async (id: string, relatorio: Partial<any>) => {
+            return request<{ mensagem: string, relatorio: any }>('PATCH', `/relatorios/${id}`, relatorio);
+        }, [request]),
+        excluir: useCallback(async (id: string) => {
+            return request<{ mensagem: string }>('DELETE', `/relatorios/${id}`);
+        }, [request])
+    };
+
     return {
         isLoading,
         error,
         rotas,
         caixas,
         fusoes,
-        cidades
+        cidades,
+        spliters,
+        clientes,
+        incidentes,
+        relatorios
     };
 };

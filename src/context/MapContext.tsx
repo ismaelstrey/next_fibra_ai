@@ -84,6 +84,10 @@ interface MapContextType {
   modoEdicao: 'rota' | 'cto' | 'ceo' | 'fusao' | 'editar' | 'cortar' | 'mesclar' | null;
   tipoCaboSelecionado: '6' | '12' | '24' | '48' | '96';
   isLoading: boolean;
+  spliters: Spliter[];
+  clientes: Cliente[];
+  incidentes: Incidente[];
+  relatorios: Relatorio[];
   adicionarRota: (rota: Omit<Rota, 'id'>) => Promise<Rota | null>;
   removerRota: (rotaId: string) => Promise<boolean>;
   adicionarCaixa: (caixa: Omit<Caixa, 'id'>) => Promise<Caixa | null>;
@@ -96,6 +100,11 @@ interface MapContextType {
   calcularDistanciaRota: (path: { lat: number; lng: number }[]) => number;
   buscarNoMapa: (texto: string) => { rotas: Rota[]; caixas: Caixa[] };
   carregarDados: (cidadeId?: string) => Promise<void>;
+  carregarSpliters: () => Promise<void>;
+  carregarClientes: () => Promise<void>;
+  carregarIncidentes: () => Promise<void>;
+  carregarRelatorios: () => Promise<void>;
+
 }
 
 // Criação do contexto com valor inicial undefined
@@ -209,6 +218,60 @@ export function MapProvider({ children }: { children: ReactNode }) {
 
   // Estado para indicar carregamento
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Estado para spliters
+  const [spliters, setSpliters] = useState<Spliter[]>([]);
+  // Estado para clientes
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  // Estado para incidentes
+  const [incidentes, setIncidentes] = useState<Incidente[]>([]);
+  // Estado para relatórios
+  const [relatorios, setRelatorios] = useState<Relatorio[]>([]);
+
+  // Funções para carregar dados dessas entidades
+  const carregarSpliters = useCallback(async () => {
+    try {
+      const response = await api.spliters.listar({ limite: 100 });
+      if (response.data.spliters) {
+        setSpliters(response.data.spliters);
+      }
+    } catch (error) {
+      toast.error('Erro ao carregar splitters');
+    }
+  }, [api]);
+
+  const carregarClientes = useCallback(async () => {
+    try {
+      const response = await api.clientes.listar({ limite: 100 });
+      if (response.data.clientes) {
+        setClientes(response.data.clientes);
+      }
+    } catch (error) {
+      toast.error('Erro ao carregar clientes');
+    }
+  }, [api]);
+
+  const carregarIncidentes = useCallback(async () => {
+    try {
+      const response = await api.incidentes.listar({ limite: 100 });
+      if (response.data.incidentes) {
+        setIncidentes(response.data.incidentes);
+      }
+    } catch (error) {
+      toast.error('Erro ao carregar incidentes');
+    }
+  }, [api]);
+
+  const carregarRelatorios = useCallback(async () => {
+    try {
+      const response = await api.relatorios.listar({ limite: 100 });
+      if (response.data.relatorios) {
+        setRelatorios(response.data.relatorios);
+      }
+    } catch (error) {
+      toast.error('Erro ao carregar relatórios');
+    }
+  }, [api]);
 
   /**
    * Carrega os dados da API
@@ -332,7 +395,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       const comprimentoTotal = calcularDistanciaRota(path);
       const comprimento1 = calcularDistanciaRota(path1);
       const comprimento2 = calcularDistanciaRota(path2);
-      
+
       const proporcao1 = comprimento1 / comprimentoTotal;
       const proporcao2 = comprimento2 / comprimentoTotal;
 
@@ -379,7 +442,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       // Remove a rota original
       if (novaRota1 && novaRota2) {
         await removerRota(rotaOriginal.id);
-        
+
         // Dispara evento para abrir o gerenciador de fusões
         const evento = new CustomEvent('rota-dividida', {
           detail: {
@@ -389,7 +452,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
           }
         });
         window.dispatchEvent(evento);
-        
+
         toast.success('Rota dividida com sucesso! Capilares redistribuídos proporcionalmente.');
       }
 
@@ -446,7 +509,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
       if (response.data.caixa) {
         const novaCaixa = converterCaixaApiParaContexto(response.data.caixa);
         setCaixas(prev => [...prev, novaCaixa]);
-        
+
         // Se a caixa está associada a uma rota, divide a rota
         if (caixa.rotaAssociada) {
           const rotaOriginal = rotas.find(r => r.id === caixa.rotaAssociada);
@@ -454,7 +517,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
             await dividirRota(rotaOriginal, caixa.posicao, novaCaixa);
           }
         }
-        
+
         toast.success(`${caixa.tipo} adicionada com sucesso!`);
         return novaCaixa;
       }
@@ -602,6 +665,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
     modoEdicao,
     tipoCaboSelecionado,
     isLoading,
+    clientes,
+    incidentes,
+    relatorios,
+    spliters,
     adicionarRota,
     removerRota,
     adicionarCaixa,
@@ -613,7 +680,11 @@ export function MapProvider({ children }: { children: ReactNode }) {
     setTipoCaboSelecionado,
     calcularDistanciaRota,
     buscarNoMapa,
-    carregarDados
+    carregarDados,
+    carregarSpliters,
+    carregarClientes,
+    carregarIncidentes,
+    carregarRelatorios
   };
 
   return (
@@ -621,4 +692,74 @@ export function MapProvider({ children }: { children: ReactNode }) {
       {children}
     </MapContext.Provider>
   );
+}
+
+/**
+ * Interface para um splitter (spliter)
+ */
+export interface Spliter {
+  id: string;
+  nome: string;
+  atendimento: boolean;
+  tipo: string;
+  caixaId: string;
+  capilarSaidaId?: string | null;
+  capilarEntradaId?: string | null;
+}
+
+/**
+ * Interface para um cliente
+ */
+export interface Cliente {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string;
+  apartamento?: string;
+  endereco?: string;
+  casa?: string;
+  numero?: string;
+  potencia?: number;
+  wifi?: string;
+  senhaWifi?: string;
+  neutraId?: string;
+  portaId?: string;
+}
+
+/**
+ * Interface para incidente
+ */
+export interface Incidente {
+  id: string;
+  titulo: string;
+  descricao: string;
+  dataOcorrencia: string;
+  dataResolucao?: string | null;
+  status: 'Aberto' | 'Em análise' | 'Em resolução' | 'Resolvido' | 'Fechado';
+  prioridade: 'Baixa' | 'Média' | 'Alta' | 'Crítica';
+  impacto: 'Baixo' | 'Médio' | 'Alto' | 'Crítico';
+  solucao?: string | null;
+  caixaId?: string;
+  capilarId?: string;
+  emendaId?: string;
+  clienteId?: string;
+  equipamentoId?: string;
+}
+
+/**
+ * Interface para relatório
+ */
+export interface Relatorio {
+  id: string;
+  titulo: string;
+  descricao: string;
+  tipo: 'manutencao' | 'instalacao' | 'desempenho' | 'incidente' | 'outro';
+  dataInicio: string;
+  dataFim: string;
+  dados?: Record<string, any>;
+  cidadeId?: string;
+  caixaId?: string;
+  rotaId?: string;
+  manutencaoId?: string;
+  observacoes?: string;
 }

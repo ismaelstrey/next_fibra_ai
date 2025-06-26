@@ -13,6 +13,10 @@ Esta documentação descreve os endpoints da API do sistema FibraAI, incluindo m
   - [Portas](#portas)
   - [Bandejas](#bandejas)
 - [Fusões](#fusões)
+- [Splitters](#splitters)
+- [Clientes](#clientes)
+- [Incidentes](#incidentes)
+- [Relatórios](#relatórios)
 - [Comentários](#comentários)
 - [Manutenções](#manutenções)
 - [Logs](#logs)
@@ -888,3 +892,199 @@ Cria múltiplas fusões em lote. Requer cargo de Técnico, Engenheiro ou Gerente
   ]
 }
 ```
+
+## Splitters
+
+### GET /api/spliters
+Lista todos os splitters com paginação e filtros.
+
+**Parâmetros de consulta:**
+- `pagina`: Número da página (padrão: 1)
+- `limite`: Quantidade de itens por página (padrão: 10)
+- `caixaId`: Filtro por caixa associada
+
+**Resposta:**
+```json
+{
+  "spliters": [
+    {
+      "id": "uuid",
+      "nome": "Splitter 1",
+      "atendimento": true,
+      "tipo": "1x8",
+      "caixaId": "uuid",
+      "capilarSaidaId": "uuid",
+      "capilarEntradaId": "uuid"
+    }
+  ],
+  "paginacao": { "total": 10, "pagina": 1, "limite": 10, "totalPaginas": 1 }
+}
+```
+
+### POST /api/spliters
+Cria um novo splitter. Requer permissão de Engenheiro ou Gerente.
+
+**Parâmetros:**
+```json
+{
+  "nome": "Splitter 1",
+  "atendimento": true,
+  "tipo": "1x8",
+  "caixaId": "uuid",
+  "capilarSaidaId": "uuid",
+  "capilarEntradaId": "uuid"
+}
+```
+**Resposta:**
+```json
+{
+  "mensagem": "Splitter criado com sucesso",
+  "spliter": { /* dados do splitter */ }
+}
+```
+
+## Clientes
+
+### GET /api/clientes
+Lista todos os clientes com paginação e filtros.
+
+**Parâmetros de consulta:**
+- `pagina`: Número da página (padrão: 1)
+- `limite`: Quantidade de itens por página (padrão: 10)
+- `busca`: Termo para busca por nome ou email
+
+**Resposta:**
+```json
+{
+  "clientes": [
+    {
+      "id": "uuid",
+      "nome": "Cliente 1",
+      "email": "cliente@exemplo.com",
+      "portaId": "uuid",
+      "neutraId": "uuid"
+    }
+  ],
+  "paginacao": { "total": 10, "pagina": 1, "limite": 10, "totalPaginas": 1 }
+}
+```
+
+### POST /api/clientes
+Cria um novo cliente.
+
+**Parâmetros:**
+```json
+{
+  "nome": "Cliente 1",
+  "email": "cliente@exemplo.com",
+  "portaId": "uuid",
+  "neutraId": "uuid"
+}
+```
+**Resposta:**
+```json
+{
+  "mensagem": "Cliente criado com sucesso",
+  "cliente": { /* dados do cliente */ }
+}
+```
+
+## Incidentes
+
+### GET /api/incidentes
+Lista todos os incidentes com paginação e filtros.
+
+**Parâmetros de consulta:**
+- `pagina`: Número da página (padrão: 1)
+- `limite`: Quantidade de itens por página (padrão: 10)
+- `status`: Filtro por status
+- `prioridade`: Filtro por prioridade
+
+**Resposta:**
+```json
+{
+  "incidentes": [
+    {
+      "id": "uuid",
+      "titulo": "Queda de sinal",
+      "descricao": "Descrição do incidente",
+      "status": "Aberto",
+      "prioridade": "Alta",
+      "impacto": "Crítico",
+      "caixaId": "uuid"
+    }
+  ],
+  "paginacao": { "total": 10, "pagina": 1, "limite": 10, "totalPaginas": 1 }
+}
+```
+
+### POST /api/incidentes
+Cria um novo incidente.
+
+**Parâmetros:**
+```json
+{
+  "titulo": "Queda de sinal",
+  "descricao": "Descrição do incidente",
+  "status": "Aberto",
+  "prioridade": "Alta",
+  "impacto": "Crítico",
+  "caixaId": "uuid"
+}
+```
+**Resposta:**
+```json
+{
+  "mensagem": "Incidente criado com sucesso",
+  "incidente": { /* dados do incidente */ }
+}
+```
+
+## Relatórios
+
+### GET /api/relatorios
+Lista todos os relatórios com paginação e filtros.
+
+**Parâmetros de consulta:**
+- `pagina`: Número da página (padrão: 1)
+- `limite`: Quantidade de itens por página (padrão: 10)
+- `tipo`: Filtro por tipo de relatório
+
+**Resposta:**
+```json
+{
+  "relatorios": [
+    {
+      "id": "uuid",
+      "titulo": "Relatório de Manutenção",
+      "tipo": "manutencao",
+      "dataInicio": "2024-01-01",
+      "dataFim": "2024-01-02"
+    }
+  ],
+  "paginacao": { "total": 10, "pagina": 1, "limite": 10, "totalPaginas": 1 }
+}
+```
+
+### POST /api/relatorios
+Cria um novo relatório.
+
+**Parâmetros:**
+```json
+{
+  "titulo": "Relatório de Manutenção",
+  "descricao": "Descrição detalhada",
+  "tipo": "manutencao",
+  "dataInicio": "2024-01-01",
+  "dataFim": "2024-01-02"
+}
+```
+**Resposta:**
+```json
+{
+  "mensagem": "Relatório criado com sucesso",
+  "relatorio": { /* dados do relatório */ }
+}
+```
+
+# ... restante da documentação ...
