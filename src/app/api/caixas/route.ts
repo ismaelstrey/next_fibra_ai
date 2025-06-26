@@ -125,13 +125,16 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     });
   }
 
-  // PRIMEIRO: Remove todas as relações da rota original
+  // PRIMEIRO: Salva as informações das caixas existentes antes de remover as relações
+  const caixasExistentes = rotaOriginal.rotaCaixas;
+
+  // SEGUNDO: Remove todas as relações da rota original
   await prisma.rotaCaixa.deleteMany({
     where: { rotaId: rotaOriginal.id }
   });
 
-  // SEGUNDO: Cria as novas relações para as caixas existentes
-  for (const rotaCaixa of rotaOriginal.rotaCaixas) {
+  // TERCEIRO: Cria as novas relações para as caixas existentes
+  for (const rotaCaixa of caixasExistentes) {
     const caixaCoordenadas = rotaCaixa.caixa.coordenadas as any;
     const distanciaPara1 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas1[coordenadas1.length - 1]);
     const distanciaPara2 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas2[0]);
@@ -148,7 +151,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     });
   }
 
-  // TERCEIRO: Adiciona a nova caixa como ponto de conexão entre as duas rotas
+  // QUARTO: Adiciona a nova caixa como ponto de conexão entre as duas rotas
   await prisma.rotaCaixa.createMany({
     data: [
       {
@@ -177,9 +180,30 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     }
   });
   
-  await prisma.rota.delete({
+  // Remove as fusões associadas à rota original
+  await prisma.fusao.deleteMany({
+    where: {
+      rotaOrigemId: rotaOriginal.id
+    }
+  });
+  
+  // Remove as manutenções associadas à rota original
+  await prisma.manutencao.deleteMany({
+    where: {
+      rotaId: rotaOriginal.id
+    }
+  });
+
+  
+ const deleted = await prisma.rota.delete({
+
     where: { id: rotaOriginal.id }
   });
+  if (deleted){
+    console.log('Rota original deletada com sucesso');
+  }else{
+    console.log('Erro ao deletar rota original');
+  }
 
   return { rota1, rota2 };
 }

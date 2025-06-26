@@ -263,12 +263,16 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       },
     });
 
+
+
     if (!rota) {
       return NextResponse.json(
         { erro: "Rota não encontrada" },
         { status: 404 }
       );
     }
+
+ 
 
     // Verifica se a rota possui caixas ou fusões associadas
     if (rota._count.rotaCaixas > 0 || rota._count.fusoes > 0) {
