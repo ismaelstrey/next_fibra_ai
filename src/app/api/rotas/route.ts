@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
           },
           _count: {
             select: {
-              caixas: true,
+              rotaCaixas: true,
               fusoes: true,
               comentarios: true,
               arquivos: true,

@@ -65,11 +65,17 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
                     estado: true,
                   },
                 },
-                rota: {
+                rotaCaixas: {
                   select: {
-                    id: true,
-                    nome: true,
-                    tipoCabo: true,
+                    tipoConexao: true,
+                    ordem: true,
+                    rota: {
+                      select: {
+                        id: true,
+                        nome: true,
+                        tipoCabo: true,
+                      },
+                    },
                   },
                 },
               },

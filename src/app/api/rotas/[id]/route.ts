@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         },
         _count: {
           select: {
-            caixas: true,
+            rotaCaixas: true,
             fusoes: true,
             comentarios: true,
             arquivos: true,
@@ -256,7 +256,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       include: {
         _count: {
           select: {
-            caixas: true,
+            rotaCaixas: true,
             fusoes: true,
           },
         },
@@ -271,12 +271,12 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     }
 
     // Verifica se a rota possui caixas ou fusões associadas
-    if (rota._count.caixas > 0 || rota._count.fusoes > 0) {
+    if (rota._count.rotaCaixas > 0 || rota._count.fusoes > 0) {
       return NextResponse.json(
         { 
           erro: "Não é possível excluir a rota pois ela possui registros associados",
           detalhes: {
-            caixas: rota._count.caixas,
+            caixas: rota._count.rotaCaixas,
             fusoes: rota._count.fusoes,
           }
         },

@@ -69,7 +69,6 @@ model Rota {
   atualizadoEm DateTime      @updatedAt
   cidadeId     String
   arquivos     Arquivo[]
-  caixas       Caixa[]
   comentarios  Comentario[]
   eventos      Evento[]
   fusoes       Fusao[]
@@ -78,6 +77,7 @@ model Rota {
   relatorios   Relatorio[]
   capilares    Capilar[]
   cidade       Cidade        @relation(fields: [cidadeId], references: [id])
+  rotaCaixas   RotaCaixa[]
 }
 
 model Caixa {
@@ -92,10 +92,8 @@ model Caixa {
   criadoEm     DateTime      @default(now())
   atualizadoEm DateTime      @updatedAt
   cidadeId     String
-  rotaId       String
   arquivos     Arquivo[]
   bandejas     Bandeja[]
-  rota         Rota          @relation(fields: [rotaId], references: [id])
   cidade       Cidade        @relation(fields: [cidadeId], references: [id])
   comentarios  Comentario[]
   eventos      Evento[]
@@ -107,6 +105,7 @@ model Caixa {
   spliters     Spliter[]
   equipamentos Equipamento[]
   incidentes   Incidente[]
+  rotaCaixas   RotaCaixa[]
 }
 
 model Porta {
@@ -524,4 +523,18 @@ model Incidente {
   cliente        Cliente?     @relation(fields: [clienteId], references: [id])
   equipamento    Equipamento? @relation(fields: [equipamentoId], references: [id])
   usuario        Usuario      @relation(fields: [usuarioId], references: [id])
+}
+
+model RotaCaixa {
+  id           String   @id @default(cuid())
+  rotaId       String
+  caixaId      String
+  tipoConexao  String   // "entrada", "saida", "passagem"
+  ordem        Int?     // ordem da caixa na rota
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  rota         Rota     @relation(fields: [rotaId], references: [id], onDelete: Cascade)
+  caixa        Caixa    @relation(fields: [caixaId], references: [id], onDelete: Cascade)
+
+  @@unique([rotaId, caixaId])
 }

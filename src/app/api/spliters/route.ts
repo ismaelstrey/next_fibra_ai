@@ -176,12 +176,12 @@ export async function POST(req: NextRequest) {
 
     // Verifica se os capilares existem
     const [capilarSaida, capilarEntrada] = await Promise.all([
-      prisma.capilar.findUnique({
+      capilarSaidaId ? prisma.capilar.findUnique({
         where: { id: capilarSaidaId },
-      }),
-      prisma.capilar.findUnique({
+      }) : null,
+      capilarEntradaId ? prisma.capilar.findUnique({
         where: { id: capilarEntradaId },
-      }),
+      }) : null,
     ]);
 
     if (!capilarSaida) {

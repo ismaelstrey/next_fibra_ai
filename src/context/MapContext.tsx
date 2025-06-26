@@ -87,6 +87,7 @@ interface MapContextType {
   adicionarRota: (rota: Omit<Rota, 'id'>) => Promise<Rota | null>;
   removerRota: (rotaId: string) => Promise<boolean>;
   adicionarCaixa: (caixa: Omit<Caixa, 'id'>) => Promise<Caixa | null>;
+  dividirRota: (rotaOriginal: Rota, pontoDiv: { lat: number; lng: number }, novaCaixa: Caixa) => Promise<{ rota1: Rota | null; rota2: Rota | null }>;
   adicionarPontoFusao: (pontoFusao: Omit<PontoFusao, 'id'>) => Promise<PontoFusao | null>;
   atualizarFiltros: (novosFiltros: FiltrosMapa) => void;
   atualizarCamadasVisiveis: (novasCamadas: Partial<CamadasVisiveis>) => void;
@@ -306,7 +307,121 @@ export function MapProvider({ children }: { children: ReactNode }) {
   };
 
   /**
+   * Divide uma rota em duas partes no ponto especificado
+   */
+  const dividirRota = async (rotaOriginal: Rota, pontoDiv: { lat: number; lng: number }, novaCaixa: Caixa): Promise<{ rota1: Rota | null; rota2: Rota | null }> => {
+    try {
+      // Encontra o ponto mais próximo na rota para fazer a divisão
+      const path = rotaOriginal.path;
+      let menorDistancia = Infinity;
+      let indiceDivisao = 0;
+
+      for (let i = 0; i < path.length - 1; i++) {
+        const distancia = calcularDistanciaEntrePontos(pontoDiv, path[i]);
+        if (distancia < menorDistancia) {
+          menorDistancia = distancia;
+          indiceDivisao = i;
+        }
+      }
+
+      // Divide o caminho em duas partes
+      const path1 = [...path.slice(0, indiceDivisao + 1), pontoDiv];
+      const path2 = [pontoDiv, ...path.slice(indiceDivisao + 1)];
+
+      // Calcula a proporção de capilares para cada rota baseado no comprimento
+      const comprimentoTotal = calcularDistanciaRota(path);
+      const comprimento1 = calcularDistanciaRota(path1);
+      const comprimento2 = calcularDistanciaRota(path2);
+      
+      const proporcao1 = comprimento1 / comprimentoTotal;
+      const proporcao2 = comprimento2 / comprimentoTotal;
+
+      // Obtém a quantidade original de capilares
+      const quantidadeOriginal = parseInt(rotaOriginal.tipoCabo) || 0;
+      const capilares1 = Math.ceil(quantidadeOriginal * proporcao1);
+      const capilares2 = Math.floor(quantidadeOriginal * proporcao2);
+
+      // Mapeia a quantidade de capilares para os tipos válidos
+      const mapearTipoCabo = (quantidade: number): '6' | '12' | '24' | '48' | '96' => {
+        if (quantidade <= 6) return '6';
+        if (quantidade <= 12) return '12';
+        if (quantidade <= 24) return '24';
+        if (quantidade <= 48) return '48';
+        return '96';
+      };
+
+      // Cria a primeira rota (do início até a nova caixa)
+      const dadosRota1 = {
+        nome: `${rotaOriginal.nome} - Parte 1`,
+        tipoCabo: mapearTipoCabo(capilares1),
+        fabricante: rotaOriginal.fabricante,
+        observacoes: `Rota dividida - Primeira parte (${capilares1} capilares)`,
+        cidadeId: rotaOriginal.cidadeId,
+        path: path1
+      };
+
+      // Cria a segunda rota (da nova caixa até o fim)
+      const dadosRota2 = {
+        nome: `${rotaOriginal.nome} - Parte 2`,
+        tipoCabo: mapearTipoCabo(capilares2),
+        fabricante: rotaOriginal.fabricante,
+        observacoes: `Rota dividida - Segunda parte (${capilares2} capilares)`,
+        cidadeId: rotaOriginal.cidadeId,
+        path: path2
+      };
+
+      // Adiciona as novas rotas
+      const [novaRota1, novaRota2] = await Promise.all([
+        adicionarRota(dadosRota1),
+        adicionarRota(dadosRota2)
+      ]);
+
+      // Remove a rota original
+      if (novaRota1 && novaRota2) {
+        await removerRota(rotaOriginal.id);
+        
+        // Dispara evento para abrir o gerenciador de fusões
+        const evento = new CustomEvent('rota-dividida', {
+          detail: {
+            rota1: novaRota1,
+            rota2: novaRota2,
+            caixaConexao: novaCaixa
+          }
+        });
+        window.dispatchEvent(evento);
+        
+        toast.success('Rota dividida com sucesso! Capilares redistribuídos proporcionalmente.');
+      }
+
+      return { rota1: novaRota1, rota2: novaRota2 };
+    } catch (error) {
+      console.error('Erro ao dividir rota:', error);
+      toast.error('Erro ao dividir rota');
+      return { rota1: null, rota2: null };
+    }
+  };
+
+  /**
+   * Calcula a distância entre dois pontos geográficos
+   */
+  const calcularDistanciaEntrePontos = (ponto1: { lat: number; lng: number }, ponto2: { lat: number; lng: number }): number => {
+    const R = 6371e3; // Raio da Terra em metros
+    const φ1 = ponto1.lat * Math.PI / 180;
+    const φ2 = ponto2.lat * Math.PI / 180;
+    const Δφ = (ponto2.lat - ponto1.lat) * Math.PI / 180;
+    const Δλ = (ponto2.lng - ponto1.lng) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) * Math.cos(φ2) *
+      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  };
+
+  /**
    * Adiciona uma nova caixa ao estado e na API
+   * Se a caixa estiver associada a uma rota, divide a rota automaticamente
    */
   const adicionarCaixa = async (caixa: Omit<Caixa, 'id'>): Promise<Caixa | null> => {
     try {
@@ -331,6 +446,15 @@ export function MapProvider({ children }: { children: ReactNode }) {
       if (response.data.caixa) {
         const novaCaixa = converterCaixaApiParaContexto(response.data.caixa);
         setCaixas(prev => [...prev, novaCaixa]);
+        
+        // Se a caixa está associada a uma rota, divide a rota
+        if (caixa.rotaAssociada) {
+          const rotaOriginal = rotas.find(r => r.id === caixa.rotaAssociada);
+          if (rotaOriginal) {
+            await dividirRota(rotaOriginal, caixa.posicao, novaCaixa);
+          }
+        }
+        
         toast.success(`${caixa.tipo} adicionada com sucesso!`);
         return novaCaixa;
       }
@@ -481,6 +605,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
     adicionarRota,
     removerRota,
     adicionarCaixa,
+    dividirRota,
     adicionarPontoFusao,
     atualizarFiltros,
     atualizarCamadasVisiveis,

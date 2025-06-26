@@ -5,7 +5,8 @@ import useMapa from '@/hooks/useMapa';
 import { getFiberColor } from '@/functions/color';
 import AddCaixaModal from './AddCaixaModal';
 import { DetalhesMarcadorModal } from './DetalhesMarcadorModal';
-import { Caixa } from '@/context/MapContext';
+import GerenciadorFusoes from './GerenciadorFusoes';
+import { Caixa, Rota } from '@/context/MapContext';
 
 
 import { mapContainerStyle, center, mapOptions, drawingManagerOptions, tiposCabos } from './config/mapConfig';
@@ -31,6 +32,10 @@ const GoogleMapsComponent = ({
   // Estado para controlar o modal de detalhes do marcador
   const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
   const [marcadorSelecionado, setMarcadorSelecionado] = useState<Caixa | null>(null);
+  
+  // Estado para controlar o modal de fusões
+  const [fusoesModalAberto, setFusoesModalAberto] = useState(false);
+  const [rotasDivididas, setRotasDivididas] = useState<{ rota1: Rota; rota2: Rota; caixaConexao: Caixa } | null>(null);
 
   // Função para lidar com o carregamento do mapa
   const handleMapLoaded = useCallback((map: google.maps.Map) => {
@@ -48,10 +53,18 @@ const GoogleMapsComponent = ({
       setDetalhesModalAberto(true);
     };
 
+    const handleRotaDividida = (event: Event) => {
+      const customEvent = event as CustomEvent<{ rota1: Rota; rota2: Rota; caixaConexao: Caixa }>;
+      setRotasDivididas(customEvent.detail);
+      setFusoesModalAberto(true);
+    };
+
     window.addEventListener('marcador-clicado', handleMarcadorClicado);
+    window.addEventListener('rota-dividida', handleRotaDividida);
 
     return () => {
       window.removeEventListener('marcador-clicado', handleMarcadorClicado);
+      window.removeEventListener('rota-dividida', handleRotaDividida);
     };
   }, []);
 
@@ -197,6 +210,19 @@ const GoogleMapsComponent = ({
         aoFechar={() => setDetalhesModalAberto(false)}
         marcador={marcadorSelecionado}
       />
+      
+      {/* Modal para gerenciar fusões após divisão de rota */}
+      {fusoesModalAberto && rotasDivididas && (
+        <GerenciadorFusoes
+          rota1={rotasDivididas.rota1}
+          rota2={rotasDivididas.rota2}
+          caixaConexao={rotasDivididas.caixaConexao}
+          onClose={() => {
+            setFusoesModalAberto(false);
+            setRotasDivididas(null);
+          }}
+        />
+      )}
     </GoogleMap>
   );
 };
