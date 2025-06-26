@@ -271,7 +271,16 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         { status: 404 }
       );
     }
-
+//deleta todas as caixas dessa rota 
+await prisma.caixa.deleteMany({
+  where:{
+    rotaCaixas:{
+      some:{
+        rotaId:id
+      }
+    }
+  }
+})
  
 
     // Verifica se a rota possui caixas ou fusões associadas
