@@ -22,6 +22,7 @@ export const menuItems = [
   { href: '/dashboard/relatorios', label: 'Relatórios', icon: <FileTextIcon className="h-5 w-5" /> },
   { href: '/dashboard/fusoes', label: 'Fusoes', icon: <ZapIcon className="h-5 w-5" /> },
   { href: '/dashboard/usuarios', label: 'Usuários', icon: <UsersIcon className="h-5 w-5" /> },
+  { href: '/dashboard/clientes', label: 'clientes', icon: <UsersIcon className="h-5 w-5" /> },
   { href: '/dashboard/configuracoes', label: 'Configurações', icon: <SettingsIcon className="h-5 w-5" /> },
 
 ];
