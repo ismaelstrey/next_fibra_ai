@@ -126,7 +126,8 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   }
 
   // PRIMEIRO: Salva as informações das caixas existentes antes de remover as relações
-  const caixasExistentes = rotaOriginal.rotaCaixas;
+  // Exclui a nova caixa da lista de caixas existentes para evitar duplicação
+  const caixasExistentes = rotaOriginal.rotaCaixas.filter((rc: any) => rc.caixaId !== novaCaixa.id);
 
   // SEGUNDO: Remove todas as relações da rota original
   await prisma.rotaCaixa.deleteMany({
@@ -159,12 +160,6 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
         caixaId: novaCaixa.id,
         tipoConexao: 'saida',
         ordem: 999
-      },
-      {
-        rotaId: rota2.id,
-        caixaId: novaCaixa.id,
-        tipoConexao: 'entrada',
-        ordem: 1
       }
     ]
   });
@@ -179,6 +174,8 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
       }
     }
   });
+
+
   
   // Remove as fusões associadas à rota original
   await prisma.fusao.deleteMany({

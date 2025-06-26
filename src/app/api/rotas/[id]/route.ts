@@ -254,14 +254,36 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     const rota = await prisma.rota.findUnique({
       where: { id },
       include: {
+        rotaCaixas: true,
+        fusoes: true,
+
+
         _count: {
           select: {
             rotaCaixas: true,
             fusoes: true,
+
+
           },
         },
       },
+      
     });
+
+    const caixa = await prisma.caixa.findFirst({
+      where: {
+        rotaCaixas:{
+          every:{
+            rotaId:rota?.id,
+          }
+        }
+      
+      },
+      select:{
+        id:true
+      }
+
+    })
 
 
 
@@ -271,23 +293,12 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         { status: 404 }
       );
     }
-//deleta todas as caixas dessa rota 
-await prisma.caixa.deleteMany({
-  where:{
-    rotaCaixas:{
-      some:{
-        rotaId:id
-      }
-    }
-  }
-})
- 
 
     // Verifica se a rota possui caixas ou fusões associadas
     if (rota._count.rotaCaixas > 0 || rota._count.fusoes > 0) {
       return NextResponse.json(
         { 
-          erro: "Não é possível excluir a rota pois ela possui registros associados",
+          erro: "Não é possível excluir a rota pois ela possui registros associados kkk",
           detalhes: {
             caixas: rota._count.rotaCaixas,
             fusoes: rota._count.fusoes,
