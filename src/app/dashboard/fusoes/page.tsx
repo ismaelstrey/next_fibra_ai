@@ -41,7 +41,7 @@ export default function FusoesPage() {
   const [filtroTipo, setFiltroTipo] = useState('todos');
   const [filtroCaixa, setFiltroCaixa] = useState('todas');
   const [ordenacao, setOrdenacao] = useState('recentes');
-  
+
   // Estado para controle do modal de detalhes
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
   const [fusaoSelecionada, setFusaoSelecionada] = useState<Fusao | null>(null);
@@ -49,17 +49,17 @@ export default function FusoesPage() {
   // Estado para controle do modal de formulário
   const [modalFormularioAberto, setModalFormularioAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
-  
+
   // Dados simulados de fusões
   const [fusoes, setFusoes] = useState([
-    { 
-      id: 1, 
-      caixa: 'CTO-001', 
+    {
+      id: 1,
+      caixa: 'CTO-001',
       tipoCaixa: 'CTO',
-      bandeja: 1, 
-      porta: 1, 
-      fibra: 'Azul', 
-      destino: 'CEO-002', 
+      bandeja: 1,
+      porta: 1,
+      fibra: 'Azul',
+      destino: 'CEO-002',
       destinoPorta: 3,
       destinoFibra: 'Verde',
       status: 'Ativo',
@@ -68,14 +68,14 @@ export default function FusoesPage() {
       ultimaAtualizacao: '2023-10-15',
       observacoes: 'Fusão realizada com sucesso'
     },
-    { 
-      id: 2, 
-      caixa: 'CTO-001', 
+    {
+      id: 2,
+      caixa: 'CTO-001',
       tipoCaixa: 'CTO',
-      bandeja: 1, 
-      porta: 2, 
-      fibra: 'Verde', 
-      destino: 'CEO-002', 
+      bandeja: 1,
+      porta: 2,
+      fibra: 'Verde',
+      destino: 'CEO-002',
       destinoPorta: 4,
       destinoFibra: 'Azul',
       status: 'Ativo',
@@ -84,14 +84,14 @@ export default function FusoesPage() {
       ultimaAtualizacao: '2023-10-15',
       observacoes: 'Fusão realizada com sucesso'
     },
-    { 
-      id: 3, 
-      caixa: 'CEO-002', 
+    {
+      id: 3,
+      caixa: 'CEO-002',
       tipoCaixa: 'CEO',
-      bandeja: 2, 
-      porta: 1, 
-      fibra: 'Azul', 
-      destino: 'CTO-003', 
+      bandeja: 2,
+      porta: 1,
+      fibra: 'Azul',
+      destino: 'CTO-003',
       destinoPorta: 1,
       destinoFibra: 'Azul',
       status: 'Ativo',
@@ -100,14 +100,14 @@ export default function FusoesPage() {
       ultimaAtualizacao: '2023-10-16',
       observacoes: 'Fusão realizada com atenuação de 0.1dB'
     },
-    { 
-      id: 4, 
-      caixa: 'CTO-003', 
+    {
+      id: 4,
+      caixa: 'CTO-003',
       tipoCaixa: 'CTO',
-      bandeja: 1, 
-      porta: 3, 
-      fibra: 'Laranja', 
-      destino: 'CEO-004', 
+      bandeja: 1,
+      porta: 3,
+      fibra: 'Laranja',
+      destino: 'CEO-004',
       destinoPorta: 2,
       destinoFibra: 'Marrom',
       status: 'Inativo',
@@ -144,17 +144,17 @@ export default function FusoesPage() {
         )) {
           return false;
         }
-        
+
         // Filtro por tipo de caixa
         if (filtroTipo !== 'todos' && fusao.tipoCaixa !== filtroTipo) {
           return false;
         }
-        
+
         // Filtro por caixa específica
         if (filtroCaixa !== 'todas' && fusao.caixa !== filtroCaixa) {
           return false;
         }
-        
+
         return true;
       })
       .sort((a, b) => {
@@ -217,7 +217,7 @@ export default function FusoesPage() {
   const salvarFusao = () => {
     // Validação básica
     if (!formulario.caixa || !formulario.bandeja || !formulario.porta || !formulario.fibra ||
-        !formulario.destino || !formulario.destinoPorta || !formulario.destinoFibra) {
+      !formulario.destino || !formulario.destinoPorta || !formulario.destinoFibra) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -337,14 +337,14 @@ export default function FusoesPage() {
   // Animações
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { duration: 0.5 }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="container mx-auto p-6"
       variants={containerVariants}
       initial="hidden"
@@ -353,24 +353,24 @@ export default function FusoesPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <Zap className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Gerenciamento de Fusões</h1>
+          <h1 className="text-2xl text-primary font-bold">Gerenciamento de Fusões</h1>
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Button onClick={() => exportarDados('csv')} variant="outline" className="flex items-center gap-1">
+
+        <div className="flex flex-col sm:flex-row gap-2 text-foreground">
+          <Button onClick={() => exportarDados('csv')} variant="outline" className="flex cursor-pointer items-center gap-1">
             <Download className="h-4 w-4" />
             Exportar CSV
           </Button>
-          <Button onClick={() => exportarDados('pdf')} variant="outline" className="flex items-center gap-1">
+          <Button onClick={() => exportarDados('pdf')} variant="outline" className="flex items-center gap-1  cursor-pointer ">
             <Download className="h-4 w-4" />
             Exportar PDF
           </Button>
           <input id="input-importar-fusoes" type="file" accept=".csv" style={{ display: 'none' }} onChange={importarDados} />
-          <Button onClick={abrirInputImportacao} variant="outline" className="flex items-center gap-1">
+          <Button onClick={abrirInputImportacao} variant="outline" className="flex items-center gap-1  cursor-pointer ">
             <Upload className="h-4 w-4" />
             Importar CSV
           </Button>
-          <Button onClick={abrirNovaFusao} className="flex items-center gap-1">
+          <Button onClick={abrirNovaFusao} className="flex items-center gap-1  cursor-pointer ">
             <Plus className="h-4 w-4" />
             Nova Fusão
           </Button>
@@ -389,7 +389,7 @@ export default function FusoesPage() {
                 onChange={(e) => setPesquisa(e.target.value)}
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filtroTipo} onValueChange={setFiltroTipo}>
@@ -403,7 +403,7 @@ export default function FusoesPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
               <Select value={filtroCaixa} onValueChange={setFiltroCaixa}>
@@ -419,7 +419,7 @@ export default function FusoesPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
               <Select value={ordenacao} onValueChange={setOrdenacao}>
@@ -475,23 +475,23 @@ export default function FusoesPage() {
                     </td>
                     <td className="p-2 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => abrirDetalhes(fusao)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => abrirEdicao(fusao)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => excluirFusao(fusao.id)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -522,7 +522,7 @@ export default function FusoesPage() {
               Informações detalhadas sobre a fusão selecionada.
             </DialogDescription>
           </DialogHeader>
-          
+
           {fusaoSelecionada && (
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -535,7 +535,7 @@ export default function FusoesPage() {
                   <p className="font-medium">{fusaoSelecionada.tipoCaixa}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Bandeja</Label>
@@ -550,7 +550,7 @@ export default function FusoesPage() {
                   <p className="font-medium">{fusaoSelecionada.fibra}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Caixa de Destino</Label>
@@ -565,7 +565,7 @@ export default function FusoesPage() {
                   <p className="font-medium">{fusaoSelecionada.destinoFibra}</p>
                 </div>
               </div>
-              
+
               <div>
                 <Label className="text-muted-foreground">Status</Label>
                 <div className="flex items-center mt-1">
@@ -573,12 +573,12 @@ export default function FusoesPage() {
                   <p className="font-medium">{fusaoSelecionada.status}</p>
                 </div>
               </div>
-              
+
               <div>
                 <Label className="text-muted-foreground">Observações</Label>
                 <p className="font-medium">{fusaoSelecionada.observacoes || 'Nenhuma observação'}</p>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Data de Criação</Label>
@@ -589,14 +589,14 @@ export default function FusoesPage() {
                   <p className="font-medium">{fusaoSelecionada.criadoPor}</p>
                 </div>
               </div>
-              
+
               <div>
                 <Label className="text-muted-foreground">Última Atualização</Label>
                 <p className="font-medium">{fusaoSelecionada.ultimaAtualizacao}</p>
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalDetalhesAberto(false)}>Fechar</Button>
             <Button onClick={() => {
@@ -613,53 +613,53 @@ export default function FusoesPage() {
           <DialogHeader>
             <DialogTitle>{modoEdicao ? 'Editar Fusão' : 'Nova Fusão'}</DialogTitle>
             <DialogDescription>
-              {modoEdicao 
-                ? 'Atualize as informações da fusão selecionada.' 
+              {modoEdicao
+                ? 'Atualize as informações da fusão selecionada.'
                 : 'Preencha os dados para adicionar uma nova fusão.'}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="caixa">Caixa de Origem</Label>
-                <Input 
-                  id="caixa" 
+                <Input
+                  id="caixa"
                   placeholder="Ex: CTO-001"
                   value={formulario.caixa}
-                  onChange={(e) => setFormulario({...formulario, caixa: e.target.value})}
+                  onChange={(e) => setFormulario({ ...formulario, caixa: e.target.value })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="bandeja">Bandeja</Label>
-                <Input 
-                  id="bandeja" 
+                <Input
+                  id="bandeja"
                   type="number"
                   placeholder="Ex: 1"
                   value={formulario.bandeja}
-                  onChange={(e) => setFormulario({...formulario, bandeja: e.target.value})}
+                  onChange={(e) => setFormulario({ ...formulario, bandeja: e.target.value })}
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="porta">Porta</Label>
-                <Input 
-                  id="porta" 
+                <Input
+                  id="porta"
                   type="number"
                   placeholder="Ex: 1"
                   value={formulario.porta}
-                  onChange={(e) => setFormulario({...formulario, porta: e.target.value})}
+                  onChange={(e) => setFormulario({ ...formulario, porta: e.target.value })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="fibra">Fibra</Label>
-                <Select 
-                  value={formulario.fibra} 
-                  onValueChange={(value) => setFormulario({...formulario, fibra: value})}
+                <Select
+                  value={formulario.fibra}
+                  onValueChange={(value) => setFormulario({ ...formulario, fibra: value })}
                 >
                   <SelectTrigger id="fibra">
                     <SelectValue placeholder="Selecione a cor" />
@@ -681,35 +681,35 @@ export default function FusoesPage() {
                 </Select>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="destino">Caixa de Destino</Label>
-                <Input 
-                  id="destino" 
+                <Input
+                  id="destino"
                   placeholder="Ex: CEO-002"
                   value={formulario.destino}
-                  onChange={(e) => setFormulario({...formulario, destino: e.target.value})}
+                  onChange={(e) => setFormulario({ ...formulario, destino: e.target.value })}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="destinoPorta">Porta de Destino</Label>
-                <Input 
-                  id="destinoPorta" 
+                <Input
+                  id="destinoPorta"
                   type="number"
                   placeholder="Ex: 3"
                   value={formulario.destinoPorta}
-                  onChange={(e) => setFormulario({...formulario, destinoPorta: e.target.value})}
+                  onChange={(e) => setFormulario({ ...formulario, destinoPorta: e.target.value })}
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="destinoFibra">Fibra de Destino</Label>
-              <Select 
-                value={formulario.destinoFibra} 
-                onValueChange={(value) => setFormulario({...formulario, destinoFibra: value})}
+              <Select
+                value={formulario.destinoFibra}
+                onValueChange={(value) => setFormulario({ ...formulario, destinoFibra: value })}
               >
                 <SelectTrigger id="destinoFibra">
                   <SelectValue placeholder="Selecione a cor" />
@@ -730,18 +730,18 @@ export default function FusoesPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="observacoes">Observações</Label>
-              <Input 
-                id="observacoes" 
+              <Input
+                id="observacoes"
                 placeholder="Observações sobre a fusão"
                 value={formulario.observacoes}
-                onChange={(e) => setFormulario({...formulario, observacoes: e.target.value})}
+                onChange={(e) => setFormulario({ ...formulario, observacoes: e.target.value })}
               />
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalFormularioAberto(false)}>Cancelar</Button>
             <Button onClick={salvarFusao}>{modoEdicao ? 'Atualizar' : 'Adicionar'}</Button>
