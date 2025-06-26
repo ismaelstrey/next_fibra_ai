@@ -118,9 +118,10 @@ model Porta {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
   caixaId      String
-  caixa        Caixa    @relation(fields: [caixaId], references: [id])
+  caixa        Caixa    @relation(fields: [caixaId], references: [id], onDelete: Cascade)
   spliterId    String?
-  spliter      Spliter? @relation(fields: [spliterId], references: [id])
+  spliter      Spliter? @relation(fields: [spliterId], references: [id], onDelete: Cascade)
+
 
   cliente Cliente[]
 }

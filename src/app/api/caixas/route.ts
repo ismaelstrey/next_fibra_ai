@@ -30,7 +30,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   // Divide as coordenadas da rota
   const coordenadas1 = coordenadasRota.slice(0, melhorPosicao);
   coordenadas1.push(coordenadasNovaCaixa);
-  
+
   const coordenadas2 = [coordenadasNovaCaixa];
   coordenadas2.push(...coordenadasRota.slice(melhorPosicao));
 
@@ -39,7 +39,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   const distancia1 = calcularDistanciaTotal(coordenadas1);
   const distancia2 = calcularDistanciaTotal(coordenadas2);
   const distanciaTotal = distancia1 + distancia2;
-  
+
   const proporcao1 = distancia1 / distanciaTotal;
   const capilares1 = Math.max(1, Math.floor(totalCapilares * proporcao1));
   const capilares2 = totalCapilares - capilares1;
@@ -139,9 +139,9 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     const caixaCoordenadas = rotaCaixa.caixa.coordenadas as any;
     const distanciaPara1 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas1[coordenadas1.length - 1]);
     const distanciaPara2 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas2[0]);
-    
+
     const rotaDestino = distanciaPara1 < distanciaPara2 ? rota1.id : rota2.id;
-    
+
     await prisma.rotaCaixa.create({
       data: {
         rotaId: rotaDestino,
@@ -160,10 +160,16 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
         caixaId: novaCaixa.id,
         tipoConexao: 'saida',
         ordem: 999
+      },
+      {
+        rotaId: rota2.id,
+        caixaId: novaCaixa.id,
+        tipoConexao: 'entrada',
+        ordem: 1
       }
     ]
   });
-  
+
   // Remove os capilares associados à rota original
   await prisma.capilar.deleteMany({
     where: {
@@ -176,14 +182,14 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   });
 
 
-  
+
   // Remove as fusões associadas à rota original
   await prisma.fusao.deleteMany({
     where: {
       rotaOrigemId: rotaOriginal.id
     }
   });
-  
+
   // Remove as manutenções associadas à rota original
   await prisma.manutencao.deleteMany({
     where: {
@@ -191,14 +197,14 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     }
   });
 
-  
- const deleted = await prisma.rota.delete({
+
+  const deleted = await prisma.rota.delete({
 
     where: { id: rotaOriginal.id }
   });
-  if (deleted){
+  if (deleted) {
     console.log('Rota original deletada com sucesso');
-  }else{
+  } else {
     console.log('Erro ao deletar rota original');
   }
 
@@ -369,6 +375,7 @@ export async function GET(req: NextRequest) {
               estado: true,
             },
           },
+
           rotaCaixas: {
             select: {
               tipoConexao: true,
@@ -543,14 +550,16 @@ export async function POST(req: NextRequest) {
           await implementarDivisaoRota(rotaOriginal, novaCaixa, coordenadas);
         } else {
           // Se é a primeira caixa da rota, apenas cria a relação
-          await prisma.rotaCaixa.create({
-            data: {
-              rotaId,
-              caixaId: novaCaixa.id,
-              tipoConexao: 'entrada',
-              ordem: 1
-            }
-          });
+          await implementarDivisaoRota(rotaOriginal, novaCaixa, coordenadas);
+          // await prisma.rotaCaixa.create({
+          //   data: {
+          //     rotaId,
+          //     caixaId: novaCaixa.id,
+          //     tipoConexao: 'entrada',
+          //     ordem: 1
+          //   }
+          // });
+
         }
       }
     }
