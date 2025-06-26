@@ -568,7 +568,7 @@ export async function POST(req: NextRequest) {
     if (tipo === "CTO") {
       const portas = Array.from({ length: capacidade }, (_, i) => ({
         numero: i + 1,
-        status: "Livre",
+        status: "Disponível",
         caixaId: novaCaixa.id,
       }));
 

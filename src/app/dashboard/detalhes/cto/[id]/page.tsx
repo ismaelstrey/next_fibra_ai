@@ -34,15 +34,14 @@ export default function ExemploCTOPage() {
 
   useEffect(() => {
     obterCaixaPorId(id).then((ctoBusca) => {
-      ctoBusca && setCto(ctoBusca.data)
-      buscarCapilarPorRota(ctoBusca?.data?.id || '').then((capilar) => {
-        console.log(capilar)
-      })
+      ctoBusca && setCto(ctoBusca.data) 
 
     })
+
+    setPortasAtivas(cto?.portas?.filter((item) => item.status === 'Em uso').map((item) => item.numero) || [])
   }, [id])
 
-  console.log(cto?.portas)
+
 
 
 
@@ -98,17 +97,13 @@ export default function ExemploCTOPage() {
 
   // Alterna o estado de uma porta
   const alternarPorta = (portaId: number) => {
-    console.log(portaId)
     const portaCto = cto?.portas?.filter(({ numero }) => (numero === portaId))[0]
+    portaCto?.id && atualizar(portaCto?.id,{
+      status: portaCto.status === 'Disponível' ? 'Em uso' : 'Disponível'
+    })
 
-    console.log(portaCto)
 
-
-    if (portasAtivas.includes(portaId)) {
-      setPortasAtivas(portasAtivas.filter(id => id !== portaId));
-    } else {
-      setPortasAtivas([...portasAtivas, portaId]);
-    }
+  
   };
 
   // Alterna o estado de um cabo
@@ -119,14 +114,10 @@ export default function ExemploCTOPage() {
       setCabosAtivos([...cabosAtivos, caboId]);
     }
   };
-  const portasLivres = cto?.portas?.filter((item) => item.status === 'Livre').map((item) => item.numero) || []
-  const portasOcupadas = cto?.portas?.filter((item) => item.status === 'Ocupado').map((item) => item.numero) || []
+  // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
 
-  console.log(portasLivres, portasOcupadas)
+console.log(portasAtivas)
 
-
-  console.log(cto?.portas?.filter((item) => item.status === 'Livre'))
-  console.log(portasAtivas)
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold text-primary mb-6">{cto?.nome || 'Exemplo de CTO'}</h1>
@@ -136,7 +127,7 @@ export default function ExemploCTOPage() {
           <ConfiguracoesCTO
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
             setCapacidade={setCapacidade}
-            portasAtivas={portasOcupadas}
+            portasAtivas={portasAtivas}
             alternarPorta={alternarPorta}
             splitters={splitters}
             adicionarSplitter={adicionarSplitter}
