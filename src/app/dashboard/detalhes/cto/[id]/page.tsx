@@ -5,11 +5,11 @@ import { ConfiguracoesCTO } from '@/components/mapa/ConfiguracoesCTO';
 import { usePathname } from 'next/navigation';
 import { useSpliter } from '@/hooks/useSpliter';
 import useCaixa from '@/hooks/useCaixa';
-import { CaixaAPI } from '@/hooks/useCaixa';
 import { CTO } from '@/components/mapa/CTO';
 import { useCapilar } from '@/hooks/useCapilar';
 import { usePorta } from '@/hooks/usePorta';
 import { SpliterType } from '@/types/fibra';
+import { CaixaAPI } from '@/types/caixa';
 
 /**
  * Página de exemplo para demonstrar o componente CTO

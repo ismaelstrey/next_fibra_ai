@@ -4,8 +4,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PortaAPI } from '@/hooks/usePorta';
+
 import { SpliterType } from '@/types/fibra';
+import { PortaAPI } from '@/types/porta';
 
 interface ConfiguracoesCTOProps {
   /**
