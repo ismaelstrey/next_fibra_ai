@@ -1,249 +1,19 @@
 'use client';
 
+import { SpliterType } from '@/types/fibra';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { ApiResponse, CaixaAPI, PortaAPI, BandejaAPI, FusaoAPI, CriarCaixaData, ListarCaixaParams, AtualizarCaixaData, EstatisticasPortas, AtualizarPortaData, EstatisticasBandejas, AtualizarBandejaData } from '@/types/caixa';
 
-// Tipos para as respostas da API
-export interface ApiResponse<T> {
-    data: T;
-    status: number;
-    isLoading: boolean;
-    error: string | null;
-}
 
-export interface PaginatedResponse<T> {
-    items: T[];
-    paginacao: {
-        total: number;
-        pagina: number;
-        limite: number;
-        totalPaginas: number;
-    };
-}
 
-// Interface para os dados da Caixa
-export interface CaixaAPI {
-    id: string;
-    nome: string;
-    tipo: 'CTO' | 'CEO';
-    modelo: string;
-    capacidade: number;
-    coordenadas: {
-        lat: number;
-        lng: number;
-    };
-    observacoes?: string;
-    cidadeId: string;
-    rotaId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    cidade?: {
-        id: string;
-        nome: string;
-        estado: string;
-    };
-    rota?: {
-        id: string;
-        nome: string;
-        tipoCabo: string;
-        fabricante?: string;
-    };
-    portas?: PortaAPI[];
-    bandejas?: BandejaAPI[];
-    fusoes?: FusaoAPI[];
-    comentarios?: ComentarioAPI[];
-    arquivos?: ArquivoAPI[];
-    manutencoes?: ManutencaoAPI[];
-    spliters?: SpliterAPI[];
-    _count?: {
-        fusoes: number;
-        portas: number;
-        bandejas: number;
-        comentarios: number;
-        arquivos: number;
-        manutencoes: number;
-    };
-}
 
-// Interface para Porta
-export interface PortaAPI {
-    id: string;
-    numero: number;
-    status: string;
-    observacoes?: string;
-    caixaId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-}
 
-// Interface para Bandeja
-export interface BandejaAPI {
-    id: string;
-    numero: number;
-    capacidade: number;
-    caixaId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    _count?: {
-        fusoes: number;
-    };
-}
 
-// Interface para Fusão
-export interface FusaoAPI {
-    id: string;
-    fibraOrigem: number;
-    fibraDestino: number;
-    tuboOrigem?: string;
-    tuboDestino?: string;
-    status: string;
-    cor?: string;
-    observacoes?: string;
-    caixaId: string;
-    bandejaId?: string;
-    rotaOrigemId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    bandeja?: {
-        numero: number;
-    };
-}
 
-// Interface para Comentário
-export interface ComentarioAPI {
-    id: string;
-    conteudo: string;
-    caixaId: string;
-    usuarioId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    usuario?: {
-        id: string;
-        nome: string;
-        email: string;
-        imagem?: string;
-    };
-}
 
-// Interface para Arquivo
-export interface ArquivoAPI {
-    id: string;
-    nome: string;
-    tipo: string;
-    tamanho: number;
-    url: string;
-    caixaId: string;
-    usuarioId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-}
 
-// Interface para Manutenção
-export interface ManutencaoAPI {
-    id: string;
-    tipo: string;
-    descricao: string;
-    status: string;
-    dataInicio: string;
-    dataFim?: string;
-    caixaId: string;
-    usuarioId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    usuario?: {
-        id: string;
-        nome: string;
-        email: string;
-        imagem?: string;
-    };
-}
-
-// Interface para Spliter
-export interface SpliterAPI {
-    id: string;
-    nome: string;
-    atendimento: boolean;
-    tipo: string;
-    caixaId: string;
-    capilarSaidaId?: string;
-    capilarEntradaId?: string;
-}
-
-// Interface para criação de caixa
-export interface CriarCaixaData {
-    nome: string;
-    tipo: 'CTO' | 'CEO';
-    modelo: string;
-    capacidade: number;
-    coordenadas: {
-        lat: number;
-        lng: number;
-    };
-    observacoes?: string;
-    cidadeId: string;
-    rotaId: string;
-}
-
-// Interface para atualização de caixa
-export interface AtualizarCaixaData {
-    nome?: string;
-    tipo?: 'CTO' | 'CEO';
-    modelo?: string;
-    capacidade?: number;
-    coordenadas?: {
-        lat: number;
-        lng: number;
-    };
-    observacoes?: string;
-    cidadeId?: string;
-    rotaId?: string;
-}
-
-// Interface para parâmetros de listagem
-export interface ListarCaixaParams {
-    pagina?: number;
-    limite?: number;
-    busca?: string;
-    cidadeId?: string;
-    rotaId?: string;
-    tipo?: 'CTO' | 'CEO';
-}
-
-// Interface para atualização de portas em lote
-export interface AtualizarPortaData {
-    id: string;
-    status?: string;
-    observacoes?: string;
-}
-
-// Interface para atualização de bandejas em lote
-export interface AtualizarBandejaData {
-    id: string;
-    capacidade?: number;
-}
-
-// Interface para estatísticas de portas
-export interface EstatisticasPortas {
-    total: number;
-    livres: number;
-    ocupadas: number;
-    reservadas: number;
-    defeito: number;
-}
-
-// Interface para estatísticas de bandejas
-export interface EstatisticasBandejas {
-    totalBandejas: number;
-    totalCapacidade: number;
-    totalFusoes: number;
-    disponivel: number;
-}
-
-/**
- * Hook personalizado para gerenciar operações de Caixas
- * Fornece funções para CRUD completo de caixas e operações relacionadas
- */
 export const useCaixa = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -574,10 +344,10 @@ export const getStatusOcupacaoCaixa = (caixa: CaixaAPI) => {
         };
     }
 
-    const ocupado = caixa.tipo === 'CTO' ? 
-        (caixa._count.portas - (caixa.portas?.filter(p => p.status === 'Livre').length || 0)) :
+    const ocupado = caixa.tipo === 'CTO' ?
+        (caixa._count.portas - (caixa.portas?.filter(p => p.status === 'Disponível').length || 0)) :
         caixa._count.fusoes;
-    
+
     const disponivel = caixa.capacidade - ocupado;
     const percentualOcupacao = (ocupado / caixa.capacidade) * 100;
 

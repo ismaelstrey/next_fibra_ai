@@ -3,124 +3,20 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
+import { ApiResponse, CaixaAPI } from '@/types/caixa';
+import { RotaAPI } from '@/types/rota';
+import { FusaoAPI } from '@/types/caixa';
+import { CidadeAPI } from '@/types/cidade';
 
 // Tipos para as respostas da API
-export interface ApiResponse<T> {
-    data: T;
-    status: number;
-    isLoading: boolean;
-    error: string | null;
-}
 
-export interface PaginatedResponse<T> {
-    items: T[];
-    paginacao: {
-        total: number;
-        pagina: number;
-        limite: number;
-        totalPaginas: number;
-    };
-}
 
-// Interfaces para os dados da API
-export interface RotaAPI {
-    id: string;
-    nome: string;
-    tipoCabo: string;
-    fabricante?: string;
-    distancia?: number;
-    profundidade?: number;
-    tipoPassagem: 'Posteado' | 'Subterrâneo' | 'Aéreo';
-    coordenadas: { lat: number; lng: number }[];
-    cor?: string;
-    observacoes?: string;
-    cidadeId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    cidade?: {
-        nome: string;
-        estado: string;
-    };
-    _count?: {
-        caixas: number;
-        fusoes: number;
-        comentarios: number;
-        arquivos: number;
-    };
-}
 
-export interface CaixaAPI {
-    id: string;
-    nome: string;
-    tipo: 'CTO' | 'CEO';
-    modelo: string;
-    capacidade: number;
-    coordenadas: {
-        lat: number;
-        lng: number;
-    };
-    observacoes?: string;
-    cidadeId: string;
-    rotaId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    cidade?: {
-        nome: string;
-        estado: string;
-    };
-    rota?: {
-        nome: string;
-        tipoCabo: string;
-    };
-    _count?: {
-        fusoes: number;
-        portas: number;
-        bandejas: number;
-        comentarios: number;
-        arquivos: number;
-        manutencoes: number;
-    };
-}
 
-export interface FusaoAPI {
-    id: string;
-    fibraOrigem: number;
-    fibraDestino: number;
-    tuboOrigem?: string;
-    tuboDestino?: string;
-    status: string;
-    cor?: string;
-    observacoes?: string;
-    caixaId: string;
-    bandejaId?: string;
-    rotaOrigemId: string;
-    criadoEm: string;
-    atualizadoEm: string;
-    caixa?: {
-        nome: string;
-        tipo: 'CTO' | 'CEO';
-    };
-    bandeja?: {
-        numero: number;
-    };
-}
 
-export interface CidadeAPI {
-    id: string;
-    nome: string;
-    estado: string;
-    coordenadas: {
-        lat: number;
-        lng: number;
-    };
-    criadoEm: string;
-    atualizadoEm: string;
-    _count?: {
-        usuarios: number;
-        rotas: number;
-        caixas: number;
-    };
-}
+
+
+
 
 // Hook para acessar a API
 export const useApiService = () => {

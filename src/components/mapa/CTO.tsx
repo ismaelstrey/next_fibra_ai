@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { PortaCliente } from './PortaCliente';
 import { ParteInternaCTO } from './ParteInternaCTO';
+import { SpliterType } from '@/types/fibra';
 
 interface Cliente {
     id: number;
@@ -68,7 +69,7 @@ interface CTOProps {
     /**
      * Lista de splitters instalados
      */
-    splitters?: SplitterInfo[];
+    splitters?: SpliterType[];
 
     /**
      * Lista de cabos AS conectados
@@ -97,6 +98,7 @@ export function CTO({
 }: CTOProps) {
     // Estado para controlar se a CTO está expandida ou não
     const [expandida, setExpandida] = useState(false);
+
 
     // Inicializa as portas se não forem fornecidas
     const portasClientes = portas.length > 0 ? portas : Array.from({ length: capacidade }, (_, i) => ({

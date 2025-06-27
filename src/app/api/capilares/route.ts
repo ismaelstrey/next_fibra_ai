@@ -74,14 +74,6 @@ export async function GET(req: NextRequest) {
               caixaId: caixaId
             }
           }
-        },
-        // Capilares conectados como saída de spliter na caixa
-        {
-          spliter_saida: {
-            some: {
-              caixaId: caixaId
-            }
-          }
         }
       ];
     }

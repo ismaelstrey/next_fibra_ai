@@ -3,108 +3,8 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { ApiResponse, CapilarAPI, CriarCapilarData, AtualizarCapilarData } from '@/types/capilar';
 
-// Tipos para as respostas da API
-export interface ApiResponse<T> {
-    data: T;
-    status: number;
-    isLoading: boolean;
-    error: string | null;
-}
-
-export interface PaginatedResponse<T> {
-    items: T[];
-    paginacao: {
-        total: number;
-        pagina: number;
-        limite: number;
-        totalPaginas: number;
-    };
-}
-
-// Interface para os dados do Capilar
-export interface CapilarAPI {
-    id: string;
-    numero: number;
-    tipo: string;
-    comprimento: number;
-    status: string;
-    potencia: number;
-    rota?: {
-        id: string;
-        nome: string;
-        tipoCabo: string;
-        fabricante?: string;
-    };
-    saidas?: {
-        id: string;
-        capilarEntrada?: {
-            id: string;
-            numero: number;
-            tipo: string;
-        };
-    }[];
-    entradas?: {
-        id: string;
-        capilarSaida?: {
-            id: string;
-            numero: number;
-            tipo: string;
-        };
-    }[];
-    spliter_saida?: {
-        id: string;
-        nome: string;
-        caixa?: {
-            id: string;
-            nome: string;
-            tipo: 'CTO' | 'CEO';
-        };
-        capilarEntrada?: {
-            id: string;
-            numero: number;
-        };
-    }[];
-    spliter_entrada?: {
-        id: string;
-        nome: string;
-        caixa?: {
-            id: string;
-            nome: string;
-            tipo: 'CTO' | 'CEO';
-        };
-        capilarSaida?: {
-            id: string;
-            numero: number;
-        };
-    }[];
-    _count?: {
-        saidas: number;
-        entradas: number;
-        spliter_saida: number;
-        spliter_entrada: number;
-    };
-}
-
-// Interface para criação de capilar
-export interface CriarCapilarData {
-    numero: number;
-    tipo: string;
-    comprimento: number;
-    status: string;
-    potencia: number;
-    rotaId?: string;
-}
-
-// Interface para atualização de capilar
-export interface AtualizarCapilarData {
-    numero?: number;
-    tipo?: string;
-    comprimento?: number;
-    status?: string;
-    potencia?: number;
-    rotaId?: string;
-}
 
 // Interface para parâmetros de listagem
 export interface ListarCapilarParams {
@@ -290,11 +190,11 @@ export const useCapilar = () => {
     const buscarCapilaresConectados = useCallback(async (params?: ListarCapilarParams) => {
         const response = await listarCapilar(params);
         if (response.data && response.data.capilares) {
-            const capilaresConectados = response.data.capilares.filter(capilar => 
+            const capilaresConectados = response.data.capilares.filter(capilar =>
                 capilar._count && (
-                    capilar._count.saidas > 0 || 
-                    capilar._count.entradas > 0 || 
-                    capilar._count.spliter_saida > 0 || 
+                    capilar._count.saidas > 0 ||
+                    capilar._count.entradas > 0 ||
+                    capilar._count.spliter_saida > 0 ||
                     capilar._count.spliter_entrada > 0
                 )
             );
@@ -318,8 +218,8 @@ export const useCapilar = () => {
         const response = await obterCapilarPorId(id);
         if (response.data && response.data._count) {
             const count = response.data._count;
-            return count.saidas === 0 && count.entradas === 0 && 
-                   count.spliter_saida === 0 && count.spliter_entrada === 0;
+            return count.saidas === 0 && count.entradas === 0 &&
+                count.spliter_saida === 0 && count.spliter_entrada === 0;
         }
         return false;
     }, [obterCapilarPorId]);
@@ -328,14 +228,14 @@ export const useCapilar = () => {
         // Estados
         isLoading,
         error,
-        
+
         // Operações CRUD básicas
         listarCapilar,
         obterCapilarPorId,
         criarCapilar,
         atualizarCapilar,
         excluirCapilar,
-        
+
         // Operações de busca específicas
         buscarCapilarPorRota,
         buscarCapilarPorTipo,
@@ -344,7 +244,7 @@ export const useCapilar = () => {
         obterCapilarPorCaixa,
         buscarCapilaresDisponiveis,
         buscarCapilaresConectados,
-        
+
         // Operações utilitárias
         podeExcluirCapilar,
     };

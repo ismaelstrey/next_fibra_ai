@@ -1,54 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
-
-export interface PortaAPI {
-  id: string;
-  numero: number;
-  status: string;
-  caixaId: string;
-  caixa?: {
-    id: string;
-    nome: string;
-    tipo: string;
-  };
-  spliter?: {
-    id: string;
-    nome: string;
-    tipo: string;
-  };
-  cliente?: {
-    id: string;
-    nome: string;
-    email: string;
-  };
-}
-
-export interface Paginacao {
-  total: number;
-  pagina: number;
-  limite: number;
-  totalPaginas: number;
-}
-
-export interface ListarPortasResponse {
-  portas: PortaAPI[];
-  paginacao: Paginacao;
-}
-
-export interface CriarPortaData {
-  numero: number;
-  status: string;
-  caixaId: string;
-  splitterId?: string;
-}
-
-export interface AtualizarPortaData {
-  numero?: number;
-  status?: string;
-  caixaId?: string;
-  splitterId?: string | null;
-}
+import { PortaAPI, Paginacao, ListarPortasResponse, CriarPortaData, AtualizarPortaData } from '@/types/porta';
 
 export function usePorta() {
   const [isLoading, setIsLoading] = useState(false);

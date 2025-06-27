@@ -9,6 +9,7 @@ import { CaixaAPI } from '@/hooks/useCaixa';
 import { CTO } from '@/components/mapa/CTO';
 import { useCapilar } from '@/hooks/useCapilar';
 import { usePorta } from '@/hooks/usePorta';
+import { SpliterType } from '@/types/fibra';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -16,7 +17,7 @@ import { usePorta } from '@/hooks/usePorta';
 export default function ExemploCTOPage() {
   const [capacidade, setCapacidade] = useState<8 | 16>(8);
   const [portasAtivas, setPortasAtivas] = useState<number[]>([]);
-  const [splitters, setSplitters] = useState<Array<{ tipo: '1/8' | '1/16' | '1/2'; posicao: number }>>([]);
+  const [splitters, setSplitters] = useState<SpliterType[]>([]);
   const [cabosAtivos, setCabosAtivos] = useState<number[]>([1]);
   const [cto, setCto] = useState<CaixaAPI>()
   const [portaSelecionada, setPortaSelecionada] = useState<number | null>(null)
@@ -24,33 +25,33 @@ export default function ExemploCTOPage() {
 
 
   const { criarSpliter } = useSpliter()
-  const {obterCapilarPorCaixa} = useCapilar()
+  const { obterCapilarPorCaixa } = useCapilar()
 
   const path = usePathname();
   const id = path.split('/')[4];
 
   const { obterCaixaPorId } = useCaixa()
-  const { atualizar,isLoading:loadingPortas } = usePorta()
+  const { atualizar, isLoading: loadingPortas } = usePorta()
 
 
 
-const loadCaixa = async () => {
-  try {
-    const ctoBusca = await obterCaixaPorId(id)
-    if (ctoBusca?.data) {
-      setCto(ctoBusca.data)
-      console.log('CTO carregado:', ctoBusca.data)
+  const loadCaixa = async () => {
+    try {
+      const ctoBusca = await obterCaixaPorId(id)
+      if (ctoBusca?.data) {
+        setCto(ctoBusca.data)
+        console.log('CTO carregado:', ctoBusca.data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar CTO:', error)
     }
-  } catch (error) {
-    console.error('Erro ao carregar CTO:', error)
   }
-}
-  
+
 
   useEffect(() => {
     loadCaixa()
-      const capilares = obterCapilarPorCaixa(id)
-  console.log(capilares)
+    const capilares = obterCapilarPorCaixa(id)
+    console.log(capilares)
   }, [])
 
   // Atualiza as portas ativas quando o CTO é carregado
@@ -58,22 +59,28 @@ const loadCaixa = async () => {
     if (cto?.portas) {
       const ctFilter = cto.portas.filter((item) => item.status === 'Em uso').map((item) => item.numero) || []
       setPortasAtivas(ctFilter)
-      
+
       // Atualiza a capacidade baseada no CTO carregado
       if (cto.capacidade) {
         setCapacidade(cto.capacidade as 8 | 16)
       }
+
+      if (cto.spliters) {
+        setSplitters(cto?.spliters)
+
+      }
+      console.log(splitters)
     }
   }, [cto])
-    console.log(portasAtivas)
-    
+  console.log(portasAtivas)
 
 
 
 
-if(loadingPortas) {
-  return <div>Carregando...</div>
-}
+
+  if (loadingPortas) {
+    return <div>Carregando...</div>
+  }
 
   // Gera as portas com base na capacidade e portas ativas
   const gerarPortas = () => {
@@ -110,7 +117,7 @@ if(loadingPortas) {
         caixaId: cto?.id || '',
         nome: "Spliter" + cto?.nome,
       })
-      setSplitters([...splitters, { tipo, posicao: splitters.length + 1 }]);
+
     }
   };
 
@@ -130,14 +137,14 @@ if(loadingPortas) {
   // Atualiza o status da porta selecionada
   const atualizarStatusPorta = async (novoStatus: string) => {
     if (!portaSelecionada) return
-    
+
     const portaCto = cto?.portas?.find(({ numero }) => numero === portaSelecionada)
     if (portaCto?.id) {
       try {
         await atualizar(portaCto.id, {
           status: novoStatus
         })
-        
+
         // Atualiza o estado local imediatamente
         if (novoStatus === 'Em uso') {
           setPortasAtivas(prev => {
@@ -149,10 +156,10 @@ if(loadingPortas) {
         } else {
           setPortasAtivas(prev => prev.filter(id => id !== portaSelecionada))
         }
-        
+
         // Recarrega os dados do CTO para sincronizar
         await loadCaixa()
-        
+
         // Fecha o modal
         setMostrarModalStatus(false)
         setPortaSelecionada(null)
@@ -178,8 +185,6 @@ if(loadingPortas) {
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
 
-console.log(cto)
-
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold text-primary mb-6">{cto?.nome || 'Exemplo de CTO'}</h1>
@@ -187,6 +192,7 @@ console.log(cto)
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <ConfiguracoesCTO
+            portas={cto?.portas}
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
             setCapacidade={setCapacidade}
             portasAtivas={portasAtivas}
@@ -215,26 +221,25 @@ console.log(cto)
 
       {/* Modal para selecionar status da porta */}
       {mostrarModalStatus && portaSelecionada && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-md mx-4">
+        <div className="fixed inset-0 bg-background text-foreground bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-background dark:bg-foreground rounded-lg p-6 w-96 max-w-md mx-4">
             <h3 className="text-lg font-semibold mb-4">
               Alterar Status da Porta {portaSelecionada}
             </h3>
-            
+
             <div className="space-y-2">
               {['Disponível', 'Em uso', 'Reservada', 'Defeito'].map((status) => {
                 const portaAtual = cto?.portas?.find(p => p.numero === portaSelecionada)
                 const isAtual = portaAtual?.status === status
-                
+
                 return (
                   <button
                     key={status}
                     onClick={() => atualizarStatusPorta(status)}
-                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${
-                      isAtual 
-                        ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
-                    }`}
+                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${isAtual
+                      ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{status}</span>
@@ -254,7 +259,7 @@ console.log(cto)
                 )
               })}
             </div>
-            
+
             <div className="flex gap-3 mt-6">
               <button
                 onClick={fecharModal}

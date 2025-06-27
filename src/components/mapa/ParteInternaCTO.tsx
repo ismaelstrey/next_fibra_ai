@@ -4,11 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaFusao } from './AreaFusao';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SpliterType } from '@/types/fibra';
 
-interface SplitterInfo {
-    tipo: '1/8' | '1/16' | '1/2';
-    posicao: number;
-}
+
 
 interface CaboAS {
     id: number;
@@ -20,7 +18,7 @@ interface ParteInternaCTOProps {
     /**
      * Lista de splitters instalados
      */
-    splitters?: SplitterInfo[];
+    splitters?: SpliterType[];
 
     /**
      * Lista de cabos AS conectados
@@ -55,7 +53,7 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                                     <div key={index} className={`p-3 text-accent rounded-md border border-blue-300 ${splitter.tipo === '1/8' ? 'bg-red-500' : splitter.tipo === '1/16' ? 'bg-green-500' : 'bg-blue-500'}`}>
                                         <div className="flex items-center justify-between">
                                             <span>Splitter {splitter.tipo}</span>
-                                            <Badge variant="secondary">Posição {splitter.posicao}</Badge>
+                                            <Badge variant="secondary">Posição {index + 1}</Badge>
                                         </div>
                                     </div>
                                 ))}
