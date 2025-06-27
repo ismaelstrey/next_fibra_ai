@@ -130,12 +130,12 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     const dadosAtualizacao = result.data;
 
     // Se estiver alterando o status e a porta estiver em uso por um cliente
-    if (dadosAtualizacao.status && dadosAtualizacao.status !== "Em uso" && portaExistente.cliente) {
-      return NextResponse.json(
-        { erro: "Não é possível alterar o status de uma porta que está em uso por um cliente" },
-        { status: 400 }
-      );
-    }
+    // if (dadosAtualizacao.status && dadosAtualizacao.status !== "Em uso" && portaExistente.cliente) {
+    //   return NextResponse.json(
+    //     { erro: "Não é possível alterar o status de uma porta que está em uso por um cliente" },
+    //     { status: 400 }
+    //   );
+    // }
 
     // Se estiver alterando a caixa, verifica se ela existe e é do tipo CTO
     if (dadosAtualizacao.caixaId) {

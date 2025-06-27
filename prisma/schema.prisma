@@ -406,11 +406,12 @@ model Capilar {
   cidade          Cidade?     @relation(fields: [cidadeId], references: [id])
   saidas          Emenda[]    @relation("CapilarSaida")
   entradas        Emenda[]    @relation("CapilarEntrada")
-  spliter_saida   Spliter[]   @relation("CapilarSaida")
   spliter_entrada Spliter[]   @relation("CapilarEntrada")
   rota            Rota[]
   arquivo         Arquivo[]
   incidentes      Incidente[]
+  spliterId       String?
+  spliter         Spliter?     @relation(fields: [spliterId], references: [id])
 }
 
 model Emenda {
@@ -430,22 +431,23 @@ model Emenda {
 model Cliente {
   id           String        @id @default(cuid())
   nome         String
-  email        String        @unique
+  email        String?        @unique
   senha        String?
   telefone     String?
+  cpf          String?
   apartamento  String?
   endereco     String?
   casa         String?
   numero       Int
-  potencia     Float
-  wifi         String
-  senhaWifi    String
-  neutraId     String
+  potencia     Float?
+  wifi         String?
+  senhaWifi    String?
+  neutraId     String?
   cidadeId     String?
   cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
-  neutra       Neutra        @relation(fields: [neutraId], references: [id])
-  portaId      String
-  porta        Porta         @relation(fields: [portaId], references: [id])
+  neutra       Neutra?        @relation(fields: [neutraId], references: [id])
+  portaId      String?
+  porta        Porta?         @relation(fields: [portaId], references: [id])
   arquivo      Arquivo[]
   equipamentos Equipamento[]
   incidentes   Incidente[]
@@ -465,9 +467,8 @@ model Spliter {
   tipo             String
   caixaId          String
   caixa            Caixa   @relation(fields: [caixaId], references: [id])
-  capilarSaidaId   String?
   capilarEntradaId String?
-  capilarSaida     Capilar? @relation("CapilarSaida", fields: [capilarSaidaId], references: [id])
+  capilarSaida     Capilar[] 
   capilarEntrada   Capilar? @relation("CapilarEntrada", fields: [capilarEntradaId], references: [id])
 
   Porta Porta[]

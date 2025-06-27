@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import {
@@ -11,25 +11,15 @@ import {
   ArrowUpDownIcon,
   EditIcon,
   TrashIcon,
-  EyeIcon
+  EyeIcon,
+  LoaderIcon
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-/**
- * Tipo para os dados de uma caixa
- */
-type Caixa = {
-  id: string;
-  nome: string;
-  tipo: 'CTO' | 'CEO';
-  modelo: string;
-  capacidade: number;
-  cidade: string;
-  coordenadas: { lat: number; lng: number };
-};
+import { useCaixa, CaixaAPI } from '@/hooks/useCaixa';
+import { useApiService } from '@/hooks/useApiService';
 
 /**
  * Página de gerenciamento de caixas
@@ -39,55 +29,73 @@ export default function CaixasPage() {
   const [busca, setBusca] = useState('');
   const [ordenacao, setOrdenacao] = useState<'nome' | 'tipo' | 'cidade'>('nome');
   const [ordem, setOrdem] = useState<'asc' | 'desc'>('asc');
+  const [filtroTipo, setFiltroTipo] = useState<string>('');
+  const [filtroCidade, setFiltroCidade] = useState<string>('');
+  const [filtroCapacidade, setFiltroCapacidade] = useState<string>('');
+  const [pagina, setPagina] = useState(1);
+  const [limite] = useState(10);
 
-  // Dados de exemplo para caixas
-  const caixasExemplo: Caixa[] = [
-    {
-      id: '1',
-      nome: 'CTO-001',
-      tipo: 'CTO',
-      modelo: 'FK-OTO-16M',
-      capacidade: 16,
-      cidade: 'Cidade 1',
-      coordenadas: { lat: -23.5505, lng: -46.6333 }
-    },
-    {
-      id: '2',
-      nome: 'CEO-001',
-      tipo: 'CEO',
-      modelo: 'FK-CEO-48F',
-      capacidade: 48,
-      cidade: 'Cidade 1',
-      coordenadas: { lat: -23.5505, lng: -46.6333 }
-    },
-    {
-      id: '3',
-      nome: 'CTO-002',
-      tipo: 'CTO',
-      modelo: 'FK-OTO-16M',
-      capacidade: 16,
-      cidade: 'Cidade 2',
-      coordenadas: { lat: -23.5505, lng: -46.6333 }
-    },
-    {
-      id: '4',
-      nome: 'CEO-002',
-      tipo: 'CEO',
-      modelo: 'FK-CEO-24F',
-      capacidade: 24,
-      cidade: 'Cidade 2',
-      coordenadas: { lat: -23.5505, lng: -46.6333 }
-    },
-    {
-      id: '5',
-      nome: 'CTO-003',
-      tipo: 'CTO',
-      modelo: 'FK-OTO-8M',
-      capacidade: 8,
-      cidade: 'Cidade 1',
-      coordenadas: { lat: -23.5505, lng: -46.6333 }
-    },
-  ];
+  // Hooks para API
+  const {
+    listarCaixa,
+    excluirCaixa,
+    isLoading: loadingCaixas,
+    error: errorCaixas
+  } = useCaixa();
+  
+  const {
+    cidades,
+    isLoading: loadingCidades
+  } = useApiService();
+
+  // Estados para dados
+  const [caixas, setCaixas] = useState<CaixaAPI[]>([]);
+  const [cidades_lista, setCidadesLista] = useState<any[]>([]);
+  const [paginacao, setPaginacao] = useState<any>(null);
+  const [carregandoExclusao, setCarregandoExclusao] = useState<string | null>(null);
+
+  // Carrega dados iniciais
+  useEffect(() => {
+    carregarCaixas();
+    carregarCidades();
+  }, [pagina, filtroTipo, filtroCidade, filtroCapacidade]);
+
+  /**
+   * Carrega a lista de caixas da API
+   */
+  const carregarCaixas = async () => {
+    try {
+      const params: any = {
+        pagina,
+        limite,
+        busca: busca.trim() || undefined,
+        tipo: filtroTipo || undefined,
+        cidadeId: filtroCidade || undefined
+      };
+
+      const response = await listarCaixa(params);
+      if (response.data) {
+        setCaixas(response.data.caixas || []);
+        setPaginacao(response.data.paginacao);
+      }
+    } catch (error) {
+      toast.error('Erro ao carregar caixas');
+    }
+  };
+
+  /**
+   * Carrega a lista de cidades
+   */
+  const carregarCidades = async () => {
+    try {
+      const response = await cidades.listar();
+      if (response.data) {
+        setCidadesLista(response.data.cidades || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar cidades:', error);
+    }
+  };
 
   /**
    * Função para lidar com a busca de caixas
@@ -95,10 +103,27 @@ export default function CaixasPage() {
    */
   const handleBusca = (e: React.FormEvent) => {
     e.preventDefault();
-    if (busca.trim()) {
-      toast.success(`Buscando por: ${busca}`);
-      // Aqui seria a lógica de busca de caixas
-    }
+    setPagina(1);
+    carregarCaixas();
+  };
+
+  /**
+   * Aplica os filtros selecionados
+   */
+  const aplicarFiltros = () => {
+    setPagina(1);
+    carregarCaixas();
+  };
+
+  /**
+   * Limpa todos os filtros
+   */
+  const limparFiltros = () => {
+    setFiltroTipo('');
+    setFiltroCidade('');
+    setFiltroCapacidade('');
+    setBusca('');
+    setPagina(1);
   };
 
   /**
@@ -135,10 +160,25 @@ export default function CaixasPage() {
   /**
    * Função para excluir uma caixa
    * @param id - ID da caixa
+   * @param nome - Nome da caixa para confirmação
    */
-  const excluirCaixa = (id: string) => {
-    toast.success(`Excluindo caixa ${id}`);
-    // Aqui seria a lógica para excluir a caixa
+  const handleExcluirCaixa = async (id: string, nome: string) => {
+    if (!confirm(`Tem certeza que deseja excluir a caixa "${nome}"?`)) {
+      return;
+    }
+
+    setCarregandoExclusao(id);
+    try {
+      const response = await excluirCaixa(id);
+      if (response.status === 200) {
+        toast.success('Caixa excluída com sucesso!');
+        carregarCaixas(); // Recarrega a lista
+      }
+    } catch (error) {
+      toast.error('Erro ao excluir caixa');
+    } finally {
+      setCarregandoExclusao(null);
+    }
   };
 
   // Animações
@@ -197,23 +237,39 @@ export default function CaixasPage() {
             <CardContent className="space-y-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium">Tipo de Caixa</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                >
                   <option value="">Todos</option>
-                  <option value="cto">CTO</option>
-                  <option value="ceo">CEO</option>
+                  <option value="CTO">CTO</option>
+                  <option value="CEO">CEO</option>
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Cidade</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtroCidade}
+                  onChange={(e) => setFiltroCidade(e.target.value)}
+                  disabled={loadingCidades}
+                >
                   <option value="">Todas</option>
-                  <option value="cidade1">Cidade 1</option>
-                  <option value="cidade2">Cidade 2</option>
+                  {cidades_lista.map((cidade) => (
+                    <option key={cidade.id} value={cidade.id}>
+                      {cidade.nome} - {cidade.estado}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium">Capacidade</label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm">
+                <select 
+                  className="w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+                  value={filtroCapacidade}
+                  onChange={(e) => setFiltroCapacidade(e.target.value)}
+                >
                   <option value="">Todas</option>
                   <option value="8">8 portas</option>
                   <option value="16">16 portas</option>
@@ -221,9 +277,23 @@ export default function CaixasPage() {
                   <option value="48">48 portas</option>
                 </select>
               </div>
-              <Button className="w-full" variant="outline">
-                Aplicar Filtros
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  className="flex-1" 
+                  variant="outline"
+                  onClick={aplicarFiltros}
+                  disabled={loadingCaixas}
+                >
+                  Aplicar Filtros
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={limparFiltros}
+                >
+                  Limpar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -275,50 +345,119 @@ export default function CaixasPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {caixasExemplo.map((caixa) => (
-                      <tr key={caixa.id} className="border-b hover:bg-muted/50">
-                        <td className="px-4 py-3 text-sm">{caixa.nome}</td>
-                        <td className="px-4 py-3 text-sm">
-                          <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${caixa.tipo === 'CTO' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'}`}>
-                            {caixa.tipo}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{caixa.modelo}</td>
-                        <td className="px-4 py-3 text-sm">{caixa.capacidade}</td>
-                        <td className="px-4 py-3 text-sm">{caixa.cidade}</td>
-                        <td className="px-4 py-3 text-sm text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => visualizarCaixa(caixa.id)}
-                              title="Visualizar"
-                            >
-                              <EyeIcon className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => editarCaixa(caixa.id)}
-                              title="Editar"
-                            >
-                              <EditIcon className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => excluirCaixa(caixa.id)}
-                              title="Excluir"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </Button>
+                    {loadingCaixas ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <LoaderIcon className="h-4 w-4 animate-spin" />
+                            <span>Carregando caixas...</span>
                           </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : caixas.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                          Nenhuma caixa encontrada
+                        </td>
+                      </tr>
+                    ) : (
+                      caixas.map((caixa) => (
+                        <tr key={caixa.id} className="border-b hover:bg-muted/50">
+                          <td className="px-4 py-3 text-sm">{caixa.nome}</td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                              caixa.tipo === 'CTO' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+                            }`}>
+                              {caixa.tipo}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">{caixa.modelo}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {caixa.capacidade}
+                            {caixa._count && (
+                              <span className="ml-2 text-xs text-muted-foreground">
+                                ({caixa._count.fusoes || 0} em uso)
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {caixa.cidade?.nome || 'N/A'}
+                            {caixa.cidade?.estado && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                - {caixa.cidade.estado}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => visualizarCaixa(caixa.id)}
+                                title="Visualizar"
+                              >
+                                <EyeIcon className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => editarCaixa(caixa.id)}
+                                title="Editar"
+                              >
+                                <EditIcon className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleExcluirCaixa(caixa.id, caixa.nome)}
+                                title="Excluir"
+                                disabled={carregandoExclusao === caixa.id}
+                              >
+                                {carregandoExclusao === caixa.id ? (
+                                  <LoaderIcon className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <TrashIcon className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
+              
+              {/* Paginação */}
+              {paginacao && paginacao.totalPaginas > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Mostrando {((paginacao.pagina - 1) * paginacao.limite) + 1} a{' '}
+                    {Math.min(paginacao.pagina * paginacao.limite, paginacao.total)} de{' '}
+                    {paginacao.total} caixas
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagina(paginacao.pagina - 1)}
+                      disabled={paginacao.pagina <= 1 || loadingCaixas}
+                    >
+                      Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagina(paginacao.pagina + 1)}
+                      disabled={paginacao.pagina >= paginacao.totalPaginas || loadingCaixas}
+                    >
+                      Próxima
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

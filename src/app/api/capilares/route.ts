@@ -27,8 +27,9 @@ export async function GET(req: NextRequest) {
     const tipo = searchParams.get("tipo");
     const status = searchParams.get("status");
     const rotaId = searchParams.get("rotaId");
+    const caixaId = searchParams.get("caixaId");
 
-    console.log(rotaId)
+    console.log(rotaId, caixaId)
 
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
@@ -63,6 +64,28 @@ export async function GET(req: NextRequest) {
       };
     }
 
+    // Adiciona filtro por caixa (através de spliters)
+    if (caixaId) {
+      where.OR = [
+        // Capilares conectados como entrada de spliter na caixa
+        {
+          spliter_entrada: {
+            some: {
+              caixaId: caixaId
+            }
+          }
+        },
+        // Capilares conectados como saída de spliter na caixa
+        {
+          spliter_saida: {
+            some: {
+              caixaId: caixaId
+            }
+          }
+        }
+      ];
+    }
+
     // Consulta os capilares com paginação e filtros
     const [capilares, total] = await Promise.all([
       prisma.capilar.findMany({
@@ -85,7 +108,6 @@ export async function GET(req: NextRequest) {
             select: {
               saidas: true,
               entradas: true,
-              spliter_saida: true,
               spliter_entrada: true,
             },
           }

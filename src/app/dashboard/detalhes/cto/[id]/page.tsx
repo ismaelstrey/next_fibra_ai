@@ -15,37 +15,65 @@ import { usePorta } from '@/hooks/usePorta';
  */
 export default function ExemploCTOPage() {
   const [capacidade, setCapacidade] = useState<8 | 16>(8);
-  const [portasAtivas, setPortasAtivas] = useState<number[]>([1, 3, 5]);
+  const [portasAtivas, setPortasAtivas] = useState<number[]>([]);
   const [splitters, setSplitters] = useState<Array<{ tipo: '1/8' | '1/16' | '1/2'; posicao: number }>>([]);
   const [cabosAtivos, setCabosAtivos] = useState<number[]>([1]);
   const [cto, setCto] = useState<CaixaAPI>()
+  const [portaSelecionada, setPortaSelecionada] = useState<number | null>(null)
+  const [mostrarModalStatus, setMostrarModalStatus] = useState(false)
 
 
   const { criarSpliter } = useSpliter()
-
-  const { buscarCapilarPorRota } = useCapilar()
+  const {obterCapilarPorCaixa} = useCapilar()
 
   const path = usePathname();
   const id = path.split('/')[4];
-  console.log(path, id)
 
   const { obterCaixaPorId } = useCaixa()
-  const { atualizar } = usePorta()
+  const { atualizar,isLoading:loadingPortas } = usePorta()
+
+
+
+const loadCaixa = async () => {
+  try {
+    const ctoBusca = await obterCaixaPorId(id)
+    if (ctoBusca?.data) {
+      setCto(ctoBusca.data)
+      console.log('CTO carregado:', ctoBusca.data)
+    }
+  } catch (error) {
+    console.error('Erro ao carregar CTO:', error)
+  }
+}
+  
 
   useEffect(() => {
-    obterCaixaPorId(id).then((ctoBusca) => {
-      ctoBusca && setCto(ctoBusca.data) 
+    loadCaixa()
+      const capilares = obterCapilarPorCaixa(id)
+  console.log(capilares)
+  }, [])
 
-    })
+  // Atualiza as portas ativas quando o CTO é carregado
+  useEffect(() => {
+    if (cto?.portas) {
+      const ctFilter = cto.portas.filter((item) => item.status === 'Em uso').map((item) => item.numero) || []
+      setPortasAtivas(ctFilter)
+      
+      // Atualiza a capacidade baseada no CTO carregado
+      if (cto.capacidade) {
+        setCapacidade(cto.capacidade as 8 | 16)
+      }
+    }
+  }, [cto])
+    console.log(portasAtivas)
+    
 
-    setPortasAtivas(cto?.portas?.filter((item) => item.status === 'Em uso').map((item) => item.numero) || [])
-  }, [id])
 
 
 
-
-
-
+if(loadingPortas) {
+  return <div>Carregando...</div>
+}
 
   // Gera as portas com base na capacidade e portas ativas
   const gerarPortas = () => {
@@ -81,8 +109,6 @@ export default function ExemploCTOPage() {
         tipo,
         caixaId: cto?.id || '',
         nome: "Spliter" + cto?.nome,
-        capilarEntradaId: "",
-        capilarSaidaId: ""
       })
       setSplitters([...splitters, { tipo, posicao: splitters.length + 1 }]);
     }
@@ -95,15 +121,51 @@ export default function ExemploCTOPage() {
     }
   };
 
-  // Alterna o estado de uma porta
+  // Abre modal para selecionar status da porta
   const alternarPorta = (portaId: number) => {
-    const portaCto = cto?.portas?.filter(({ numero }) => (numero === portaId))[0]
-    portaCto?.id && atualizar(portaCto?.id,{
-      status: portaCto.status === 'Disponível' ? 'Em uso' : 'Disponível'
-    })
+    setPortaSelecionada(portaId)
+    setMostrarModalStatus(true)
+  };
 
+  // Atualiza o status da porta selecionada
+  const atualizarStatusPorta = async (novoStatus: string) => {
+    if (!portaSelecionada) return
+    
+    const portaCto = cto?.portas?.find(({ numero }) => numero === portaSelecionada)
+    if (portaCto?.id) {
+      try {
+        await atualizar(portaCto.id, {
+          status: novoStatus
+        })
+        
+        // Atualiza o estado local imediatamente
+        if (novoStatus === 'Em uso') {
+          setPortasAtivas(prev => {
+            if (!prev.includes(portaSelecionada)) {
+              return [...prev, portaSelecionada]
+            }
+            return prev
+          })
+        } else {
+          setPortasAtivas(prev => prev.filter(id => id !== portaSelecionada))
+        }
+        
+        // Recarrega os dados do CTO para sincronizar
+        await loadCaixa()
+        
+        // Fecha o modal
+        setMostrarModalStatus(false)
+        setPortaSelecionada(null)
+      } catch (error) {
+        console.error('Erro ao atualizar porta:', error)
+      }
+    }
+  };
 
-  
+  // Fecha o modal sem alterar
+  const fecharModal = () => {
+    setMostrarModalStatus(false)
+    setPortaSelecionada(null)
   };
 
   // Alterna o estado de um cabo
@@ -116,7 +178,7 @@ export default function ExemploCTOPage() {
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
 
-console.log(portasAtivas)
+console.log(cto)
 
   return (
     <div className="container mx-auto py-8">
@@ -142,7 +204,7 @@ console.log(portasAtivas)
             id={cto?.id || "CTO-EXEMPLO-01"}
             nome={cto?.nome || "CTO Exemplo"}
             modelo={cto?.modelo || "Modelo Demonstração"}
-            capacidade={capacidade}
+            capacidade={cto?.capacidade as 8 | 16 || capacidade}
             portas={gerarPortas()}
             splitters={splitters}
             cabosAS={gerarCabosAS()}
@@ -150,6 +212,60 @@ console.log(portasAtivas)
           />
         </div>
       </div>
+
+      {/* Modal para selecionar status da porta */}
+      {mostrarModalStatus && portaSelecionada && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              Alterar Status da Porta {portaSelecionada}
+            </h3>
+            
+            <div className="space-y-2">
+              {['Disponível', 'Em uso', 'Reservada', 'Defeito'].map((status) => {
+                const portaAtual = cto?.portas?.find(p => p.numero === portaSelecionada)
+                const isAtual = portaAtual?.status === status
+                
+                return (
+                  <button
+                    key={status}
+                    onClick={() => atualizarStatusPorta(status)}
+                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${
+                      isAtual 
+                        ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{status}</span>
+                      {isAtual && (
+                        <span className="text-sm text-blue-600 dark:text-blue-400">
+                          (Atual)
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {status === 'Disponível' && 'Porta livre para uso'}
+                      {status === 'Em uso' && 'Porta ocupada por cliente'}
+                      {status === 'Reservada' && 'Porta reservada para cliente'}
+                      {status === 'Defeito' && 'Porta com problema técnico'}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={fecharModal}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

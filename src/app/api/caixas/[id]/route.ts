@@ -98,6 +98,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
           },
         },
         portas: {
+          
           orderBy: { numero: "asc" },
         },
         bandejas: {
@@ -124,6 +125,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         arquivos: {
           orderBy: { criadoEm: "desc" },
         },
+        spliters:true,
         manutencoes: {
           include: {
             usuario: {

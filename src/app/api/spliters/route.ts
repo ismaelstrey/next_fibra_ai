@@ -80,7 +80,6 @@ export async function GET(req: NextRequest) {
           atendimento: true,
           tipo: true,
           caixaId: true,
-          capilarSaidaId: true,
           capilarEntradaId: true,
           caixa: {
             select: {
@@ -184,19 +183,21 @@ export async function POST(req: NextRequest) {
       }) : null,
     ]);
 
-    if (!capilarSaida) {
-      return NextResponse.json(
-        { erro: "Capilar de saída não encontrado" },
-        { status: 404 }
-      );
-    }
 
-    if (!capilarEntrada) {
-      return NextResponse.json(
-        { erro: "Capilar de entrada não encontrado" },
-        { status: 404 }
-      );
-    }
+  
+    // if (!capilarSaida) {
+    //   return NextResponse.json(
+    //     { erro: "Capilar de saída não encontrado" },
+    //     { status: 404 }
+    //   );
+    // }
+
+    // if (!capilarEntrada) {
+    //   return NextResponse.json(
+    //     { erro: "Capilar de entrada não encontrado" },
+    //     { status: 404 }
+    //   );
+    // }
 
     // Cria o spliter no banco de dados
     const novoSpliter = await prisma.spliter.create({
@@ -205,10 +206,27 @@ export async function POST(req: NextRequest) {
         atendimento,
         tipo,
         caixaId,
-        capilarSaidaId,
         capilarEntradaId,
       },
     });
+
+if(novoSpliter){
+  if(tipo === "1/8"){
+    for (let i = 0; i < 8; i++) {
+       await prisma.capilar.create({
+        data: {
+         comprimento:1,
+         numero: i,
+         potencia:0,
+         status: "Livre",
+         tipo: "spliter:saida",
+         spliterId:novoSpliter.id
+        },
+      });
+    }
+  }
+}
+    
 
     // Registra a ação no log de auditoria
     const token = await verificarAutenticacao(req);

@@ -264,6 +264,16 @@ export const useCapilar = () => {
     }, [listarCapilar]);
 
     /**
+     * Busca capilares associados a uma caixa específica
+     * @param caixaId - ID da caixa
+     * @param params - Parâmetros adicionais de filtro
+     * @returns Promise com lista de capilares da caixa
+     */
+    const obterCapilarPorCaixa = useCallback(async (caixaId: string, params?: ListarCapilarParams) => {
+        return request<{ capilares: CapilarAPI[], paginacao: any }>('GET', '/capilares', undefined, { ...params, caixaId });
+    }, [request]);
+
+    /**
      * Busca capilares disponíveis (sem conexões)
      * @param params - Parâmetros adicionais de filtro
      * @returns Promise com lista de capilares disponíveis
@@ -331,6 +341,7 @@ export const useCapilar = () => {
         buscarCapilarPorTipo,
         buscarCapilarPorStatus,
         buscarCapilarPorNumero,
+        obterCapilarPorCaixa,
         buscarCapilaresDisponiveis,
         buscarCapilaresConectados,
         

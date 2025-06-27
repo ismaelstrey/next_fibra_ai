@@ -52,8 +52,6 @@ CREATE TABLE "Caixa" (
     "criadoEm" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "atualizadoEm" DATETIME NOT NULL,
     "cidadeId" TEXT NOT NULL,
-    "rotaId" TEXT NOT NULL,
-    CONSTRAINT "Caixa_rotaId_fkey" FOREIGN KEY ("rotaId") REFERENCES "Rota" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT "Caixa_cidadeId_fkey" FOREIGN KEY ("cidadeId") REFERENCES "Cidade" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -69,8 +67,8 @@ CREATE TABLE "Porta" (
     "atualizadoEm" DATETIME NOT NULL,
     "caixaId" TEXT NOT NULL,
     "spliterId" TEXT,
-    CONSTRAINT "Porta_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Porta_spliterId_fkey" FOREIGN KEY ("spliterId") REFERENCES "Spliter" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT "Porta_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "Porta_spliterId_fkey" FOREIGN KEY ("spliterId") REFERENCES "Spliter" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -360,21 +358,22 @@ CREATE TABLE "Emenda" (
 CREATE TABLE "Cliente" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "nome" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
+    "email" TEXT,
     "senha" TEXT,
     "telefone" TEXT,
+    "cpf" TEXT,
     "apartamento" TEXT,
     "endereco" TEXT,
     "casa" TEXT,
     "numero" INTEGER NOT NULL,
     "potencia" REAL NOT NULL,
-    "wifi" TEXT NOT NULL,
-    "senhaWifi" TEXT NOT NULL,
-    "neutraId" TEXT NOT NULL,
+    "wifi" TEXT,
+    "senhaWifi" TEXT,
+    "neutraId" TEXT,
     "cidadeId" TEXT,
     "portaId" TEXT NOT NULL,
     CONSTRAINT "Cliente_cidadeId_fkey" FOREIGN KEY ("cidadeId") REFERENCES "Cidade" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Cliente_neutraId_fkey" FOREIGN KEY ("neutraId") REFERENCES "Neutra" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "Cliente_neutraId_fkey" FOREIGN KEY ("neutraId") REFERENCES "Neutra" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Cliente_portaId_fkey" FOREIGN KEY ("portaId") REFERENCES "Porta" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -453,6 +452,19 @@ CREATE TABLE "Incidente" (
 );
 
 -- CreateTable
+CREATE TABLE "RotaCaixa" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "rotaId" TEXT NOT NULL,
+    "caixaId" TEXT NOT NULL,
+    "tipoConexao" TEXT NOT NULL,
+    "ordem" INTEGER,
+    "criadoEm" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "atualizadoEm" DATETIME NOT NULL,
+    CONSTRAINT "RotaCaixa_rotaId_fkey" FOREIGN KEY ("rotaId") REFERENCES "Rota" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "RotaCaixa_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
 CREATE TABLE "_CidadeToUsuario" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -522,6 +534,9 @@ CREATE UNIQUE INDEX "NotificacaoLida_notificacaoId_usuarioId_key" ON "Notificaca
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cliente_email_key" ON "Cliente"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "RotaCaixa_rotaId_caixaId_key" ON "RotaCaixa"("rotaId", "caixaId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_CidadeToUsuario_AB_unique" ON "_CidadeToUsuario"("A", "B");

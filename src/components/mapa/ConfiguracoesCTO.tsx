@@ -67,6 +67,8 @@ export function ConfiguracoesCTO({
   cabosAtivos,
   alternarCabo
 }: ConfiguracoesCTOProps) {
+
+  console.log(portasAtivas)
   return (
     <Card>
       <CardHeader>

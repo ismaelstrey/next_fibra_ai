@@ -21,7 +21,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     const { id } = params;
-
+const capilares = prisma.capilar.findMany({
+  where:{
+    spliterId:id, 
+  }
+})
     // Busca o spliter com todas as informações relacionadas
     const spliter = await prisma.spliter.findUnique({
       where: { id },
@@ -98,7 +102,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
-    return NextResponse.json(spliter);
+    return NextResponse.json({spliter,capilares});
   } catch (error) {
     return tratarErro(error);
   }

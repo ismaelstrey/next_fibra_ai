@@ -14,11 +14,11 @@ export const clienteSchema = z.object({
   endereco: z.string().optional().nullable(),
   casa: z.string().optional().nullable(),
   numero: z.number().int().positive(),
-  potencia: z.number(),
-  wifi: z.string(),
-  senhaWifi: z.string(),
-  neutraId: z.string(),
-  portaId: z.string(),
+  potencia: z.number().nullable(),
+  wifi: z.string().nullable(),
+  senhaWifi: z.string().nullable(),
+  neutraId: z.string().nullable(),
+  portaId: z.string().nullable(),
 });
 
 /**
