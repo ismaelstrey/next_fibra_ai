@@ -10,6 +10,7 @@ import { useCapilar } from '@/hooks/useCapilar';
 import { usePorta } from '@/hooks/usePorta';
 import { SpliterType } from '@/types/fibra';
 import { CaixaAPI } from '@/types/caixa';
+import { ModalStatusPorta } from '@/components/mapa/ModalStatusPorta';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -135,15 +136,22 @@ export default function ExemploCTOPage() {
   };
 
   // Atualiza o status da porta selecionada
-  const atualizarStatusPorta = async (novoStatus: string) => {
+  const atualizarStatusPorta = async (novoStatus: string, clienteId?: string) => {
     if (!portaSelecionada) return
 
     const portaCto = cto?.portas?.find(({ numero }) => numero === portaSelecionada)
     if (portaCto?.id) {
       try {
-        await atualizar(portaCto.id, {
+        const updateData: any = {
           status: novoStatus
-        })
+        }
+
+        // Se um cliente foi selecionado, associa à porta
+        if (clienteId) {
+          updateData.clienteId = clienteId
+        }
+
+        await atualizar(portaCto.id, updateData)
 
         // Atualiza o estado local imediatamente
         if (novoStatus === 'Em uso') {
@@ -220,57 +228,13 @@ export default function ExemploCTOPage() {
       </div>
 
       {/* Modal para selecionar status da porta */}
-      {mostrarModalStatus && portaSelecionada && (
-        <div className="fixed inset-0 bg-background text-foreground bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-background dark:bg-foreground rounded-lg p-6 w-96 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">
-              Alterar Status da Porta {portaSelecionada}
-            </h3>
-
-            <div className="space-y-2">
-              {['Disponível', 'Em uso', 'Reservada', 'Defeito'].map((status) => {
-                const portaAtual = cto?.portas?.find(p => p.numero === portaSelecionada)
-                const isAtual = portaAtual?.status === status
-
-                return (
-                  <button
-                    key={status}
-                    onClick={() => atualizarStatusPorta(status)}
-                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${isAtual
-                      ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
-                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{status}</span>
-                      {isAtual && (
-                        <span className="text-sm text-blue-600 dark:text-blue-400">
-                          (Atual)
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      {status === 'Disponível' && 'Porta livre para uso'}
-                      {status === 'Em uso' && 'Porta ocupada por cliente'}
-                      {status === 'Reservada' && 'Porta reservada para cliente'}
-                      {status === 'Defeito' && 'Porta com problema técnico'}
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={fecharModal}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModalStatusPorta
+        mostrarModal={mostrarModalStatus}
+        portaSelecionada={portaSelecionada}
+        cto={cto}
+        onAtualizarStatus={atualizarStatusPorta}
+        onFecharModal={fecharModal}
+      />
     </div>
   );
 }

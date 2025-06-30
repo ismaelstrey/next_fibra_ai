@@ -161,6 +161,7 @@ export function ConfiguracoesCTO({
                 }
                 return (
                   <Button
+                  title={porta.status}
                     key={porta.id}
                     size="sm"
                     className={statusColor + " border border-gray-300"}
