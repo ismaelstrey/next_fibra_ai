@@ -7,9 +7,7 @@ import AddCaixaModal from './AddCaixaModal';
 import { DetalhesMarcadorModal } from './DetalhesMarcadorModal';
 import GerenciadorFusoes from './GerenciadorFusoes';
 import { Caixa, Rota } from '@/context/MapContext';
-
-
-import { mapContainerStyle, center, mapOptions, drawingManagerOptions, tiposCabos } from './config/mapConfig';
+import { mapContainerStyle, center as defaultCenter, mapOptions, tiposCabos } from './config/mapConfig';
 import { GoogleMapsComponentProps } from './types/mapTypes';
 import { useMarcadores } from './hooks/useMarcadores';
 import { useRotas } from './hooks/useRotas';
@@ -28,6 +26,9 @@ const GoogleMapsComponent = ({
 }: GoogleMapsComponentProps) => {
   // Referência para o mapa
   const mapRef = useRef<google.maps.Map | null>(null);
+
+  // Estado para o centro do mapa
+  const [mapCenter, setMapCenter] = useState(defaultCenter);
 
   // Estado para controlar o modal de detalhes do marcador
   const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
@@ -74,6 +75,8 @@ const GoogleMapsComponent = ({
     tipoCaboSelecionado,
     camadasVisiveis,
     rotas: rotasGlobais,
+    filtros,
+    obterCoordenadasCidade,
   } = useMapa();
 
   // Carrega a API do Google Maps
@@ -115,6 +118,25 @@ const GoogleMapsComponent = ({
     setRotaAssociada
   );
 
+  // Efeito para centralizar o mapa quando a cidade for selecionada
+  useEffect(() => {
+    const centralizarMapa = async () => {
+      if (filtros.cidade && obterCoordenadasCidade) {
+        const coordenadas = await obterCoordenadasCidade(filtros.cidade);
+        if (coordenadas) {
+          setMapCenter(coordenadas);
+          // Se o mapa já estiver carregado, centraliza imediatamente
+          if (mapRef.current) {
+            mapRef.current.setCenter(coordenadas);
+            mapRef.current.setZoom(15);
+          }
+        }
+      }
+    };
+
+    centralizarMapa();
+  }, [filtros.cidade, obterCoordenadasCidade]);
+
   // Cria os marcadores avançados quando o mapa estiver carregado
   if (isLoaded && mapRef.current) {
     criarMarcadoresAvancados(isLoaded);
@@ -145,12 +167,17 @@ const GoogleMapsComponent = ({
   return (
     <GoogleMap
       mapContainerStyle={mapContainerStyle}
-      center={center}
-      zoom={13}
+      center={mapCenter}
+      zoom={filtros.cidade ? 15 : 13}
       options={mapOptions}
       onLoad={map => {
         handleMapLoaded(map);
         handleMapLoad(map);
+        // Se há uma cidade selecionada, centraliza o mapa
+        if (filtros.cidade) {
+          map.setCenter(mapCenter);
+          map.setZoom(15);
+        }
       }}
       onClick={handleMapClick}
 

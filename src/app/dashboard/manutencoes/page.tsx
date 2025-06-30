@@ -319,7 +319,7 @@ export default function ManutencoesPage() {
       <header className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex items-center mb-4 md:mb-0">
           <Wrench className="h-6 w-6 mr-2 text-primary" />
-          <h1 className="text-2xl font-bold">Gerenciamento de Manutenções</h1>
+          <h1 className="text-2xl text-foreground font-bold">Gerenciamento de Manutenções</h1>
         </div>
         
         <Button onClick={abrirNovaManutencao} className="flex items-center gap-1">

@@ -2,7 +2,10 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import { useApiService, RotaAPI, CaixaAPI, FusaoAPI, CidadeAPI } from '../hooks/useApiService';
+import { useApiService } from '../hooks/useApiService';
+import { RotaAPI } from '@/types/rota';
+import { CaixaAPI, FusaoAPI } from '@/types/caixa';
+import { CidadeAPI } from '@/types/cidade';
 
 /**
  * Interface para uma rota de cabo de fibra óptica
@@ -115,6 +118,7 @@ interface MapContextType {
   carregarClientes: () => Promise<void>;
   carregarIncidentes: () => Promise<void>;
   carregarRelatorios: () => Promise<void>;
+  obterCoordenadasCidade: (cidadeId: string) => Promise<{ lat: number; lng: number } | null>;
 
 }
 
@@ -212,7 +216,14 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const [cidades, setCidades] = useState<CidadeAPI[]>([]);
 
   // Estado para os filtros aplicados ao mapa
-  const [filtros, setFiltros] = useState<FiltrosMapa>({});
+  // Carrega a cidade do localStorage se disponível
+  const [filtros, setFiltros] = useState<FiltrosMapa>(() => {
+    if (typeof window !== 'undefined') {
+      const cidadeSalva = localStorage.getItem('cidadeSelecionada');
+      return cidadeSalva ? { cidade: cidadeSalva } : {};
+    }
+    return {};
+  });
 
   // Estado para as camadas visíveis no mapa
   const [camadasVisiveis, setCamadasVisiveis] = useState<CamadasVisiveis>({
@@ -276,6 +287,30 @@ export function MapProvider({ children }: { children: ReactNode }) {
       toast.error('Erro ao carregar incidentes');
     }
   }, [api]);
+
+  /**
+   * Obtém as coordenadas de uma cidade específica
+   */
+  const obterCoordenadasCidade = useCallback(async (cidadeId: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      // Primeiro tenta encontrar nas cidades já carregadas
+      const cidadeEncontrada = cidades.find(cidade => cidade.id === cidadeId);
+      if (cidadeEncontrada && cidadeEncontrada.coordenadas) {
+        return cidadeEncontrada.coordenadas;
+      }
+
+      // Se não encontrou, busca na API
+      const response = await api.cidades.obterPorId(cidadeId);
+      if (response.data && response.data.cidade && response.data.cidade.coordenadas) {
+        return response.data.cidade.coordenadas;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Erro ao obter coordenadas da cidade:', error);
+      return null;
+    }
+  }, [cidades, api]);
 
   const carregarRelatorios = useCallback(async () => {
     try {
@@ -580,10 +615,23 @@ export function MapProvider({ children }: { children: ReactNode }) {
   /**
    * Atualiza os filtros do mapa e recarrega os dados
    * Agora suporta busca global e filtros avançados
+   * Salva a cidade selecionada no localStorage
    */
   const atualizarFiltros = (novosFiltros: FiltrosMapa) => {
     setFiltros(prev => {
       const filtrosAtualizados = { ...prev, ...novosFiltros };
+      
+      // Salva a cidade no localStorage quando ela for alterada
+      if (novosFiltros.cidade !== undefined) {
+        if (typeof window !== 'undefined') {
+          if (novosFiltros.cidade) {
+            localStorage.setItem('cidadeSelecionada', novosFiltros.cidade);
+          } else {
+            localStorage.removeItem('cidadeSelecionada');
+          }
+        }
+      }
+      
       carregarDados(filtrosAtualizados.cidade);
       return filtrosAtualizados;
     });
@@ -663,7 +711,8 @@ export function MapProvider({ children }: { children: ReactNode }) {
     carregarSpliters,
     carregarClientes,
     carregarIncidentes,
-    carregarRelatorios
+    carregarRelatorios,
+    obterCoordenadasCidade
   };
 
   return (
