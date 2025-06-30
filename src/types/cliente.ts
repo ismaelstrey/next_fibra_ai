@@ -80,6 +80,7 @@ export interface CriarClienteData {
     senhaWifi: string;
     neutraId: string;
     portaId: string;
+    status?: string;
 }
 
 export interface AtualizarClienteData {

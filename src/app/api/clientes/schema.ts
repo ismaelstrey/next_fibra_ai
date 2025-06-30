@@ -19,6 +19,7 @@ export const clienteSchema = z.object({
   senhaWifi: z.string().nullable(),
   neutraId: z.string().nullable(),
   portaId: z.string().nullable(),
+  status: z.string().nullable(),
 });
 
 /**

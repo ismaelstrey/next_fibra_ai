@@ -155,6 +155,7 @@ export async function POST(req: NextRequest) {
       senhaWifi,
       neutraId,
       portaId,
+      status,
     } = result.data;
 
     // Verifica se o email já está em uso
@@ -224,6 +225,15 @@ if (portaId){
         data: { status: "Em uso" },
       });
    }
+  await prisma.porta.update({
+    where:{
+      id:portaId || '',
+
+    },
+    data:{
+      status:status||"Em uso"
+    }
+   })
 
       // Cria o cliente
       return prisma.cliente.create({

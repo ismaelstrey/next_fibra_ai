@@ -21,6 +21,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
   const resolvedParams = use(params);
   const clienteId = searchParams.get('id');
   const portaId = searchParams.get('portaId');
+  const status = searchParams.get('status');
   const isEdit = resolvedParams.action === 'edit';
   
   
@@ -40,6 +41,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
     wifi: '',
     senhaWifi: '',
     neutraId: '',
+    status: status || '',
     portaId: portaId || ''
   });
 
@@ -67,6 +69,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
             senhaWifi: clienteData?.senhaWifi || '',
             neutraId: clienteData?.neutraId || '',
             portaId: clienteData?.portaId || ''
+            
           });
         } catch (error) {
           console.error('Erro ao carregar cliente:', error);
