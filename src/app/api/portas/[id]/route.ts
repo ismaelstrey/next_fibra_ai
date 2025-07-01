@@ -22,6 +22,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     const { id } = params;
 
+    console.log(id)
+
     // Busca a porta com todas as informações relacionadas
     const porta = await prisma.porta.findUnique({
       where: { id },

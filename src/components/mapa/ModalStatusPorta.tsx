@@ -108,7 +108,7 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
             <h3 className="text-lg font-semibold mb-4">
               Alterar Status da Porta {portaSelecionada}
             </h3>
-
+            <span>{portaAtual?.id}</span>
             <div className="space-y-2">
               {statusOptions.map((status) => {
                 const isAtual = portaAtual?.status === status;
@@ -117,11 +117,10 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
                   <button
                     key={status}
                     onClick={() => handleStatusClick(status)}
-                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${
-                      isAtual
-                        ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
-                    }`}
+                    className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${isAtual
+                      ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{status}</span>
@@ -160,6 +159,7 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
               <h3 className="text-lg font-semibold">
                 Associar Cliente à Porta {portaSelecionada}
               </h3>
+              <span>{portaAtual?.id}</span>
             </div>
 
             <div className="mb-4">
@@ -180,11 +180,10 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
                       <button
                         key={cliente.id}
                         onClick={() => handleClienteSelect(cliente.id)}
-                        className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${
-                          clienteSelecionado === cliente.id
-                            ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
-                        }`}
+                        className={`w-full text-left px-4 py-3 rounded-md border transition-colors ${clienteSelecionado === cliente.id
+                          ? 'bg-blue-100 border-blue-300 text-blue-800 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
+                          : 'bg-gray-50 border-gray-200 hover:bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600'
+                          }`}
                       >
                         <div className="font-medium">{cliente.nome}</div>
                         {cliente.email && (

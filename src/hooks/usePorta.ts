@@ -89,10 +89,28 @@ export function usePorta() {
     }
   }, []);
 
+  // Buscar porta por ID
+  const buscarPorId = useCallback(async (id: string): Promise<PortaAPI | null> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const resp = await axios.get(`/api/portas/${id}`);
+      setIsLoading(false);
+      return resp.data;
+    } catch (err: any) {
+      setIsLoading(false);
+      setError(err.response?.data?.erro || 'Erro ao buscar porta');
+      toast.error(err.response?.data?.erro || 'Erro ao buscar porta');
+      return null;
+    }
+  }, []);
+
   return {
     listar,
     criar,
     atualizar,
+    excluir,
+    buscarPorId,
     isLoading,
     error,
   };
