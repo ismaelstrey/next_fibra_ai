@@ -137,6 +137,8 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
+    console.log(body)
+
 
     // Valida os dados com o esquema Zod
     const result = clienteSchema.safeParse(body);
@@ -180,43 +182,45 @@ export async function POST(req: NextRequest) {
 
     // Verifica se a neutra existe
 
-    if (neutraId){
-     const neutra = await prisma.neutra.findUnique({
-      where: { id: neutraId },
-    });
+    if (neutraId) {
+      const neutra = await prisma.neutra.findUnique({
+        where: { id: neutraId },
+      });
 
-    if (!neutra) {
-      return NextResponse.json(
-        { erro: "Neutra não encontrada" },
-        { status: 404 }
-      );
-    }   
+      if (!neutra) {
+        return NextResponse.json(
+          { erro: "Neutra não encontrada" },
+          { status: 404 }
+        );
+      }
     }
-  
-if (portaId){
- const porta = await prisma.porta.findUnique({
-      where: { id: portaId },
-    });
 
-    if (!porta) {
-      return NextResponse.json(
-        { erro: "Porta não encontrada" },
-        { status: 404 }
-      );
+    console.log("olá")
+
+    if (portaId) {
+      const porta = await prisma.porta.findUnique({
+        where: { id: portaId },
+      });
+
+      if (!porta) {
+        return NextResponse.json(
+          { erro: "Porta não encontrada" },
+          { status: 404 }
+        );
+      }
+      // Verifica se a porta existe
+
+      console.log(porta)
+      // Verifica se a porta está livre
+      if (porta.status !== "Disponível") {
+        return NextResponse.json(
+          { erro: "A porta selecionada não está livre" },
+          { status: 400 }
+        );
+      }
     }
-       // Verifica se a porta existe
 
 
-    // Verifica se a porta está livre
-    if (porta.status !== "Livre") {
-      return NextResponse.json(
-        { erro: "A porta selecionada não está livre" },
-        { status: 400 }
-      );
-    }
-}
-     
- 
 
     // Hash da senha, se fornecida
     let senhaHash = undefined;
@@ -227,21 +231,21 @@ if (portaId){
     // Cria o cliente no banco de dados
     const novoCliente = await prisma.$transaction(async (prisma) => {
       // Atualiza o status da porta para "Em uso"
-   if(portaId){
-       await prisma.porta.update({
-        where: { id: portaId },
-        data: { status: "Em uso" },
-      });
-   }
-  await prisma.porta.update({
-    where:{
-      id:portaId || '',
+      if (portaId) {
+        await prisma.porta.update({
+          where: { id: portaId },
+          data: { status: "Em uso" },
+        });
+      }
+      await prisma.porta.update({
+        where: {
+          id: portaId || '',
 
-    },
-    data:{
-      status:status||"Em uso"
-    }
-   })
+        },
+        data: {
+          status: status || "Em uso"
+        }
+      })
 
       // Cria o cliente
       return prisma.cliente.create({
@@ -257,8 +261,8 @@ if (portaId){
           potencia,
           wifi,
           senhaWifi,
-          neutraId:neutraId || null,
-          portaId:portaId || null,
+          neutraId: neutraId || null,
+          portaId: portaId || null,
 
         },
       });

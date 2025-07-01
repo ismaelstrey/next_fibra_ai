@@ -20,4 +20,5 @@ export const atualizarPortaSchema = z.object({
   status: z.enum(["Disponível", "Em uso", "Reservada", "Defeito"]).optional(),
   caixaId: z.string().uuid("ID da caixa inválido").optional(),
   splitterId: z.string().uuid("ID do splitter inválido").optional().nullable(),
+  clienteId: z.string().uuid("ID do cliente inválido").optional().nullable(),
 });

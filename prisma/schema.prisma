@@ -115,7 +115,8 @@ model Porta {
   numero       Int
   status       String
   clienteNome  String?
-  clienteId    String?
+  clienteId    String? @unique
+  cliente      Cliente? @relation(fields: [clienteId], references: [id], onDelete: Cascade)
   observacoes  String?
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
@@ -125,7 +126,7 @@ model Porta {
   spliter      Spliter? @relation(fields: [spliterId], references: [id], onDelete: Cascade)
 
 
-  cliente Cliente[]
+ 
 }
 
 model Bandeja {
@@ -446,12 +447,12 @@ model Cliente {
   senhaWifi    String?
   neutraId     String?
   cidadeId     String?
-  caixaId      String?
+  caixaId      String?  
   caixa        Caixa?        @relation(fields: [caixaId], references: [id])
   cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
   neutra       Neutra?        @relation(fields: [neutraId], references: [id])
   portaId      String?
-  porta        Porta?         @relation(fields: [portaId], references: [id])
+  porta        Porta?
   arquivo      Arquivo[]
   equipamentos Equipamento[]
   incidentes   Incidente[]

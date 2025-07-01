@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useClient } from '@/hooks/useClient';
 import { useApiService } from '@/hooks/useApiService';
 import { AtualizarClienteData, ClienteAPI, CriarClienteData } from '@/types/cliente';
+import { motion } from "framer-motion";
 
 interface ClienteFormPageProps {
   params: Promise<{
@@ -20,7 +21,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
 
   const resolvedParams = use(params);
   const clienteId = searchParams.get('id');
-  const portaId = searchParams.get('portaId')?.split('/')[0];
+  const portaId = searchParams.get('portaId')?.split('/')[0].split('-')[1];
   const status = searchParams.get('status');
   const isEdit = resolvedParams.action === 'edit';
 
@@ -34,15 +35,14 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
     email: 'ismaelstrey@gmail.com',
     telefone: '51981754701',
     endereco: 'Rua 1',
-
     apartamento: '101',
     casa: '101',
-    numero: 0,
-    potencia: 0,
+    numero: 15,
+    potencia: 20,
     wifi: 'IsmaelStrey',
     senhaWifi: '12345678',
     neutraId: '',
-    status: status || '',
+    status: status || 'Em uso',
     portaId: portaId || ''
   });
 
@@ -69,12 +69,13 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
             wifi: clienteData?.wifi || '',
             senhaWifi: clienteData?.senhaWifi || '',
             neutraId: clienteData?.neutraId || '',
-            portaId: clienteData?.portaId || ''
+            portaId: clienteData?.portaId || '',
+            status: clienteData?.status || 'Em uso',
 
           });
         } catch (error) {
           console.error('Erro ao carregar cliente:', error);
-          router.push('/dashboard/clientes');
+          // router.push('/dashboard/clientes');
         }
         setCarregando(false);
       }
@@ -107,18 +108,25 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
         }
 
       }
-      router.push('/dashboard/clientes');
+      // router.push('/dashboard/clientes');
     } catch (error) {
       console.error('Erro ao salvar cliente:', error);
     }
 
     setSalvando(false);
   };
-
+  // Toggle status entre 'Em uso' e 'Reservada'
+  const statusOptions = ["Em uso", "Reservada"];
+  const handleStatusToggle = () => {
+    setFormData(prev => ({
+      ...prev,
+      status: prev.status === "Em uso" ? "Reservada" : "Em uso"
+    }));
+  };
 
 
   const handleCancel = () => {
-    router.push('/dashboard/clientes');
+    router.back();
   };
 
   if (carregando) {
@@ -307,6 +315,20 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+                <div className="col-span-2 flex items-center gap-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <div className="relative">
+                    <motion.button
+                      type="button"
+                      className={`flex items-center px-4 py-2 rounded-full border transition-colors duration-300 focus:outline-none ${formData.status === "Em uso" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                      onClick={handleStatusToggle}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{ backgroundColor: formData.status === "Em uso" ? "#2563eb" : "#e5e7eb", color: formData.status === "Em uso" ? "#fff" : "#374151" }}
+                    >
+                      {formData.status}
+                    </motion.button>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-4 pt-6 border-t">
@@ -332,3 +354,6 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
     </div>
   );
 }
+
+
+

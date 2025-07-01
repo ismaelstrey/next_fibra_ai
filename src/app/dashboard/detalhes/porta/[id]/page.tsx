@@ -1,5 +1,5 @@
 'use client'
-import { ModalStatusPorta } from "@/components/mapa/ModalStatusPorta";
+import { PortaCto } from "@/components/portas/Porta";
 import { usePorta } from "@/hooks/usePorta";
 import { CaixaAPI } from "@/types/caixa";
 import { PortaAPI } from "@/types/porta";
@@ -23,17 +23,15 @@ export default function Porta() {
 
   porta && console.log(porta)
 
-  // Fecha o modal sem alterar
-  const fecharModal = () => {
-    setMostrarModalStatus(false)
-    setPortaSelecionada(null)
-  };
+
 
   const atualizarStatusPorta = async (novoStatus: string, clienteId?: string) => {
+
+    console.log(portaSelecionada)
     if (!portaSelecionada) return
 
-    const portaCto = cto?.portas?.find(({ numero }) => numero === portaSelecionada)
-    if (portaCto?.id) {
+
+    if (porta?.id) {
       try {
         const updateData: any = {
           status: novoStatus
@@ -43,12 +41,13 @@ export default function Porta() {
         if (clienteId) {
           updateData.clienteId = clienteId
         }
+        console.log({ novoStatus, clienteId, updateData })
 
-        await atualizar(portaCto.id, updateData)
+        // await atualizar(porta.id, updateData)
 
 
         // Fecha o modal
-        setMostrarModalStatus(false)
+
         setPortaSelecionada(null)
       } catch (error) {
         console.error('Erro ao atualizar porta:', error)
@@ -59,12 +58,11 @@ export default function Porta() {
   return (
     <div>
       ola
-      <ModalStatusPorta
+      <PortaCto
         mostrarModal={mostrarModalStatus}
         portaSelecionada={portaSelecionada}
-        cto={cto}
+        porta={porta}
         onAtualizarStatus={atualizarStatusPorta}
-        onFecharModal={fecharModal}
       />
     </div>
   );

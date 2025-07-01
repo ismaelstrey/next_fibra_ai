@@ -130,6 +130,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     }
 
     const dadosAtualizacao = result.data;
+    console.log(dadosAtualizacao)
 
     // Se estiver alterando o status e a porta estiver em uso por um cliente
     // if (dadosAtualizacao.status && dadosAtualizacao.status !== "Em uso" && portaExistente.cliente) {
@@ -220,16 +221,16 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
     // Registra a ação no log de auditoria
     const token = await verificarAutenticacao(req);
-    if (token) {
-      await registrarLog({
-        prisma,
-        usuarioId: token.id as string,
-        acao: "Atualização",
-        entidade: "Porta",
-        entidadeId: id,
-        detalhes: dadosAtualizacao,
-      });
-    }
+    // if (token) {
+    //   await registrarLog({
+    //     prisma,
+    //     usuarioId: token.id as string,
+    //     acao: "Atualização",
+    //     entidade: "Porta",
+    //     entidadeId: id,
+    //     detalhes: dadosAtualizacao,
+    //   });
+    // }
 
     return NextResponse.json({
       mensagem: "Porta atualizada com sucesso",
