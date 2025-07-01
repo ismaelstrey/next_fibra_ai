@@ -11,6 +11,8 @@ import { usePorta } from '@/hooks/usePorta';
 import { SpliterType } from '@/types/fibra';
 import { CaixaAPI } from '@/types/caixa';
 import { ModalStatusPorta } from '@/components/mapa/ModalStatusPorta';
+import { useClient } from '@/hooks/useClient';
+import { ClienteAPI } from '@/types/cliente';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -23,10 +25,12 @@ export default function ExemploCTOPage() {
   const [cto, setCto] = useState<CaixaAPI>()
   const [portaSelecionada, setPortaSelecionada] = useState<number | null>(null)
   const [mostrarModalStatus, setMostrarModalStatus] = useState(false)
+  const [clientes, setClientes] = useState<ClienteAPI[]>([])
 
 
   const { criarSpliter } = useSpliter()
   const { obterCapilarPorCaixa } = useCapilar()
+  const {buscarClientesPorCto} = useClient()
 
   const path = usePathname();
   const id = path.split('/')[4];
@@ -43,11 +47,15 @@ export default function ExemploCTOPage() {
         setCto(ctoBusca.data)
         console.log('CTO carregado:', ctoBusca.data)
       }
+      const cliente = await buscarClientesPorCto(id)
+      if (cliente?.data) {
+        setClientes(cliente.data.clientes)
+      }
     } catch (error) {
       console.error('Erro ao carregar CTO:', error)
     }
   }
-
+console.log(clientes)
 
   useEffect(() => {
     loadCaixa()

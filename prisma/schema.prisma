@@ -106,6 +106,8 @@ model Caixa {
   equipamentos Equipamento[]
   incidentes   Incidente[]
   rotaCaixas   RotaCaixa[]
+
+  Cliente Cliente[]
 }
 
 model Porta {
@@ -444,6 +446,8 @@ model Cliente {
   senhaWifi    String?
   neutraId     String?
   cidadeId     String?
+  caixaId      String?
+  caixa        Caixa?        @relation(fields: [caixaId], references: [id])
   cidade       Cidade?       @relation(fields: [cidadeId], references: [id])
   neutra       Neutra?        @relation(fields: [neutraId], references: [id])
   portaId      String?

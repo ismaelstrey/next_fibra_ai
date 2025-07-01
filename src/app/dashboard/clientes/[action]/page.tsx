@@ -20,7 +20,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
   
   const resolvedParams = use(params);
   const clienteId = searchParams.get('id');
-  const portaId = searchParams.get('portaId');
+  const portaId = searchParams.get('portaId')?.split('/')[0];
   const status = searchParams.get('status');
   const isEdit = resolvedParams.action === 'edit';
   
@@ -98,7 +98,13 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
       if (isEdit && clienteId) {
         await atualizarCliente(clienteId, formData as AtualizarClienteData);
       } else {
-        await criarCliente(formData as CriarClienteData);
+       const criar = await criarCliente(formData as CriarClienteData);
+       if(criar.status === 201) {
+        router.push('/dashboard/clientes');
+       }else{
+        setSalvando(false);
+       }
+
       }
       router.push('/dashboard/clientes');
     } catch (error) {

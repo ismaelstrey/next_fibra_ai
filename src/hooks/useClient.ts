@@ -12,6 +12,7 @@ export interface ListarClienteParams {
     busca?: string;
     neutraId?: string;
     portaId?: string;
+    ctoId?: string;
 }
 
 export const useClient = () => {
@@ -148,6 +149,16 @@ export const useClient = () => {
     }, [listarClientes]);
 
     /**
+     * Busca clientes por CTO
+     * @param ctoId - ID da CTO
+     * @param params - Parâmetros adicionais de filtro
+     * @returns Promise com lista de clientes da CTO
+     */
+    const buscarClientesPorCto = useCallback(async (ctoId: string, params?: Omit<ListarClienteParams, 'ctoId'>) => {
+        return listarClientes({ ...params, ctoId });
+    }, [listarClientes]);
+
+    /**
      * Verifica se um email já está em uso
      * @param email - Email a ser verificado
      * @param clienteId - ID do cliente atual (para edição)
@@ -207,6 +218,7 @@ export const useClient = () => {
         buscarClientes,
         buscarClientesPorNeutra,
         buscarClientesPorPorta,
+        buscarClientesPorCto,
         
         // Métodos utilitários
         verificarEmailDisponivel,

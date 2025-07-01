@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
     const busca = searchParams.get("busca") || "";
     const neutraId = searchParams.get("neutraId");
     const portaId = searchParams.get("portaId");
+    const ctoId = searchParams.get("ctoId");
 
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
@@ -52,6 +53,13 @@ export async function GET(req: NextRequest) {
     // Adiciona filtro por porta
     if (portaId) {
       where.portaId = portaId;
+    }
+
+    // Adiciona filtro por CTO
+    if (ctoId) {
+      where.porta = {
+        caixaId: ctoId
+      };
     }
 
     // Consulta os clientes com paginação e filtros

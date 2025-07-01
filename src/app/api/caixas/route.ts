@@ -291,6 +291,7 @@ export async function GET(req: NextRequest) {
     const cidadeId = searchParams.get("cidadeId");
     const rotaId = searchParams.get("rotaId");
     const tipo = searchParams.get("tipo"); // CTO ou CEO
+    const ctoId = searchParams.get("ctoId");
 
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
@@ -300,6 +301,7 @@ export async function GET(req: NextRequest) {
       cidadeId?: string;
       rotaId?: string;
       tipo?: string;
+      ctoId?: string;
       cidade?: {
         usuarios: {
           some: {
@@ -315,7 +317,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Constrói o filtro
-    const where: Busca = { nome: undefined, cidadeId: undefined, rotaId: undefined, tipo: undefined };
+    const where: Busca = { nome: undefined, cidadeId: undefined, rotaId: undefined, tipo: undefined, ctoId: undefined };
 
     // Adiciona filtro de busca por nome
     if (busca) {

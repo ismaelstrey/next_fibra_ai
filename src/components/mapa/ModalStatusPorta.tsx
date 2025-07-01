@@ -78,7 +78,7 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
   };
 
   const handleNovoCliente = () => {
-    router.push(`/dashboard/clientes/novo?portaId=${cto?.id}-${portaSelecionada}?status=${statusSelecionado}`);
+    router.push(`/dashboard/clientes/novo?portaId=${cto?.id}-${portaAtual?.id}/status=${statusSelecionado}`);
     onFecharModal();
   };
 

@@ -184,7 +184,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
         );
       }
 
-      if (porta.status !== "Livre") {
+      if (porta.status !== "Disponível") {
         return NextResponse.json(
           { erro: "A porta selecionada não está livre" },
           { status: 400 }
@@ -197,19 +197,24 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       dadosAtualizacao.senha = await bcrypt.hash(dadosAtualizacao.senha, 10);
     }
 
+    // Remove campos que não existem na tabela Cliente
+    const { status, ...dadosLimpos } = dadosAtualizacao;
+
     // Atualiza o cliente no banco de dados
     const clienteAtualizado = await prisma.$transaction(async (prisma) => {
       // Se estiver alterando a porta, atualiza o status das portas
-      if (dadosAtualizacao.portaId && dadosAtualizacao.portaId !== clienteExistente.portaId) {
+      if (dadosLimpos.portaId && dadosLimpos.portaId !== clienteExistente.portaId) {
         // Libera a porta anterior
-        await prisma.porta.update({
+       if(clienteExistente.portaId){
+         await prisma.porta.update({
           where: { id: clienteExistente.portaId },
           data: { status: "Livre" },
         });
+       }
 
         // Marca a nova porta como em uso
         await prisma.porta.update({
-          where: { id: dadosAtualizacao.portaId },
+          where: { id: dadosLimpos.portaId },
           data: { status: "Em uso" },
         });
       }
@@ -217,7 +222,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       // Atualiza o cliente
       return prisma.cliente.update({
         where: { id },
-        data: dadosAtualizacao,
+        data: dadosLimpos,
       });
     });
 
@@ -225,7 +230,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
     const token = await verificarAutenticacao(req);
     if (token) {
       // Remove a senha dos detalhes do log
-      const { senha, ...detalhesLog } = dadosAtualizacao;
+      const { senha, ...detalhesLog } = dadosLimpos;
       await registrarLog({
         prisma,
         usuarioId: token.id as string,
@@ -285,10 +290,13 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       });
 
       // Libera a porta
-      await prisma.porta.update({
-        where: { id: cliente.portaId },
+   if(cliente.portaId ){
+       await prisma.porta.update({
+        where: { id: cliente.portaId  },
+
         data: { status: "Livre" },
       });
+   }
     });
 
     // Registra a ação no log de auditoria

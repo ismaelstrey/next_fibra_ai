@@ -109,6 +109,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
             bandeja: true,
           },
         },
+        
         comentarios: {
           include: {
             usuario: {
