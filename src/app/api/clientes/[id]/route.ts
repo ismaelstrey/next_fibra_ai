@@ -39,6 +39,8 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         wifi: true,
         senhaWifi: true,
         neutraId: true,
+        caixaId: true,
+        cidadeId: true,
         portaId: true,
         neutra: {
           select: {
@@ -205,12 +207,12 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       // Se estiver alterando a porta, atualiza o status das portas
       if (dadosLimpos.portaId && dadosLimpos.portaId !== clienteExistente.portaId) {
         // Libera a porta anterior
-       if(clienteExistente.portaId){
-         await prisma.porta.update({
-          where: { id: clienteExistente.portaId },
-          data: { status: "Livre" },
-        });
-       }
+        if (clienteExistente.portaId) {
+          await prisma.porta.update({
+            where: { id: clienteExistente.portaId },
+            data: { status: "Livre" },
+          });
+        }
 
         // Marca a nova porta como em uso
         await prisma.porta.update({
@@ -290,13 +292,13 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
       });
 
       // Libera a porta
-   if(cliente.portaId ){
-       await prisma.porta.update({
-        where: { id: cliente.portaId  },
+      if (cliente.portaId) {
+        await prisma.porta.update({
+          where: { id: cliente.portaId },
 
-        data: { status: "Livre" },
-      });
-   }
+          data: { status: "Livre" },
+        });
+      }
     });
 
     // Registra a ação no log de auditoria

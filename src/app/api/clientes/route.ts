@@ -168,6 +168,8 @@ export async function POST(req: NextRequest) {
       status,
     } = result.data;
 
+    const newData = []
+
     // Verifica se o email já está em uso
     const clienteExistente = await prisma.cliente.findUnique({
       where: { email },
@@ -237,15 +239,20 @@ export async function POST(req: NextRequest) {
           data: { status: "Em uso" },
         });
       }
-      await prisma.porta.update({
+      const updatePorta = await prisma.porta.update({
         where: {
           id: portaId || '',
 
         },
         data: {
-          status: status || "Em uso"
+          status: status || "Em uso",
+
         }
       })
+
+
+
+
 
       // Cria o cliente
       return prisma.cliente.create({
@@ -263,6 +270,8 @@ export async function POST(req: NextRequest) {
           senhaWifi,
           neutraId: neutraId || null,
           portaId: portaId || null,
+          caixaId: updatePorta.caixaId,
+          porta: updatePorta.numero || null
 
         },
       });
