@@ -1,7 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { useApiService } from "@/hooks/useApiService";
-import { useClient} from "@/hooks/useClient";
+import { useClient } from "@/hooks/useClient";
 import { ClienteAPI } from "@/types/cliente";
 
 const ClientesPage = () => {
@@ -11,7 +11,7 @@ const ClientesPage = () => {
   const [paginacao, setPaginacao] = useState<any>({ pagina: 1, limite: 10, total: 0, totalPaginas: 1 });
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(false);
-  
+
   // Removidos estados de modais - agora usa navegação
 
   const carregarClientes = async (pagina = 1, buscaTexto = "") => {
@@ -28,7 +28,7 @@ const ClientesPage = () => {
 
   // Funções de navegação
   const navegarParaCriar = (portaId?: string) => {
-    const url = portaId 
+    const url = portaId
       ? `/dashboard/clientes/novo?portaId=${portaId}`
       : '/dashboard/clientes/novo';
     window.location.href = url;
@@ -74,7 +74,7 @@ const ClientesPage = () => {
           + Novo Cliente
         </button>
       </div>
-      
+
       <form onSubmit={handleBusca} className="mb-4 flex gap-2">
         <input
           type="text"
@@ -120,7 +120,7 @@ const ClientesPage = () => {
                   <td className="border px-2 py-1">{cliente.numero}</td>
                   <td className="border px-2 py-1">{cliente.potencia}</td>
                   <td className="border px-2 py-1">{cliente.wifi ? "Sim" : "Não"}</td>
-                  <td className="border px-2 py-1">{cliente.neutra?.nome || "-"}</td>
+                  <td className="border px-2 py-1">{cliente.neutra?.nome || "Não"}</td>
                   <td className="border px-2 py-1">{cliente.porta?.numero || "-"}</td>
                   <td className="border px-2 py-1">
                     <div className="flex gap-1">

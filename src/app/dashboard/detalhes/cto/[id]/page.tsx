@@ -30,7 +30,7 @@ export default function ExemploCTOPage() {
 
   const { criarSpliter } = useSpliter()
   const { obterCapilarPorCaixa } = useCapilar()
-  const {buscarClientesPorCto} = useClient()
+  const { buscarClientesPorCto } = useClient()
 
   const path = usePathname();
   const id = path.split('/')[4];
@@ -45,7 +45,7 @@ export default function ExemploCTOPage() {
       const ctoBusca = await obterCaixaPorId(id)
       if (ctoBusca?.data) {
         setCto(ctoBusca.data)
-        console.log('CTO carregado:', ctoBusca.data)
+        console.info('CTO carregado:', ctoBusca.data)
       }
       const cliente = await buscarClientesPorCto(id)
       if (cliente?.data) {
@@ -55,12 +55,13 @@ export default function ExemploCTOPage() {
       console.error('Erro ao carregar CTO:', error)
     }
   }
-console.log(clientes)
+
 
   useEffect(() => {
     loadCaixa()
     const capilares = obterCapilarPorCaixa(id)
-    console.log(capilares)
+    console.log({ capilares })
+
   }, [])
 
   // Atualiza as portas ativas quando o CTO é carregado
@@ -78,10 +79,10 @@ console.log(clientes)
         setSplitters(cto?.spliters)
 
       }
-      console.log(splitters)
+      // console.log(splitters)
     }
   }, [cto])
-  console.log(portasAtivas)
+  // console.log(portasAtivas)
 
 
 
@@ -200,6 +201,7 @@ console.log(clientes)
     }
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
+  console.log(cto?.portas)
 
   return (
     <div className="container mx-auto py-8">

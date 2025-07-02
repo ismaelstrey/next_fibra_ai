@@ -87,30 +87,22 @@ export async function GET(req: NextRequest) {
               vlan: true,
             },
           },
-          porta: {
-            select: {
-              id: true,
-              numero: true,
-              status: true,
-              caixa: {
-                select: {
-                  id: true,
-                  nome: true,
-                  tipo: true,
-                },
-              },
-            },
-          },
+          porta: true,
         },
         skip,
         take: limite,
         orderBy: { nome: "asc" },
       }),
       prisma.cliente.count({ where }),
+
     ]);
+
+
 
     // Calcula metadados de paginação
     const totalPaginas = Math.ceil(total / limite);
+
+    console.log(clientes)
 
     return NextResponse.json({
       clientes,
@@ -255,7 +247,7 @@ export async function POST(req: NextRequest) {
 
 
       // Cria o cliente
-      return prisma.cliente.create({
+      const criaCliente = await prisma.cliente.create({
         data: {
           nome,
           email,
@@ -271,11 +263,25 @@ export async function POST(req: NextRequest) {
           neutraId: neutraId || null,
           portaId: portaId || null,
           caixaId: updatePorta.caixaId,
-          porta: updatePorta.numero || null
 
         },
       });
+
+      if (portaId && criaCliente) {
+        await prisma.porta.update({
+          where: {
+            id: portaId
+          },
+          data: {
+            clienteId: criaCliente.id,
+          }
+        })
+      }
+
+      return criaCliente
     });
+
+
 
     // Registra a ação no log de auditoria
     const token = await verificarAutenticacao(req);

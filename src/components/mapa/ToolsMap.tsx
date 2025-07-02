@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useMapa } from '@/hooks/useMapa';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,13 @@ export default function ToolsMap() {
         cidades,
         isLoading,
     } = useMapa();
+    const getLocaStorage = async () => localStorage.getItem('cidadeSelecionada');
+
+    useEffect(() => {
+        getLocaStorage().then((cidade) => {
+            setCidadeSelecionada(cidade || '');
+        })
+    }, [cidades])
 
     // Estado para controlar a expansão do painel
     const [painelExpandido, setPainelExpandido] = useState(false);

@@ -99,6 +99,8 @@ export function CTO({
     // Estado para controlar se a CTO está expandida ou não
     const [expandida, setExpandida] = useState(false);
 
+    console.log(portas)
+
 
     // Inicializa as portas se não forem fornecidas
     const portasClientes = portas.length > 0 ? portas : Array.from({ length: capacidade }, (_, i) => ({

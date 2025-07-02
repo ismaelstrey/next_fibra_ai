@@ -93,6 +93,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
         { status: 404 }
       );
     }
+    console.log(cliente)
 
     return NextResponse.json(cliente);
   } catch (error) {
