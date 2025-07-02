@@ -9,6 +9,8 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 import { PortaCliente } from './PortaCliente';
 import { ParteInternaCTO } from './ParteInternaCTO';
 import { SpliterType } from '@/types/fibra';
+import { PortaAPI } from '@/types/porta';
+import { ClienteAPI } from '@/types/cliente';
 
 interface Cliente {
     id: number;
@@ -64,7 +66,7 @@ interface CTOProps {
     /**
      * Lista de portas de clientes
      */
-    portas?: PortaCliente[];
+    clientes?: ClienteAPI[];
 
     /**
      * Lista de splitters instalados
@@ -91,7 +93,7 @@ export function CTO({
     nome,
     modelo = 'Padrão',
     capacidade = 8,
-    portas = [],
+    clientes = [],
     splitters = [],
     cabosAS = [],
     observacoes
@@ -99,25 +101,11 @@ export function CTO({
     // Estado para controlar se a CTO está expandida ou não
     const [expandida, setExpandida] = useState(false);
 
-    console.log(portas)
+    // console.log(portas)
 
 
     // Inicializa as portas se não forem fornecidas
-    const portasClientes = portas.length > 0 ? portas : Array.from({ length: capacidade }, (_, i) => ({
-        id: i + 1,
-        ativa: false,
-        cliente: {
-            id: i + 1,
-            nome: `Cliente ${i + 1}`,
-            endereco: `Endereço ${i + 1}`,
-            casa: `Casa ${i + 1}`,
-            apto: `Apto ${i + 1}`,
-            telefone: `(11) 91234-5678`,
-            plano: `Plano ${i + 1}`,
-            wifi: `Wifi ${i + 1}`,
-            password: `Password ${i + 1}`,
-        }
-    }));
+
 
     // Inicializa os cabos AS se não forem fornecidos
     const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
@@ -186,12 +174,12 @@ export function CTO({
                         </CardHeader>
                         <CardContent className="pt-4">
                             <div className="grid grid-cols-2 gap-3">
-                                {portasClientes.map((porta) => (
+                                {clientes.map((cliente, key) => (
                                     <PortaCliente
-                                        key={porta.id}
-                                        id={porta.id}
-                                        ativa={porta.ativa}
-                                        cliente={porta.cliente}
+                                        key={cliente.id}
+                                        id={key}
+                                        ativa={cliente.porta?.status === 'Em uso'}
+                                        cliente={cliente}
                                     />
                                 ))}
                             </div>

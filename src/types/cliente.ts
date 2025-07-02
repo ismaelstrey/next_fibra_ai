@@ -1,5 +1,7 @@
 // Tipos relacionados a Cliente
 
+import { PortaAPI } from "./porta";
+
 export interface ApiResponse<T> {
     data: T;
     status: number;
@@ -36,34 +38,7 @@ export interface ClienteAPI {
         nome: string;
         vlan: number;
     };
-    porta?: {
-        id: string;
-        numero: number;
-        status: string;
-        caixa?: {
-            id: string;
-            nome: string;
-            tipo: string;
-            coordenadas?: {
-                lat: number;
-                lng: number;
-            };
-            cidade?: {
-                id: string;
-                nome: string;
-                estado: string;
-            };
-            rotaCaixas?: Array<{
-                tipoConexao: string;
-                ordem: number;
-                rota: {
-                    id: string;
-                    nome: string;
-                    tipoCabo: string;
-                };
-            }>;
-        };
-    };
+    porta?:PortaAPI
 }
 
 export interface CriarClienteData {

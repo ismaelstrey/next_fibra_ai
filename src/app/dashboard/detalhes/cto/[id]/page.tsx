@@ -13,6 +13,7 @@ import { CaixaAPI } from '@/types/caixa';
 import { ModalStatusPorta } from '@/components/mapa/ModalStatusPorta';
 import { useClient } from '@/hooks/useClient';
 import { ClienteAPI } from '@/types/cliente';
+import { PortaAPI } from '@/types/porta';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -26,6 +27,7 @@ export default function ExemploCTOPage() {
   const [portaSelecionada, setPortaSelecionada] = useState<number | null>(null)
   const [mostrarModalStatus, setMostrarModalStatus] = useState(false)
   const [clientes, setClientes] = useState<ClienteAPI[]>([])
+  const [portas, setPortas] = useState<PortaAPI[]>([])
 
 
   const { criarSpliter } = useSpliter()
@@ -42,15 +44,17 @@ export default function ExemploCTOPage() {
 
   const loadCaixa = async () => {
     try {
+
       const ctoBusca = await obterCaixaPorId(id)
       if (ctoBusca?.data) {
         setCto(ctoBusca.data)
-        console.info('CTO carregado:', ctoBusca.data)
+        // console.info('CTO carregado:', ctoBusca.data)
       }
       const cliente = await buscarClientesPorCto(id)
       if (cliente?.data) {
         setClientes(cliente.data.clientes)
       }
+
     } catch (error) {
       console.error('Erro ao carregar CTO:', error)
     }
@@ -58,9 +62,11 @@ export default function ExemploCTOPage() {
 
 
   useEffect(() => {
+    buscarClientesPorCto(id).then((cliente) => setClientes(cliente.data.clientes))
     loadCaixa()
     const capilares = obterCapilarPorCaixa(id)
-    console.log({ capilares })
+
+    console.log({ capilares, clientes })
 
   }, [])
 
@@ -201,7 +207,7 @@ export default function ExemploCTOPage() {
     }
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
-  console.log(cto?.portas)
+  console.log(clientes)
 
   return (
     <div className="container mx-auto py-8">
@@ -224,16 +230,16 @@ export default function ExemploCTOPage() {
         </div>
 
         <div>
-          <CTO
+          {clientes.length > 0 && <CTO
             id={cto?.id || "CTO-EXEMPLO-01"}
             nome={cto?.nome || "CTO Exemplo"}
             modelo={cto?.modelo || "Modelo Demonstração"}
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
-            portas={gerarPortas()}
+            clientes={clientes}
             splitters={splitters}
             cabosAS={gerarCabosAS()}
             observacoes={cto?.observacoes || "Sem observações"}
-          />
+          />}
         </div>
       </div>
 

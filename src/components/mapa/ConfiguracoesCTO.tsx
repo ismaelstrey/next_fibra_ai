@@ -74,8 +74,6 @@ export function ConfiguracoesCTO({
   cabosAtivos,
   alternarCabo
 }: ConfiguracoesCTOProps) {
-
-  console.log(splitters)
   return (
     <Card>
       <CardHeader>
@@ -161,7 +159,7 @@ export function ConfiguracoesCTO({
                 }
                 return (
                   <Button
-                  title={porta.status}
+                    title={porta.status}
                     key={porta.id}
                     size="sm"
                     className={statusColor + " border border-gray-300"}
