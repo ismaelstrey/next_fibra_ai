@@ -98,7 +98,7 @@ export default function ExemploCTOPage() {
     return <div>Carregando...</div>
   }
 
- 
+
 
   // Adiciona um splitter
   const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
@@ -206,7 +206,7 @@ export default function ExemploCTOPage() {
         </div>
 
         <div>
-          {clientes.length > 0 && <CTO
+          <CTO
             id={cto?.id || "CTO-EXEMPLO-01"}
             nome={cto?.nome || "CTO Exemplo"}
             modelo={cto?.modelo || "Modelo Demonstração"}
@@ -215,7 +215,7 @@ export default function ExemploCTOPage() {
             splitters={splitters}
             cabosAS={cto?.rotaCaixas}
             observacoes={cto?.observacoes || "Sem observações"}
-          />}
+          />
         </div>
       </div>
 

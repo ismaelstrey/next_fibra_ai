@@ -102,10 +102,10 @@ export const ModalStatusPorta: React.FC<ModalStatusPortaProps> = ({
 
   return (
     <div className="fixed inset-0 bg-background text-foreground bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-background dark:bg-foreground rounded-lg p-6 w-96 max-w-md mx-4">
+      <div className="bg-background dark:bg-foreground/5 rounded-lg p-6 w-96 max-w-md mx-4">
         {etapa === 'status' ? (
           <>
-            <h3 className="text-lg font-semibold mb-4">
+            <h3 className="text-lg text-primary font-semibold mb-4">
               Alterar Status da Porta {portaSelecionada}
             </h3>
             <span>{portaAtual?.id}</span>

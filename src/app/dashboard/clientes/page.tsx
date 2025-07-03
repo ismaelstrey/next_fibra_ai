@@ -64,7 +64,7 @@ const ClientesPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-accent-foreground">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Clientes</h1>
         <button
@@ -88,19 +88,19 @@ const ClientesPage = () => {
       <div className="overflow-x-auto">
         <table className="min-w-full border">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border px-2 py-1">Nome</th>
-              <th className="border px-2 py-1">Email</th>
-              <th className="border px-2 py-1">Telefone</th>
-              <th className="border px-2 py-1">Endereço</th>
-              <th className="border px-2 py-1">Apartamento</th>
-              <th className="border px-2 py-1">Casa</th>
-              <th className="border px-2 py-1">Número</th>
-              <th className="border px-2 py-1">Potência</th>
-              <th className="border px-2 py-1">Wi-Fi</th>
-              <th className="border px-2 py-1">Neutra</th>
-              <th className="border px-2 py-1">Porta</th>
-              <th className="border px-2 py-1">Ações</th>
+            <tr className="bg-foreground text-background">
+              <th className="border-background border border-solid px-2 py-1">Nome</th>
+              <th className="border-background border border-solid px-2 py-1">Email</th>
+              <th className="border-background border border-solid px-2 py-1">Telefone</th>
+              <th className="border-background border border-solid px-2 py-1">Endereço</th>
+              <th className="border-background border border-solid px-2 py-1">Apartamento</th>
+              <th className="border-background border border-solid px-2 py-1">Casa</th>
+              <th className="border-background border border-solid px-2 py-1">Número</th>
+              <th className="border-background border border-solid px-2 py-1">Potência</th>
+              <th className="border-background border border-solid px-2 py-1">Wi-Fi</th>
+              <th className="border-background border border-solid px-2 py-1">Neutra</th>
+              <th className="border-background border border-solid px-2 py-1">Porta</th>
+              <th className="border-background border border-solid px-2 py-1">Ações</th>
             </tr>
           </thead>
           <tbody>
