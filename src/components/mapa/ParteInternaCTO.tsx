@@ -5,6 +5,7 @@ import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaFusao } from './AreaFusao';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SpliterType } from '@/types/fibra';
+import { ConexaoRota } from '@/types/caixa';
 
 
 
@@ -23,19 +24,25 @@ interface ParteInternaCTOProps {
     /**
      * Lista de cabos AS conectados
      */
-    cabosAS?: CaboAS[];
+    cabosAS?: ConexaoRota[];
 }
+
+
 
 /**
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
+
+    // console.log(splitters)
     // Inicializa os cabos AS se não forem fornecidos
     const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
         id: i + 1,
         nome: `Cabo AS ${i + 1}`,
         ativo: false
     }));
+
+    console.log(cabosAS)
 
     return (
         <>
@@ -70,9 +77,9 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                         <h3 className="font-medium mb-2">Cabos AS</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <AnimatePresence>
-                                {cabosConectados.map((cabo) => (
+                                {cabosConectados.map((cabo,key) => (
                                     <motion.div
-                                        key={cabo.id}
+                                        key={key}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95 }}

@@ -91,6 +91,21 @@ export interface CriarCaixaData {
     rotaId: string;
 }
 
+type TipoConexao = 'entrada' | 'saida';
+
+interface Rota {
+  id: string;
+  nome: string;
+  tipoCabo: string; // Pode ser '6', '12', etc. Se quiser restringir, pode usar union.
+  fabricante: string | null;
+}
+
+export interface ConexaoRota {
+  tipoConexao: TipoConexao;
+  ordem: number;
+  rota: Rota;
+}
+
 export interface CaixaAPI {
     id: string;
     nome: string;
@@ -124,6 +139,7 @@ export interface CaixaAPI {
     arquivos?: ArquivoAPI[];
     manutencoes?: ManutencaoAPI[];
     spliters?: any[];
+    rotaCaixas?:ConexaoRota[],
     _count?: {
         fusoes: number;
         portas: number;

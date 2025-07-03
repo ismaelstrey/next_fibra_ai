@@ -66,7 +66,7 @@ export default function ExemploCTOPage() {
     loadCaixa()
     const capilares = obterCapilarPorCaixa(id)
 
-    console.log({ capilares, clientes })
+    // console.log({ capilares, clientes })
 
   }, [])
 
@@ -98,31 +98,7 @@ export default function ExemploCTOPage() {
     return <div>Carregando...</div>
   }
 
-  // Gera as portas com base na capacidade e portas ativas
-  const gerarPortas = () => {
-    return Array.from({ length: capacidade }, (_, i) => ({
-      id: i + 1,
-      ativa: portasAtivas.includes(i + 1),
-      cliente: portasAtivas.includes(i + 1) ? {
-        id: i + 1,
-        nome: `Cliente ${i + 1}`,
-        endereco: `Rua Exemplo, ${i + 100}`,
-        casa: `${i + 1}`,
-        apto: '',
-        telefone: `(11) 9${i + 1000}-${i + 2000}`,
-        plano: `Fibra ${50 * (i + 1)}MB`
-      } : undefined
-    }));
-  };
-
-  // Gera os cabos AS com base nos cabos ativos
-  const gerarCabosAS = () => {
-    return Array.from({ length: 4 }, (_, i) => ({
-      id: i + 1,
-      nome: `Cabo AS ${i + 1}`,
-      ativo: cabosAtivos.includes(i + 1)
-    }));
-  };
+ 
 
   // Adiciona um splitter
   const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
@@ -207,7 +183,7 @@ export default function ExemploCTOPage() {
     }
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
-  console.log(clientes)
+  // console.log(cto)
 
   return (
     <div className="container mx-auto py-8">
@@ -237,7 +213,7 @@ export default function ExemploCTOPage() {
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
             clientes={clientes}
             splitters={splitters}
-            cabosAS={gerarCabosAS()}
+            cabosAS={cto?.rotaCaixas}
             observacoes={cto?.observacoes || "Sem observações"}
           />}
         </div>

@@ -9,8 +9,8 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 import { PortaCliente } from './PortaCliente';
 import { ParteInternaCTO } from './ParteInternaCTO';
 import { SpliterType } from '@/types/fibra';
-import { PortaAPI } from '@/types/porta';
 import { ClienteAPI } from '@/types/cliente';
+import { ConexaoRota } from '@/types/caixa';
 
 interface Cliente {
     id: number;
@@ -31,10 +31,7 @@ interface PortaCliente {
     cliente?: Cliente;
 }
 
-interface SplitterInfo {
-    tipo: '1/8' | '1/16' | '1/2';
-    posicao: number;
-}
+
 
 interface CaboAS {
     id: number;
@@ -76,7 +73,7 @@ interface CTOProps {
     /**
      * Lista de cabos AS conectados
      */
-    cabosAS?: CaboAS[];
+    cabosAS?: ConexaoRota[];
 
     /**
      * Observações sobre a CTO
@@ -108,11 +105,11 @@ export function CTO({
 
 
     // Inicializa os cabos AS se não forem fornecidos
-    const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
-        id: i + 1,
-        nome: `Cabo AS ${i + 1}`,
-        ativo: false
-    }));
+    // const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
+    //     id: i + 1,
+    //     nome: `Cabo AS ${i + 1}`,
+    //     ativo: false
+    // }));
 
     // Função para alternar entre expandido e contraído
     const toggleExpandir = () => {
@@ -176,8 +173,7 @@ export function CTO({
                             <div className="grid grid-cols-2 gap-3">
                                 {clientes.map((cliente, key) => (
                                     <PortaCliente
-                                        key={cliente.id}
-                                        id={key}
+                                        key={key}
                                         ativa={cliente.porta?.status === 'Em uso'}
                                         cliente={cliente}
                                     />
@@ -190,7 +186,7 @@ export function CTO({
                     <TabsContent value="interna">
                         <ParteInternaCTO
                             splitters={splitters}
-                            cabosAS={cabosConectados}
+                            cabosAS={cabosAS}
                         />
                     </TabsContent>
                 </Tabs>
