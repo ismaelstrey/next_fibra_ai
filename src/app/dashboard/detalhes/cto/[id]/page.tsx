@@ -183,7 +183,7 @@ export default function ExemploCTOPage() {
     }
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
-  // console.log(cto)
+  console.log(cto)
 
   return (
     <div className="container mx-auto py-8">

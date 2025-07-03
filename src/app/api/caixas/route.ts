@@ -440,14 +440,13 @@ export async function POST(req: NextRequest) {
       coordenadas,
       observacoes,
       cidadeId,
-      rotaId
+      rotaIds
     } = result.data;
 
     // Verifica se a cidade existe
     const cidade = await prisma.cidade.findUnique({
       where: { id: cidadeId },
     });
-
     if (!cidade) {
       return NextResponse.json(
         { erro: "Cidade não encontrada" },
@@ -455,47 +454,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Se rotaId foi fornecido, verifica se a rota existe
-    let rota = null;
-    if (rotaId) {
-      rota = await prisma.rota.findUnique({
-        where: { id: rotaId },
-      });
-
-      if (!rota) {
-        return NextResponse.json(
-          { erro: "Rota não encontrada" },
-          { status: 404 }
-        );
-      }
-
-      // Verifica se a rota pertence à cidade especificada
-      if (rota.cidadeId !== cidadeId) {
-        return NextResponse.json(
-          { erro: "A rota não pertence à cidade especificada" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Verifica se o usuário tem acesso à cidade
-    const token = await verificarAutenticacao(req);
-    if (token && token.cargo !== "Gerente") {
-      const temAcesso = await prisma.cidade.findFirst({
+    // Valida rotas associadas
+    let rotasValidas: { id: string }[] = [];
+    if (rotaIds && Array.isArray(rotaIds) && rotaIds.length > 0) {
+      rotasValidas = await prisma.rota.findMany({
         where: {
-          id: cidadeId,
-          usuarios: {
-            some: {
-              id: token.id as string,
-            },
-          },
-        },
+          id: { in: rotaIds },
+          cidadeId: cidadeId
+        }
       });
-
-      if (!temAcesso) {
+      if (rotasValidas.length !== rotaIds.length) {
         return NextResponse.json(
-          { erro: "Você não tem acesso a esta cidade" },
-          { status: 403 }
+          { erro: "Uma ou mais rotas não encontradas ou não pertencem à cidade especificada" },
+          { status: 404 }
         );
       }
     }
@@ -513,39 +484,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Se uma rota foi especificada, conecta a caixa à rota
-    if (rotaId && rota) {
-      // Verifica se a caixa está sendo adicionada no meio de uma rota existente
-      const rotaOriginal = await prisma.rota.findUnique({
-        where: { id: rotaId },
-        include: {
-          rotaCaixas: {
-            include: {
-              caixa: true
-            },
-            orderBy: { ordem: 'asc' }
-          },
-          tubos: true
-        }
-      });
-
-      if (rotaOriginal) {
-        // Se a rota já tem caixas, implementa a lógica de divisão
-        if (rotaOriginal.rotaCaixas.length > 0) {
-          await implementarDivisaoRota(rotaOriginal, novaCaixa, coordenadas);
-        } else {
-          // Se é a primeira caixa da rota, apenas cria a relação
-          await implementarDivisaoRota(rotaOriginal, novaCaixa, coordenadas);
-          // await prisma.rotaCaixa.create({
-          //   data: {
-          //     rotaId,
-          //     caixaId: novaCaixa.id,
-          //     tipoConexao: 'entrada',
-          //     ordem: 1
-          //   }
-          // });
-
-        }
+    // Associa a caixa às rotas válidas
+    if (rotasValidas.length > 0) {
+      for (const rota of rotasValidas) {
+        await prisma.rotaCaixa.create({
+          data: {
+            rotaId: rota.id,
+            caixaId: novaCaixa.id,
+            tipoConexao: 'entrada',
+            ordem: 1
+          }
+        });
       }
     }
 
@@ -556,10 +505,7 @@ export async function POST(req: NextRequest) {
         status: "Disponível",
         caixaId: novaCaixa.id,
       }));
-
-      await prisma.porta.createMany({
-        data: portas,
-      });
+      await prisma.porta.createMany({ data: portas });
     }
 
     // Se for uma CEO, cria automaticamente as bandejas (assumindo 1 bandeja para cada 12 fibras)
@@ -570,13 +516,11 @@ export async function POST(req: NextRequest) {
         capacidade: i === numBandejas - 1 && capacidade % 12 !== 0 ? capacidade % 12 : 12,
         caixaId: novaCaixa.id,
       }));
-
-      await prisma.bandeja.createMany({
-        data: bandejas,
-      });
+      await prisma.bandeja.createMany({ data: bandejas });
     }
 
     // Registra a ação no log de auditoria
+    const token = await verificarAutenticacao(req);
     if (token) {
       await registrarLog({
         prisma,
@@ -584,7 +528,7 @@ export async function POST(req: NextRequest) {
         acao: "Criação",
         entidade: "Caixa",
         entidadeId: novaCaixa.id,
-        detalhes: { nome, tipo, cidadeId, rotaId },
+        detalhes: { nome, tipo, cidadeId, rotaIds },
       });
     }
 

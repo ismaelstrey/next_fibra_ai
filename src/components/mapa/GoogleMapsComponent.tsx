@@ -33,11 +33,11 @@ const GoogleMapsComponent = ({
   // Estado para controlar o modal de detalhes do marcador
   const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
   const [marcadorSelecionado, setMarcadorSelecionado] = useState<Caixa | null>(null);
-  
+
   // Estado para controlar o modal de fusões
   const [fusoesModalAberto, setFusoesModalAberto] = useState(false);
   const [rotasDivididas, setRotasDivididas] = useState<{ rota1: Rota; rota2: Rota; caixaConexao: Caixa } | null>(null);
-
+  console.log(rotasDivididas)
   // Função para lidar com o carregamento do mapa
   const handleMapLoaded = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -222,12 +222,20 @@ const GoogleMapsComponent = ({
       {/* Os marcadores avançados são criados e gerenciados diretamente nos hooks */}
 
       {/* Modal para adicionar CTO ou CEO */}
+      {/* -      {posicaoClicada && (
+-        <AddCaixaModal
+-          isOpen={modalAberto}
+-          onClose={() => setModalAberto(false)}
+-          position={posicaoClicada}
+-          rotaAssociada={rotaAssociada}
+-        />
+-      )} */}
       {posicaoClicada && (
         <AddCaixaModal
           isOpen={modalAberto}
           onClose={() => setModalAberto(false)}
           position={posicaoClicada}
-          rotaAssociada={rotaAssociada}
+          rotasAssociadas={Array.isArray(rotaAssociada) ? rotaAssociada : rotaAssociada ? [rotaAssociada] : []}
         />
       )}
 
@@ -237,7 +245,7 @@ const GoogleMapsComponent = ({
         aoFechar={() => setDetalhesModalAberto(false)}
         marcador={marcadorSelecionado}
       />
-      
+
       {/* Modal para gerenciar fusões após divisão de rota */}
       {fusoesModalAberto && rotasDivididas && (
         <GerenciadorFusoes

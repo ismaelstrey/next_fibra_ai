@@ -23,7 +23,7 @@ export const caixaSchema = z.object({
   coordenadas: coordenadaSchema,
   observacoes: z.string().optional().nullable(),
   cidadeId: z.string(),
-  rotaId: z.string().optional(), // Agora opcional, pois pode ser conectada depois
+  rotaIds: z.array(z.string()).optional(), // Aceita múltiplas rotas
 });
 
 /**

@@ -118,7 +118,7 @@ export interface CaixaAPI {
     };
     observacoes?: string;
     cidadeId: string;
-    rotaId: string;
+    rotaIds?: string[];
     criadoEm: string;
     atualizadoEm: string;
     cidade?: {

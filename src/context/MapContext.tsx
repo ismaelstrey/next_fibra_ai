@@ -34,7 +34,7 @@ export interface Caixa {
   modelo?: string;
   capacidade?: number; // número de portas para CTO ou bandejas para CEO
   posicao: { lat: number; lng: number };
-  rotaAssociada?: string; // ID da rota associada
+  rotasAssociadas?: string[]; // IDs das rotas associadas (muitos-para-muitos)
   cidadeId: string;
   observacoes?: string;
 }
@@ -170,7 +170,7 @@ const converterCaixaApiParaContexto = (caixaApi: CaixaAPI): Caixa => {
       lat: caixaApi.coordenadas.lat,
       lng: caixaApi.coordenadas.lng
     },
-    rotaAssociada: caixaApi.rotaId,
+    rotasAssociadas: caixaApi.rotaIds || [],
     cidadeId: caixaApi.cidadeId,
     observacoes: caixaApi.observacoes
   };
@@ -550,7 +550,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
         },
         observacoes: caixa.observacoes,
         cidadeId: caixa.cidadeId,
-        rotaId: caixa.rotaAssociada || ''
+        rotaIds: caixa.rotasAssociadas || []
       };
 
       // Envia para a API
@@ -559,21 +559,10 @@ export function MapProvider({ children }: { children: ReactNode }) {
       if (response.data.caixa) {
         const novaCaixa = converterCaixaApiParaContexto(response.data.caixa);
         setCaixas(prev => [...prev, novaCaixa]);
-
-        // Se a caixa está associada a uma rota, divide a rota
-        if (caixa.rotaAssociada) {
-          const rotaOriginal = rotas.find(r => r.id === caixa.rotaAssociada);
-          if (rotaOriginal) {
-            await dividirRota(rotaOriginal, caixa.posicao, novaCaixa);
-          }
-        }
-
-        toast.success(`${caixa.tipo} adicionada com sucesso!`);
         return novaCaixa;
       }
       return null;
     } catch (error) {
-      console.error('Erro ao adicionar caixa:', error);
       toast.error('Erro ao adicionar caixa');
       return null;
     }
@@ -620,7 +609,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
   const atualizarFiltros = (novosFiltros: FiltrosMapa) => {
     setFiltros(prev => {
       const filtrosAtualizados = { ...prev, ...novosFiltros };
-      
+
       // Salva a cidade no localStorage quando ela for alterada
       if (novosFiltros.cidade !== undefined) {
         if (typeof window !== 'undefined') {
@@ -631,7 +620,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
           }
         }
       }
-      
+
       carregarDados(filtrosAtualizados.cidade);
       return filtrosAtualizados;
     });

@@ -14,18 +14,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DialogDescription } from '@radix-ui/react-dialog';
 
-interface AddCaixaModalProps {
+export interface AddCaixaModalProps {
   isOpen: boolean;
   onClose: () => void;
   position: google.maps.LatLngLiteral;
-  rotaAssociada?: string;
-
+  rotasAssociadas?: string[];
 }
 
 /**
  * Modal para adicionar CTO ou CEO no mapa
  */
-const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position, rotaAssociada }) => {
+const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position, rotasAssociadas }) => {
   const { adicionarCaixa, filtros } = useMapa();
   const [tipoCaixa, setTipoCaixa] = React.useState<'CTO' | 'CEO'>('CTO');
   const [nome, setNome] = React.useState('');
@@ -42,10 +41,12 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
   React.useEffect(() => {
     if (isOpen) {
       const timestamp = new Date().toLocaleTimeString();
-      const rotaInfo = rotaAssociada ? ` - ${rotaAssociada}` : '';
-      setNome(`${tipoCaixa} ${timestamp}${rotaInfo}`);
+
+      const rotasInfo = rotasAssociadas && rotasAssociadas.length > 0 ? ` - ${rotasAssociadas.join(',')}` : '';
+      setNome(`${tipoCaixa} ${timestamp}${rotasInfo}`);
     }
-  }, [isOpen, tipoCaixa, rotaAssociada]);
+
+  }, [isOpen, tipoCaixa, rotasAssociadas]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +63,7 @@ const AddCaixaModal: React.FC<AddCaixaModalProps> = ({ isOpen, onClose, position
       nome,
       posicao: position,
       cidadeId: filtros.cidade,
-      rotaAssociada,
+      rotasAssociadas,
       modelo,
       capacidade
     });
