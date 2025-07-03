@@ -53,162 +53,114 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
     return '96';
   };
 
-  // Cria as duas novas rotas
-  const rota1 = await prisma.rota.create({
-    data: {
-      nome: `${rotaOriginal.nome} - Parte 1`,
-      tipoCabo: mapearTipoCabo(capilares1),
-      fabricante: rotaOriginal.fabricante,
-      status: rotaOriginal.status,
-      distancia: distancia1,
-      profundidade: rotaOriginal.profundidade,
-      tipoPassagem: rotaOriginal.tipoPassagem,
-      coordenadas: coordenadas1,
-      cor: rotaOriginal.cor,
-      observacoes: `Rota dividida - Primeira parte (${capilares1} capilares)`,
-      cidadeId: rotaOriginal.cidadeId
-    }
-  });
+  // Calcula a quantidade de capilares para cada rota baseada no tipo de cabo selecionado
+  const tipoCabo1 = mapearTipoCabo(capilares1);
+  const tipoCabo2 = mapearTipoCabo(capilares2);
+  const quantidadeCapilares1 = parseInt(tipoCabo1);
+  const quantidadeCapilares2 = parseInt(tipoCabo2);
 
-  const rota2 = await prisma.rota.create({
-    data: {
-      nome: `${rotaOriginal.nome} - Parte 2`,
-      tipoCabo: mapearTipoCabo(capilares2),
-      fabricante: rotaOriginal.fabricante,
-      status: rotaOriginal.status,
-      distancia: distancia2,
-      profundidade: rotaOriginal.profundidade,
-      tipoPassagem: rotaOriginal.tipoPassagem,
-      coordenadas: coordenadas2,
-      cor: rotaOriginal.cor,
-      observacoes: `Rota dividida - Segunda parte (${capilares2} capilares)`,
-      cidadeId: rotaOriginal.cidadeId
-    }
-  });
+  // Iniciando divisão da rota:
+  console.log('Iniciando divisão da rota:', rotaOriginal.id, rotaOriginal.nome);
 
-  // Redistribui os capilares existentes entre as duas novas rotas
-  const capilaresExistentes = rotaOriginal.capilares;
-  const capilaresParaRota1 = capilaresExistentes.slice(0, capilares1);
-  const capilaresParaRota2 = capilaresExistentes.slice(capilares1);
+  // // Cria as duas novas rotas
+  // const rota1 = await prisma.rota.create({
+  //   data: {
+  //     nome: `${rotaOriginal.nome} - Parte 1`,
+  //     tipoCabo: tipoCabo1,
+  //     fabricante: rotaOriginal.fabricante,
+  //     status: rotaOriginal.status,
+  //     distancia: distancia1,
+  //     profundidade: rotaOriginal.profundidade,
+  //     tipoPassagem: rotaOriginal.tipoPassagem,
+  //     coordenadas: coordenadas1,
+  //     cor: rotaOriginal.cor,
+  //     observacoes: `Rota dividida - Primeira parte (${quantidadeCapilares1} capilares)`,
+  //     cidadeId: rotaOriginal.cidadeId
+  //   }
+  // });
+  // console.log('Rota 1 criada:', rota1.id, rota1.nome);
 
-  // Cria capilares para a rota 1
-  for (const capilar of capilaresParaRota1) {
-    await prisma.capilar.create({
-      data: {
-        numero: capilar.numero,
-        tipo: capilar.tipo,
-        comprimento: capilar.comprimento,
-        status: capilar.status,
-        potencia: capilar.potencia,
-        cidadeId: capilar.cidadeId,
-        rota: {
-          connect: { id: rota1.id }
-        }
-      }
-    });
-  }
+  // const rota2 = await prisma.rota.create({
+  //   data: {
+  //     nome: `${rotaOriginal.nome} - Parte 2`,
+  //     tipoCabo: tipoCabo2,
+  //     fabricante: rotaOriginal.fabricante,
+  //     status: rotaOriginal.status,
+  //     distancia: distancia2,
+  //     profundidade: rotaOriginal.profundidade,
+  //     tipoPassagem: rotaOriginal.tipoPassagem,
+  //     coordenadas: coordenadas2,
+  //     cor: rotaOriginal.cor,
+  //     observacoes: `Rota dividida - Segunda parte (${quantidadeCapilares2} capilares)`,
+  //     cidadeId: rotaOriginal.cidadeId
+  //   }
+  // });
+  // console.log('Rota 2 criada:', rota2.id, rota2.nome);
 
-  // Cria capilares para a rota 2
-  for (const capilar of capilaresParaRota2) {
-    await prisma.capilar.create({
-      data: {
-        numero: capilar.numero,
-        tipo: capilar.tipo,
-        comprimento: capilar.comprimento,
-        status: capilar.status,
-        potencia: capilar.potencia,
-        cidadeId: capilar.cidadeId,
-        rota: {
-          connect: { id: rota2.id }
-        }
-      }
-    });
-  }
-
-  // PRIMEIRO: Salva as informações das caixas existentes antes de remover as relações
-  // Exclui a nova caixa da lista de caixas existentes para evitar duplicação
-  const caixasExistentes = rotaOriginal.rotaCaixas.filter((rc: any) => rc.caixaId !== novaCaixa.id);
-
-  // SEGUNDO: Remove todas as relações da rota original
-  await prisma.rotaCaixa.deleteMany({
-    where: { rotaId: rotaOriginal.id }
-  });
-
-  // TERCEIRO: Cria as novas relações para as caixas existentes
-  for (const rotaCaixa of caixasExistentes) {
-    const caixaCoordenadas = rotaCaixa.caixa.coordenadas as any;
-    const distanciaPara1 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas1[coordenadas1.length - 1]);
-    const distanciaPara2 = calcularDistanciaEntrePontos(caixaCoordenadas, coordenadas2[0]);
-
-    const rotaDestino = distanciaPara1 < distanciaPara2 ? rota1.id : rota2.id;
-
-    await prisma.rotaCaixa.create({
-      data: {
-        rotaId: rotaDestino,
-        caixaId: rotaCaixa.caixaId,
-        tipoConexao: rotaCaixa.tipoConexao,
-        ordem: rotaCaixa.ordem
-      }
-    });
-  }
-
-  // QUARTO: Adiciona a nova caixa como ponto de conexão entre as duas rotas
-  await prisma.rotaCaixa.createMany({
-    data: [
-      {
-        rotaId: rota1.id,
-        caixaId: novaCaixa.id,
-        tipoConexao: 'saida',
-        ordem: 999
-      },
-      {
-        rotaId: rota2.id,
-        caixaId: novaCaixa.id,
-        tipoConexao: 'entrada',
-        ordem: 1
-      }
-    ]
-  });
+  // Cria novos capilares para cada rota conforme o tipo de cabo selecionado
+  // for (let i = 1; i <= quantidadeCapilares1; i++) {
+  //   await prisma.capilar.create({
+  //     data: {
+  //       numero: i,
+  //       tipo: 'fibra',
+  //       comprimento: distancia1,
+  //       status: 'disponível',
+  //       potencia: 0,
+  //       cidadeId: rotaOriginal.cidadeId,
+  //       rotaId: rota1.id,
+  //     }
+  //   });
+  // }
+  // for (let i = 1; i <= quantidadeCapilares2; i++) {
+  //   await prisma.capilar.create({
+  //     data: {
+  //       numero: i,
+  //       tipo: 'fibra',
+  //       comprimento: distancia2,
+  //       status: 'disponível',
+  //       potencia: 0,
+  //       cidadeId: rotaOriginal.cidadeId,
+  //       rotaId: rota2.id,
+  //     }
+  //   });
+  // }
+  console.log('Capilares criados para as novas rotas');
 
   // Remove os capilares associados à rota original
-  await prisma.capilar.deleteMany({
+  const deletedCaps = await prisma.capilar.deleteMany({
     where: {
-      rota: {
-        some: {
-          id: rotaOriginal.id
-        }
-      }
+      tuboId: rotaOriginal.tuboId
     }
   });
-
-
+  console.log('Capilares antigos removidos:', deletedCaps.count);
 
   // Remove as fusões associadas à rota original
-  await prisma.fusao.deleteMany({
+  const deletedFusoes = await prisma.fusao.deleteMany({
     where: {
       rotaOrigemId: rotaOriginal.id
     }
   });
+  console.log('Fusões antigas removidas:', deletedFusoes.count);
 
   // Remove as manutenções associadas à rota original
-  await prisma.manutencao.deleteMany({
+  const deletedManut = await prisma.manutencao.deleteMany({
     where: {
       rotaId: rotaOriginal.id
     }
   });
-
+  console.log('Manutenções antigas removidas:', deletedManut.count);
 
   const deleted = await prisma.rota.delete({
-
     where: { id: rotaOriginal.id }
   });
   if (deleted) {
-    console.log('Rota original deletada com sucesso');
+    console.log('Rota original deletada com sucesso:', deleted.id, deleted.nome);
   } else {
     console.log('Erro ao deletar rota original');
   }
+  console.log('Divisão de rota finalizada para:', rotaOriginal.nome);
 
-  return { rota1, rota2 };
+  // return { rota1, rota2 };
 }
 
 /**
@@ -542,7 +494,7 @@ export async function POST(req: NextRequest) {
             },
             orderBy: { ordem: 'asc' }
           },
-          capilares: true
+          tubos: true
         }
       });
 

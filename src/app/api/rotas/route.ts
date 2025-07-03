@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
     // Constrói o filtro
     const where: any = {};
-    
+
     // Adiciona filtro de busca por nome
     if (busca) {
       where.nome = { contains: busca };
@@ -134,10 +134,10 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    
+
     // Valida os dados com o esquema Zod
     const result = rotaSchema.safeParse(body);
-    
+
     // Se a validação falhar, retorna os erros
     if (!result.success) {
       return NextResponse.json(
@@ -145,25 +145,25 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    
-    const { 
-      nome, 
-      tipoCabo, 
-      fabricante, 
-      distancia, 
-      profundidade, 
-      tipoPassagem, 
-      coordenadas, 
-      cor, 
-      observacoes, 
-      cidadeId 
+
+    const {
+      nome,
+      tipoCabo,
+      fabricante,
+      distancia,
+      profundidade,
+      tipoPassagem,
+      coordenadas,
+      cor,
+      observacoes,
+      cidadeId
     } = result.data;
-    
+
     // Verifica se a cidade existe
     const cidade = await prisma.cidade.findUnique({
       where: { id: cidadeId },
     });
-    
+
     if (!cidade) {
       return NextResponse.json(
         { erro: "Cidade não encontrada" },
@@ -192,7 +192,7 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-    
+
     // Cria a rota no banco de dados
     const novaRota = await prisma.rota.create({
       data: {
@@ -206,71 +206,34 @@ export async function POST(req: NextRequest) {
         cor,
         observacoes,
         cidadeId,
+        tubos: {
+          create: [{
+            tipo: tipoCabo,
+            numero: 1,
+            quantidadeCapilares: parseInt(tipoCabo) || 0
+          }]
+        }
       },
+      include: { tubos: true }
     });
 
-    // Determina a quantidade de capilares baseado no tipo de cabo
-    const quantidadeDeCapilares = parseInt(tipoCabo) || 0;
-    
-    // Cria os capilares automaticamente se a quantidade for válida
+    // Cria os capilares automaticamente para o tubo criado
+    const tubo = novaRota.tubos[0];
+    const quantidadeDeCapilares = tubo.quantidadeCapilares;
     if (quantidadeDeCapilares > 0) {
-      // Verifica se já existem capilares para esta rota e cidade
-      const capilaresExistentes = await prisma.capilar.findMany({
-        where: {
-          cidadeId: cidadeId,
+      const capilaresData = [];
+      for (let i = 1; i <= quantidadeDeCapilares; i++) {
+        capilaresData.push({
+          numero: i,
           tipo: tipoCabo,
-          rota: {
-            some: {
-              id: novaRota.id,
-            },
-          },
-        },
-      });
-      
-      // Só cria capilares se não existirem para esta rota
-      if (capilaresExistentes.length === 0) {
-        const capilaresData = [];
-        
-        for (let i = 1; i <= quantidadeDeCapilares; i++) {
-          capilaresData.push({
-            numero: i,
-            tipo: tipoCabo,
-            comprimento: distancia || 0,
-            status: "Ativo",
-            potencia: 0,
-            cidadeId: cidadeId,
-          });
-        }
-        
-        // Cria todos os capilares em uma única operação
-        const capilaresCriados = await prisma.capilar.createMany({
-          data: capilaresData,
-        });
-        
-        // Busca os capilares criados para conectá-los à rota
-        const capilares = await prisma.capilar.findMany({
-          where: {
-            cidadeId: cidadeId,
-            tipo: tipoCabo,
-            numero: {
-              gte: 1,
-              lte: quantidadeDeCapilares,
-            },
-          },
-          orderBy: { numero: 'asc' },
-          take: quantidadeDeCapilares,
-        });
-        
-        // Conecta os capilares à rota
-        await prisma.rota.update({
-          where: { id: novaRota.id },
-          data: {
-            capilares: {
-              connect: capilares.map(capilar => ({ id: capilar.id })),
-            },
-          },
+          comprimento: distancia || 0,
+          status: "Ativo",
+          potencia: 0,
+          tuboId: tubo.id,
+          cidadeId: cidadeId
         });
       }
+      await prisma.capilar.createMany({ data: capilaresData });
     }
 
     // Registra a ação no log de auditoria
@@ -284,7 +247,7 @@ export async function POST(req: NextRequest) {
         detalhes: { nome, cidadeId, quantidadeCapilares: quantidadeDeCapilares },
       });
     }
-    
+
     // Retorna os dados da rota criada
     return NextResponse.json(
       { mensagem: "Rota criada com sucesso", rota: novaRota },

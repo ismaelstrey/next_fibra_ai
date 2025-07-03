@@ -67,6 +67,7 @@ CREATE TABLE "Porta" (
     "atualizadoEm" DATETIME NOT NULL,
     "caixaId" TEXT NOT NULL,
     "spliterId" TEXT,
+    CONSTRAINT "Porta_clienteId_fkey" FOREIGN KEY ("clienteId") REFERENCES "Cliente" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Porta_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "Porta_spliterId_fkey" FOREIGN KEY ("spliterId") REFERENCES "Spliter" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -339,7 +340,9 @@ CREATE TABLE "Capilar" (
     "status" TEXT NOT NULL,
     "potencia" REAL NOT NULL,
     "cidadeId" TEXT,
-    CONSTRAINT "Capilar_cidadeId_fkey" FOREIGN KEY ("cidadeId") REFERENCES "Cidade" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+    "spliterId" TEXT,
+    CONSTRAINT "Capilar_cidadeId_fkey" FOREIGN KEY ("cidadeId") REFERENCES "Cidade" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT "Capilar_spliterId_fkey" FOREIGN KEY ("spliterId") REFERENCES "Spliter" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -366,15 +369,16 @@ CREATE TABLE "Cliente" (
     "endereco" TEXT,
     "casa" TEXT,
     "numero" INTEGER NOT NULL,
-    "potencia" REAL NOT NULL,
+    "potencia" REAL,
     "wifi" TEXT,
     "senhaWifi" TEXT,
     "neutraId" TEXT,
     "cidadeId" TEXT,
-    "portaId" TEXT NOT NULL,
+    "caixaId" TEXT,
+    "portaId" TEXT,
+    CONSTRAINT "Cliente_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Cliente_cidadeId_fkey" FOREIGN KEY ("cidadeId") REFERENCES "Cidade" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Cliente_neutraId_fkey" FOREIGN KEY ("neutraId") REFERENCES "Neutra" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT "Cliente_portaId_fkey" FOREIGN KEY ("portaId") REFERENCES "Porta" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "Cliente_neutraId_fkey" FOREIGN KEY ("neutraId") REFERENCES "Neutra" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -391,10 +395,8 @@ CREATE TABLE "Spliter" (
     "atendimento" BOOLEAN NOT NULL DEFAULT true,
     "tipo" TEXT NOT NULL,
     "caixaId" TEXT NOT NULL,
-    "capilarSaidaId" TEXT,
     "capilarEntradaId" TEXT,
     CONSTRAINT "Spliter_caixaId_fkey" FOREIGN KEY ("caixaId") REFERENCES "Caixa" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Spliter_capilarSaidaId_fkey" FOREIGN KEY ("capilarSaidaId") REFERENCES "Capilar" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "Spliter_capilarEntradaId_fkey" FOREIGN KEY ("capilarEntradaId") REFERENCES "Capilar" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
@@ -522,6 +524,9 @@ CREATE TABLE "_CapilarToRota" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Usuario_email_key" ON "Usuario"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Porta_clienteId_key" ON "Porta"("clienteId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ConfiguracaoGlobal_chave_key" ON "ConfiguracaoGlobal"("chave");

@@ -101,6 +101,14 @@ export async function registrarLog({
   detalhes?: any;
 }) {
   try {
+    // Verifica se o usuário existe antes de registrar o log
+    const usuarioExiste = await prisma.usuario.findUnique({
+      where: { id: usuarioId }
+    });
+    if (!usuarioExiste) {
+      console.error("Não foi possível registrar log: usuário não encontrado", usuarioId);
+      return;
+    }
     await prisma.log.create({
       data: {
         usuarioId,

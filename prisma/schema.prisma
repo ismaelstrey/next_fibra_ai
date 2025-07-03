@@ -75,9 +75,20 @@ model Rota {
   manutencoes  Manutencao[]
   notificacoes Notificacao[]
   relatorios   Relatorio[]
-  capilares    Capilar[]
+  tubos        Tubo[]
   cidade       Cidade        @relation(fields: [cidadeId], references: [id])
   rotaCaixas   RotaCaixa[]
+}
+model Tubo {
+    id           String        @id @default(cuid())
+    numero       Int
+    capilares    Capilar[]
+    quantidadeCapilares Int
+    tipo String
+    rotaId String?
+    rota Rota? @relation(fields: [rotaId], references: [id])
+
+    
 }
 
 model Caixa {
@@ -410,11 +421,12 @@ model Capilar {
   saidas          Emenda[]    @relation("CapilarSaida")
   entradas        Emenda[]    @relation("CapilarEntrada")
   spliter_entrada Spliter[]   @relation("CapilarEntrada")
-  rota            Rota[]
   arquivo         Arquivo[]
   incidentes      Incidente[]
   spliterId       String?
   spliter         Spliter?     @relation(fields: [spliterId], references: [id])
+  tuboId          String?
+  tubo            Tubo?        @relation(fields: [tuboId], references: [id])
 }
 
 model Emenda {
