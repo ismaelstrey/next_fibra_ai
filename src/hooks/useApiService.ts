@@ -154,7 +154,7 @@ export const useApiService = () => {
             };
             observacoes?: string;
             cidadeId: string;
-            rotaId: string;
+            rotaIds: string[];
         }) => {
             return request<{ mensagem: string, caixa: CaixaAPI }>('POST', '/caixas', caixa);
         }, [request]),
@@ -167,7 +167,7 @@ export const useApiService = () => {
                 longitude: number;
             };
             observacoes: string;
-            rotaId: string;
+            rotaIds: string[];
         }>) => {
             return request<{ mensagem: string, caixa: CaixaAPI }>('PATCH', `/caixas/${id}`, caixa);
         }, [request]),
