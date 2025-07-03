@@ -26,8 +26,8 @@ export async function GET(req: NextRequest) {
     const busca = searchParams.get("busca") || "";
     const tipo = searchParams.get("tipo");
     const status = searchParams.get("status");
-    -    const rotaId = searchParams.get("rotaId");
-    +    const tuboId = searchParams.get("tuboId");
+    const rotaId = searchParams.get("rotaId");
+    const tuboId = searchParams.get("tuboId");
     const caixaId = searchParams.get("caixaId");
 
     console.log(rotaId, caixaId)
@@ -64,10 +64,11 @@ export async function GET(req: NextRequest) {
         }
       };
     }
-    +    // Adiciona filtro por tubo
-      +    if (tuboId) {
-        +      where.tuboId = tuboId;
-        +    }
+    // Remove filtro por rotaId (obsoleto)
+    // Adiciona filtro por tuboId
+    if (tuboId) {
+      where.tuboId = tuboId;
+    }
 
     // Adiciona filtro por caixa (através de spliters)
     if (caixaId) {
@@ -94,26 +95,32 @@ export async function GET(req: NextRequest) {
           comprimento: true,
           status: true,
           potencia: true,
-          rota: {
+          tubo: {
             select: {
               id: true,
-              nome: true,
-              tipoCabo: true,
-            },
+              tipo: true,
+              rota: {
+                select: {
+                  id: true,
+                  nome: true,
+                  tipoCabo: true
+                }
+              }
+            }
           },
           _count: {
             select: {
               saidas: true,
               entradas: true,
-              spliter_entrada: true,
-            },
+              spliter_entrada: true
+            }
           }
         },
         skip,
         take: limite,
-        orderBy: { numero: "asc" },
+        orderBy: { numero: "asc" }
       }),
-      prisma.capilar.count({ where }),
+      prisma.capilar.count({ where })
     ]);
 
     // Calcula metadados de paginação
@@ -156,93 +163,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {
-      numero,
-      tipo,
-      comprimento,
-      status,
-      potencia,
--     rotaId
-      + tuboId
-  } = result.data;
+    // Extrai os campos validados
+    const { numero, tipo, comprimento, status, potencia, tuboId } = result.data;
 
-  -    // Verifica se a rota existe, se fornecida
-    -    if (rotaId) {
-      -    const rota = await prisma.rota.findUnique({
-- where: { id: rotaId },
-        -      });
-  -
-    -      if (!rota) {
-      -        return NextResponse.json(
-        -          { erro: "Rota não encontrada" },
-        -          { status: 404 }
-        -        );
-      -      }
-  -    }
-+    // Verifica se o tubo existe, se fornecido
-  +    if (tuboId) {
-    +      const tubo = await prisma.tubo.findUnique({
-+ where: { id: tuboId },
-      +      });
-+      if (!tubo) {
-  +        return NextResponse.json(
-    +          { erro: "Tubo não encontrado" },
-    +          { status: 404 }
-    +        );
-  +      }
-+    }
-
-// Cria o capilar no banco de dados
-const novoCapilar = await prisma.capilar.create({
-  data: {
-    numero,
-    tipo,
-    comprimento,
-    status,
-    potencia,
--       ...(rotaId && {
-- Rota: {
-- connect: { id: rotaId }
--         }
--       })
-+       ...(tuboId && {
-+ tubo: {
-  +           select: {
-    +             id: true,
-      +             tipo: true,
-        +             rota: {
-      +               select: {
-        +                 id: true,
-          +                 nome: true,
-            +                 tipoCabo: true,
-              +               }
-      +             }
-    +           }
-  +         }
-+       })
-      },
+    // Validação obrigatória do tuboId
+    if (!tuboId) {
+      return NextResponse.json(
+        { erro: "O campo tuboId é obrigatório para criar um capilar." },
+        { status: 400 }
+      );
+    }
+    const tubo = await prisma.tubo.findUnique({ where: { id: tuboId } });
+    if (!tubo) {
+      return NextResponse.json(
+        { erro: "Tubo não encontrado" },
+        { status: 404 }
+      );
+    }
+    const novoCapilar = await prisma.capilar.create({
+      data: {
+        numero,
+        tipo,
+        comprimento,
+        status,
+        potencia,
+        tubo: { connect: { id: tuboId } }
+      }
     });
 
-// Registra a ação no log de auditoria
-const token = await verificarAutenticacao(req);
-if (token) {
-  await registrarLog({
-    prisma,
-    usuarioId: token.id as string,
-    acao: "Criação",
-    entidade: "Capilar",
-    entidadeId: novoCapilar.id,
-- detalhes: { numero, tipo, comprimento, status, potencia, rotaId },
-    +       detalhes: { numero, tipo, comprimento, status, potencia, tuboId },
+    // Registra a ação no log de auditoria
+    const token = await verificarAutenticacao(req);
+    if (token) {
+      await registrarLog({
+        prisma,
+        usuarioId: token.id as string,
+        acao: "Criação",
+        entidade: "Capilar",
+        entidadeId: novoCapilar.id,
+        detalhes: { numero, tipo, comprimento, status, potencia, tuboId },
       });
     }
 
-// Retorna os dados do capilar criado
-return NextResponse.json(
-  { mensagem: "Capilar criado com sucesso", capilar: novoCapilar },
-  { status: 201 }
-);
+    // Retorna os dados do capilar criado
+    return NextResponse.json(
+      { mensagem: "Capilar criado com sucesso", capilar: novoCapilar },
+      { status: 201 }
+    );
   } catch (error) {
-  return tratarErro(error);
-}
+    return tratarErro(error);
+  }
 }

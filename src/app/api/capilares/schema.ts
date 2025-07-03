@@ -11,6 +11,7 @@ export const capilarSchema = z.object({
   comprimento: z.number().positive(),
   status: z.string().min(2, "Status deve ter pelo menos 2 caracteres"),
   potencia: z.number(),
+  tuboId: z.string().optional(),
   rotaId: z.string().optional()
 });
 
