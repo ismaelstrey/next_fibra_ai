@@ -58,10 +58,8 @@ export async function GET(req: NextRequest) {
 
     // Adiciona filtro por rota
     if (rotaId) {
-      where.rota = {
-        some: {
-          id: rotaId
-        }
+      where.tubo = {
+        rotaId: rotaId
       };
     }
     // Remove filtro por rotaId (obsoleto)

@@ -1,19 +1,16 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaFusao } from './AreaFusao';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SpliterType } from '@/types/fibra';
 import { ConexaoRota } from '@/types/caixa';
+import { useCapilar } from '@/hooks/useCapilar';
 
 
 
-interface CaboAS {
-    id: number;
-    nome: string;
-    ativo: boolean;
-}
+
 
 interface ParteInternaCTOProps {
     /**
@@ -33,17 +30,16 @@ interface ParteInternaCTOProps {
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
+    // const [capilar, setCapilar] = useState<CapilarType | null>(null);
+    const { buscarCapilarPorRota } = useCapilar()
+    async function busacaCapilar() {
+        const capilar = await buscarCapilarPorRota(cabosAS[0].rota.id)
+        console.log(capilar)
+    }
 
-    // console.log(splitters)
-    // Inicializa os cabos AS se não forem fornecidos
-    const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
-        id: i + 1,
-        nome: `Cabo AS ${i + 1}`,
-        ativo: false
-    }));
-
-    console.log(cabosAS)
-
+    useEffect(() => {
+        busacaCapilar()
+    }, [])
     return (
         <>
             <CardHeader className="border-b pb-4">
@@ -77,7 +73,7 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                         <h3 className="font-medium mb-2">Cabos AS</h3>
                         <div className="grid grid-cols-2 gap-3">
                             <AnimatePresence>
-                                {cabosConectados.map((cabo,key) => (
+                                {cabosAS.map((cabo, key) => (
                                     <motion.div
                                         key={key}
                                         initial={{ opacity: 0, y: 10 }}
@@ -85,14 +81,15 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                                         exit={{ opacity: 0, scale: 0.95 }}
                                         transition={{ duration: 0.2 }}
                                         whileHover={{ scale: 1.02 }}
-                                        className={`p-3 rounded-md border transition-colors ${cabo.ativo
+                                        className={`p-3 rounded-md border transition-colors ${cabo.tipoConexao === 'entrada'
                                             ? 'bg-primary/10 border-primary hover:bg-primary/15 dark:bg-primary/20 dark:hover:bg-primary/25'
                                             : 'bg-muted border-muted-foreground/20 hover:bg-muted/80 dark:bg-muted/20 dark:border-muted-foreground/30 dark:hover:bg-muted/30'}`}
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="font-medium">{cabo.nome}</span>
-                                            <Badge variant={cabo.ativo ? 'default' : 'outline'}>
-                                                {cabo.ativo ? 'Conectado' : 'Livre'}
+                                            <span className="font-medium">{cabo.rota.nome}</span>
+                                            <Badge variant={cabo.rota.tipoCabo === '12' ? 'default' : 'outline'}>
+                                                {cabo.rota.tipoCabo === '12' ? 'Conectado' : 'Livre'}
+
                                             </Badge>
                                         </div>
                                     </motion.div>

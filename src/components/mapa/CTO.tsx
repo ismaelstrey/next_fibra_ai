@@ -33,11 +33,7 @@ interface PortaCliente {
 
 
 
-interface CaboAS {
-    id: number;
-    nome: string;
-    ativo: boolean;
-}
+
 
 interface CTOProps {
     /**
@@ -97,24 +93,11 @@ export function CTO({
 }: CTOProps) {
     // Estado para controlar se a CTO está expandida ou não
     const [expandida, setExpandida] = useState(false);
-
-    // console.log(portas)
-
-
-    // Inicializa as portas se não forem fornecidas
-
-
-    // Inicializa os cabos AS se não forem fornecidos
-    // const cabosConectados = cabosAS.length > 0 ? cabosAS : Array.from({ length: 4 }, (_, i) => ({
-    //     id: i + 1,
-    //     nome: `Cabo AS ${i + 1}`,
-    //     ativo: false
-    // }));
-
-    // Função para alternar entre expandido e contraído
     const toggleExpandir = () => {
         setExpandida(!expandida);
     };
+
+
 
     return (
         <Card className={`border-2 border-primary shadow-lg transition-all duration-300 ${expandida ? 'fixed top-0 left-0 w-full h-full' : 'w-full max-w-full mx-auto'}`}>
