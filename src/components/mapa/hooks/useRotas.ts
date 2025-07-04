@@ -18,7 +18,8 @@ export const useRotas = (mapRef: React.RefObject<google.maps.Map | null>) => {
     filtros,   
     rotas: rotasGlobais,
     adicionarRota: adicionarRotaGlobal,
-    removerRota: removerRotaGlobal
+    removerRota: removerRotaGlobal,
+    tipoCaboSelecionado
   } = useMapa();
 
   /**
@@ -31,7 +32,7 @@ export const useRotas = (mapRef: React.RefObject<google.maps.Map | null>) => {
   /**
    * Adiciona uma nova rota ao mapa
    */
-  const adicionarRota = useCallback((path: google.maps.LatLng[], tipoCabo: "6" | "12" | "24" | "48" | "96" = '6') => {
+  const adicionarRota = useCallback((path: google.maps.LatLng[]) => {
     if (!mapRef.current) return;
 
     // Converte o caminho para um array de coordenadas
@@ -50,10 +51,10 @@ export const useRotas = (mapRef: React.RefObject<google.maps.Map | null>) => {
     adicionarRotaGlobal({
       nome: `Rota ${new Date().toLocaleTimeString()}`,
       path: pathArray,
-      tipoCabo: tipoCabo,
+      tipoCabo: tipoCaboSelecionado,
       cidadeId: filtros.cidade
     });
-  }, [adicionarRotaGlobal, filtros.cidade, mapRef]);
+  }, [adicionarRotaGlobal, filtros.cidade, mapRef, tipoCaboSelecionado]);
 
   /**
    * Callback para quando uma rota é desenhada

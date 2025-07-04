@@ -50,35 +50,17 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   const totalCapilares = rotaOriginalCompleta?.tubos.reduce((acc, tubo) => acc + tubo.capilares.length, 0) ?? 0;
   const distancia1 = calcularDistanciaTotal(coordenadas1);
   const distancia2 = calcularDistanciaTotal(coordenadas2);
-  const distanciaTotal = distancia1 + distancia2;
 
-  const proporcao1 = distancia1 / distanciaTotal;
-  const capilares1 = Math.max(1, Math.floor(totalCapilares * proporcao1));
-  const capilares2 = totalCapilares - capilares1;
 
-  // Mapeia a quantidade de capilares para os tipos válidos
-  const mapearTipoCabo = (quantidade: number): '6' | '12' | '24' | '48' | '96' => {
-    if (quantidade <= 6) return '6';
-    if (quantidade <= 12) return '12';
-    if (quantidade <= 24) return '24';
-    if (quantidade <= 48) return '48';
-    return '96';
-  };
 
-  // Calcula a quantidade de capilares para cada rota baseada no tipo de cabo selecionado
-  const tipoCabo1 = mapearTipoCabo(capilares1);
-  const tipoCabo2 = mapearTipoCabo(capilares2);
-  const quantidadeCapilares1 = parseInt(tipoCabo1);
-  const quantidadeCapilares2 = parseInt(tipoCabo2);
 
-  // Iniciando divisão da rota:
-  // console.log('Iniciando divisão da rota:', rotaOriginal.id, rotaOriginal.nome);
+
 
   // Cria as duas novas rotas
   const rota1 = await prisma.rota.create({
     data: {
-      nome: `${rotaOriginal.nome} - Parte 1`,
-      tipoCabo: tipoCabo1,
+      nome: `${rotaOriginal.nome}-Tipo ${totalCapilares} - Parte 1`,
+      tipoCabo: totalCapilares.toString(),
       fabricante: rotaOriginal.fabricante,
       status: rotaOriginal.status,
       distancia: distancia1,
@@ -86,7 +68,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
       tipoPassagem: rotaOriginal.tipoPassagem,
       coordenadas: coordenadas1,
       cor: rotaOriginal.cor,
-      observacoes: `Rota dividida - Primeira parte (${quantidadeCapilares1} capilares)`,
+      observacoes: `Rota dividida - Primeira parte (${totalCapilares} capilares)`,
       cidadeId: rotaOriginal.cidadeId
     }
   });
@@ -94,8 +76,8 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
 
   const rota2 = await prisma.rota.create({
     data: {
-      nome: `${rotaOriginal.nome} - Parte 2`,
-      tipoCabo: tipoCabo2,
+      nome: `${rotaOriginal.nome} -Tipo ${totalCapilares} - Parte 2`,
+      tipoCabo: totalCapilares.toString(),
       fabricante: rotaOriginal.fabricante,
       status: rotaOriginal.status,
       distancia: distancia2,
@@ -103,7 +85,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
       tipoPassagem: rotaOriginal.tipoPassagem,
       coordenadas: coordenadas2,
       cor: rotaOriginal.cor,
-      observacoes: `Rota dividida - Segunda parte (${quantidadeCapilares2} capilares)`,
+      observacoes: `Rota dividida - Segunda parte (${totalCapilares} capilares)`,
       cidadeId: rotaOriginal.cidadeId
     }
   });
@@ -115,22 +97,23 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   const tubo1 = await prisma.tubo.create({
     data: {
       numero: 1, // ou lógica para determinar o próximo número sequencial
-      tipo: tipoCabo1,
-      quantidadeCapilares: Number(tipoCabo1),
+      tipo: totalCapilares.toString(),
+
+      quantidadeCapilares: totalCapilares,
       rotaId: rota1.id,
     },
   });
   const tubo2 = await prisma.tubo.create({
     data: {
       numero: 1, // ou lógica para determinar o próximo número sequencial
-      tipo: tipoCabo2,
-      quantidadeCapilares: Number(tipoCabo2),
+      tipo: totalCapilares.toString(),
+      quantidadeCapilares: totalCapilares,
       rotaId: rota2.id,
     },
   });
 
   // Cria capilares para cada tubo
-  for (let i = 1; i <= quantidadeCapilares1; i++) {
+  for (let i = 1; i <= totalCapilares; i++) {
     await prisma.capilar.create({
       data: {
         numero: i,
@@ -142,7 +125,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
       }
     });
   }
-  for (let i = 1; i <= quantidadeCapilares2; i++) {
+  for (let i = 1; i <= totalCapilares; i++) {
     await prisma.capilar.create({
       data: {
         numero: i,
@@ -386,7 +369,7 @@ export async function GET(req: NextRequest) {
               nome: true,
               estado: true,
             },
-          },         
+          },
 
           rotaCaixas: {
             select: {
@@ -505,11 +488,11 @@ export async function POST(req: NextRequest) {
           cidadeId: cidadeId
         }
       });
-      
+
       if (todasRotas.length > 0) {
         let rotaMaisProxima = todasRotas[0];
         let menorDistancia = Infinity;
-        
+
         for (const rota of todasRotas) {
           const coordenadasRota = rota.coordenadas as any[];
           for (let i = 0; i < coordenadasRota.length - 1; i++) {
@@ -524,7 +507,7 @@ export async function POST(req: NextRequest) {
             }
           }
         }
-        
+
         rotasValidas = [{ id: rotaMaisProxima.id }];
         console.log(`Rota mais próxima encontrada: ${rotaMaisProxima.nome} (distância: ${menorDistancia})`);
       }

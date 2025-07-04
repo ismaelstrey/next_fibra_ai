@@ -39,8 +39,8 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         // Converte as caixas da API em marcadores
         const marcadoresDaAPI = caixas.map(caixa => {
           const iconUrl = caixa.tipo === 'CTO' ? '/icons/cto-icon.svg' : '/icons/ceo-icon.svg';
-          const title = caixa.rotaAssociada
-            ? `${caixa.tipo} ${caixa.nome} - Vinculada à rota ${caixa.rotaAssociada}`
+          const title = caixa.rotasAssociadas
+            ? `${caixa.tipo} ${caixa.nome} - Vinculada à rota ${caixa.rotasAssociadas}`
             : `${caixa.tipo} ${caixa.nome}`;
 
           // Cria um objeto LatLng do Google Maps
@@ -156,7 +156,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
           lng
         },
         cidadeId: rota.cidadeId || filtros.cidade,
-        rotaAssociada: rota.id, // Vincula a caixa à rota clicada
+        rotasAssociadas: [rota.id], // Vincula a caixa à rota clicada
         modelo: tipo === 'CTO' ? 'Padrão' : 'CEO Padrão',
         capacidade: tipo === 'CTO' ? 8 : 12
       });
@@ -225,7 +225,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         // Adiciona evento de clique ao marcador (usando gmp-click conforme recomendado para AdvancedMarkerElement)
         advancedMarker.addListener('gmp-click', () => {
           console.log('Clicou no marcador:', { ...marcador });
-          
+
           // Encontra a caixa correspondente ao marcador clicado
           const caixaClicada = caixas?.find(caixa => {
             // Compara as coordenadas para identificar a caixa correta
@@ -235,13 +235,13 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
               caixa.tipo === marcador.tipo
             );
           });
-          
+
           if (caixaClicada) {
             // Emite evento para abrir o modal de detalhes
             const event = new CustomEvent('marcador-clicado', { detail: caixaClicada });
             window.dispatchEvent(event);
           }
-          
+
           // Se estiver no modo de edição, abre o modal de edição
           if (modoEdicao === 'editar') {
             setPosicaoClicada({

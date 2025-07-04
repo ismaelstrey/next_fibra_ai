@@ -159,6 +159,8 @@ export async function POST(req: NextRequest) {
       cidadeId
     } = result.data;
 
+    console.log(tipoCabo)
+
     // Verifica se a cidade existe
     const cidade = await prisma.cidade.findUnique({
       where: { id: cidadeId },
