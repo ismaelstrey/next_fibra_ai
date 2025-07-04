@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaFusao } from './AreaFusao';
@@ -7,10 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SpliterType } from '@/types/fibra';
 import { ConexaoRota } from '@/types/caixa';
 import { useCapilar } from '@/hooks/useCapilar';
-
-
-
-
+import { CapilarAPI } from '@/types/capilar';
+import { getColor } from '@/functions/color';
 
 interface ParteInternaCTOProps {
     /**
@@ -24,17 +22,25 @@ interface ParteInternaCTOProps {
     cabosAS?: ConexaoRota[];
 }
 
+interface PropsCapilar extends CapilarAPI {
+    cor: string;
+}
+
 
 
 /**
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
-    // const [capilar, setCapilar] = useState<CapilarType | null>(null);
+    const [capilar, setCapilar] = useState<PropsCapilar[]>([]);
     const { buscarCapilarPorRota } = useCapilar()
     async function busacaCapilar() {
         const capilar = await buscarCapilarPorRota(cabosAS[0].rota.id)
-        console.log(capilar)
+        const geraCapilar = capilar.data.capilares.map((c) => ({ ...c, cor: getColor(c.numero) }))
+        capilar && setCapilar(geraCapilar)
+
+
+        console.log(geraCapilar)
     }
 
     useEffect(() => {
@@ -113,11 +119,7 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                                             id: 'tubo-demo-1',
                                             cor: '#008000',
                                             numero: 1,
-                                            fibras: Array.from({ length: 12 }, (_, i) => ({
-                                                id: `fibra-demo-${i + 1}`,
-                                                cor: '',
-                                                numero: i + 1,
-                                            }))
+                                            fibras: capilar || [],
                                         }
                                     ]
                                 }
