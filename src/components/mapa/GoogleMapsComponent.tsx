@@ -202,20 +202,44 @@ const GoogleMapsComponent = ({
       {/* Renderiza as rotas existentes */}
       {camadasVisiveis.rotas && rotasGlobais.map((rota, index) => {
         const path = rota.path;
+        // Calcula o ponto médio da rota para posicionar o label
+        const midIndex = Math.floor(path.length / 2);
+        const midPoint = path[midIndex];
         return (
-          <Polyline
-            onClick={(e) => handlePolylineClick(e, rota)}
-            onDblClick={(e) => handlePolylineDblClick(e, rota)}
-            onRightClick={(e) => handlePolylineRightClick(e, rota)}
-            key={`rota-${index}`}
-            path={path}
-            options={{
-              strokeColor: rota.cor || getFiberColor(rota.tipoCabo),
-              strokeWeight: 5,
-              editable: modoEdicao === 'editar',
-              draggable: modoEdicao === 'editar',
-            }}
-          />
+          <>
+            <Polyline
+              onClick={(e) => handlePolylineClick(e, rota)}
+              onDblClick={(e) => handlePolylineDblClick(e, rota)}
+              onRightClick={(e) => handlePolylineRightClick(e, rota)}
+              key={`rota-${index}`}
+              path={path}
+              options={{
+                strokeColor: rota.cor || getFiberColor(rota.tipoCabo),
+                strokeWeight: 5,
+                editable: modoEdicao === 'editar',
+                draggable: modoEdicao === 'editar',
+              }}
+            />
+            {/* Label acima da linha da rota */}
+            {midPoint && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${midPoint.lng}px`,
+                  top: `${midPoint.lat}px`,
+                  background: 'rgba(255,255,255,0.8)',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  pointerEvents: 'none',
+                  transform: 'translate(-50%, -100%)',
+                  zIndex: 10
+                }}
+              >
+                {rota.nome}
+              </div>
+            )}
+          </>
         );
       })}
 
