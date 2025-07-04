@@ -386,7 +386,7 @@ export async function GET(req: NextRequest) {
               nome: true,
               estado: true,
             },
-          },
+          },         
 
           rotaCaixas: {
             select: {
