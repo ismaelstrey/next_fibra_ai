@@ -6,6 +6,8 @@ import { getFiberColor } from '@/functions/color';
 import AddCaixaModal from './AddCaixaModal';
 import { DetalhesMarcadorModal } from './DetalhesMarcadorModal';
 import GerenciadorFusoes from './GerenciadorFusoes';
+import { RotaTooltip } from './RotaTooltip';
+import { DetalhesRotaModal } from './DetalhesRotaModal';
 import { Caixa, Rota } from '@/context/MapContext';
 import { mapContainerStyle, center as defaultCenter, mapOptions, tiposCabos } from './config/mapConfig';
 import { GoogleMapsComponentProps } from './types/mapTypes';
@@ -37,6 +39,12 @@ const GoogleMapsComponent = ({
   // Estado para controlar o modal de fusões
   const [fusoesModalAberto, setFusoesModalAberto] = useState(false);
   const [rotasDivididas, setRotasDivididas] = useState<{ rota1: Rota; rota2: Rota; caixaConexao: Caixa } | null>(null);
+  
+  // Estados para controlar tooltip e modal da rota
+  const [hoveredRota, setHoveredRota] = useState<Rota | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const [selectedRota, setSelectedRota] = useState<Rota | null>(null);
+  const [isRotaModalOpen, setIsRotaModalOpen] = useState(false);
   console.log(rotasDivididas)
   // Função para lidar com o carregamento do mapa
   const handleMapLoaded = useCallback((map: google.maps.Map) => {
@@ -45,6 +53,30 @@ const GoogleMapsComponent = ({
       onMapLoad(map);
     }
   }, [onMapLoad]);
+
+  // Handlers para eventos da rota
+  const handleRotaMouseOver = useCallback((rota: Rota, event: google.maps.MapMouseEvent) => {
+    if (event.domEvent && event.domEvent instanceof MouseEvent) {
+      setHoveredRota(rota);
+      setTooltipPosition({
+        x: event.domEvent.clientX,
+        y: event.domEvent.clientY
+      });
+    }
+  }, []);
+
+  const handleRotaMouseOut = useCallback(() => {
+    setHoveredRota(null);
+    setTooltipPosition(null);
+  }, []);
+
+  const handleRotaClick = useCallback((rota: Rota) => {
+    setSelectedRota(rota);
+    setIsRotaModalOpen(true);
+    // Esconder tooltip ao abrir modal
+    setHoveredRota(null);
+    setTooltipPosition(null);
+  }, []);
 
   // Adiciona um listener para o evento personalizado 'marcador-clicado'
   useEffect(() => {
@@ -208,9 +240,14 @@ const GoogleMapsComponent = ({
         return (
           <>
             <Polyline
-              onClick={(e) => handlePolylineClick(e, rota)}
+              onClick={(e) => {
+                handlePolylineClick(e, rota);
+                handleRotaClick(rota);
+              }}
               onDblClick={(e) => handlePolylineDblClick(e, rota)}
               onRightClick={(e) => handlePolylineRightClick(e, rota)}
+              onMouseOver={(e) => handleRotaMouseOver(rota, e)}
+              onMouseOut={handleRotaMouseOut}
               key={`rota-${index}`}
               path={path}
               options={{
@@ -244,6 +281,22 @@ const GoogleMapsComponent = ({
       })}
 
       {/* Os marcadores avançados são criados e gerenciados diretamente nos hooks */}
+
+      {/* Tooltip da rota */}
+       {hoveredRota && tooltipPosition && (
+         <RotaTooltip
+           rota={hoveredRota}
+           position={tooltipPosition}
+           visible={true}
+         />
+       )}
+
+      {/* Modal de detalhes da rota */}
+       <DetalhesRotaModal
+         aberto={isRotaModalOpen}
+         aoFechar={() => setIsRotaModalOpen(false)}
+         rota={selectedRota}
+       />
 
       {/* Modal para adicionar CTO ou CEO */}
       {/* -      {posicaoClicada && (
