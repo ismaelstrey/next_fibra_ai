@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { CapilarAPI } from '@/types/capilar';
 
 // Tipos para Tubo
 export interface TuboAPI {
@@ -9,7 +10,7 @@ export interface TuboAPI {
   quantidadeCapilares: number;
   tipo: string;
   rotaId?: string;
-  capilares?: any[];
+  capilares?: CapilarAPI[];
   rota?: any;
 }
 

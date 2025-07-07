@@ -33,7 +33,7 @@ interface PropsCapilar extends CapilarAPI {
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
-    const [capilar, setCapilar] = useState<PropsCapilar[]>([]);
+    const [capilar, setCapilar] = useState<CapilarAPI[]>([]);
     const [tubos, setTubos] = useState<TuboAPI[]>([]);
     const { buscarCapilarPorRota } = useCapilar()
     const { buscarPorRotaId } = useTubo()
@@ -43,7 +43,9 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
         capilar && setCapilar(geraCapilar)
 
         const tubo = await buscarPorRotaId(cabosAS[0].rota.id)
-        console.log(tubo)
+        setTubos(tubo || [])
+
+        console.log(cabosAS)
     }
 
     useEffect(() => {
@@ -117,14 +119,7 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                                     id: 'cabo-demo-1',
                                     nome: 'Cabo AS-01',
                                     tipo: '12',
-                                    tubos: [
-                                        {
-                                            id: 'tubo-demo-1',
-                                            cor: '#008000',
-                                            numero: 1,
-                                            fibras: capilar || [],
-                                        }
-                                    ]
+                                    tubos: tubos
                                 }
                             ]}
                             splitters={[

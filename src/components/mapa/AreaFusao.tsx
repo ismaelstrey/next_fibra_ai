@@ -4,19 +4,33 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getColor } from '@/functions/color';
+import { CapilarAPI } from '@/types/capilar';
+import { TuboAPI, useTubo } from '@/hooks/useTubo';
 
 interface Fibra {
   id: string;
-  cor: string;
   numero: number;
   conectadaA?: string;
+  rotaId?: string;
+  tipo?: string;
+  comprimento?: number;
+  status?: string;
+  potencia?: number;
+  cidadeId?: string;
+  splitterId?: string;
+  tuboId?: string;
 }
 
 interface TuboLoose {
   id: string;
-  cor: string;
   numero: number;
-  fibras: Fibra[];
+  cor?: string;
+  observacoes?: string;
+  criadoEm?: string;
+  atualizadoEm?: string;
+  cidadeId?: string;
+  capilares?: CapilarAPI[];
 }
 
 interface Cabo {
@@ -56,7 +70,7 @@ interface AreaFusaoProps {
    * Fusões realizadas na CTO
    */
   fusoes?: Fusao[];
-  
+
   /**
    * Callback chamado quando uma nova fusão é criada
    */
@@ -70,12 +84,13 @@ interface AreaFusaoProps {
 export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusao }: AreaFusaoProps) {
   // Estado para controlar quais tubos estão expandidos
   const [expandedTubos, setExpandedTubos] = useState<Record<string, boolean>>({});
-  
+  const { buscarPorRotaId } = useTubo()
   // Estado para controlar a fibra selecionada
   const [fibraSelecionada, setFibraSelecionada] = useState<string | null>(null);
-  
+  const [tubos, setTubos] = useState<TuboAPI[]>([]);
   // Estado para controlar o modo de seleção (se está selecionando para fusão)
   const [modoSelecao, setModoSelecao] = useState<boolean>(false);
+
 
   // Função para alternar a expansão de um tubo específico
   const toggleTubo = (caboId: string, tuboId: string) => {
@@ -89,16 +104,16 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
   const toggleAllTubos = (caboId: string, tubos: TuboLoose[]) => {
     // Verifica se todos os tubos do cabo estão expandidos
     const allExpanded = tubos.every(tubo => expandedTubos[`${caboId}-${tubo.id}`]);
-    
+
     // Cria um novo estado com todos expandidos ou todos recolhidos
     const newState = { ...expandedTubos };
     tubos.forEach(tubo => {
       newState[`${caboId}-${tubo.id}`] = !allExpanded;
     });
-    
+
     setExpandedTubos(newState);
   };
-  
+
   // Função para selecionar uma fibra
   const selecionarFibra = (fibraId: string) => {
     // Se já estiver selecionada, desseleciona
@@ -110,37 +125,37 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
       setModoSelecao(true);
     }
   };
-  
+
   // Função para associar a fibra selecionada a um splitter
   const associarFibraASplitter = (splitterId: string, portaId: string) => {
     if (!fibraSelecionada || !modoSelecao) return;
-    
+
     // Verificar se a fibra já está conectada
     const fibraJaConectada = fusoes.some(fusao => fusao.fibraOrigem === fibraSelecionada);
     if (fibraJaConectada) {
       alert('Esta fibra já está conectada a outro dispositivo.');
       return;
     }
-    
+
     // Verificar se a porta do splitter já está conectada
     const portaJaConectada = fusoes.some(fusao => fusao.fibraDestino === portaId);
     if (portaJaConectada) {
       alert('Esta porta do splitter já está conectada.');
       return;
     }
-    
+
     // Encontrar a cor da fibra selecionada
     let corFibra = '#FF0000'; // Cor padrão
     for (const cabo of cabos) {
       for (const tubo of cabo.tubos) {
-        const fibra = tubo.fibras.find(f => f.id === fibraSelecionada);
+        const fibra = tubo?.capilares?.find(f => f.id === fibraSelecionada);
         if (fibra) {
-          corFibra = getFibraCor(fibra.numero);
+          corFibra = getColor(fibra.numero);
           break;
         }
       }
     }
-    
+
     // Criar a nova fusão
     const novaFusao: Fusao = {
       id: `fusao-${Date.now()}`,
@@ -148,36 +163,18 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
       fibraDestino: portaId,
       cor: corFibra
     };
-    
+
     // Chamar o callback se existir
     if (onCriarFusao) {
       onCriarFusao(novaFusao);
     }
-    
+
     // Resetar o estado de seleção
     setFibraSelecionada(null);
     setModoSelecao(false);
   };
 
   // Função para obter a cor de uma fibra
-  const getFibraCor = (numero: number) => {
-    const cores = {
-      1: '#008000', // Verde
-      2: '#FFFF00', // Amarela
-      3: '#FFFFFF', // Branca
-      4: '#0000FF', // Azul
-      5: '#FF0000', // Vermelha
-      6: '#8A2BE2', // Violeta
-      7: '#A52A2A', // Marrom
-      8: '#FFC0CB', // Rosa
-      9: '#000000', // Preta
-      10: '#808080', // Cinza
-      11: '#FFA500', // Laranja
-      12: '#7FFFD4', // Água-marinha
-    };
-    
-    return cores[numero as keyof typeof cores] || '#CCCCCC';
-  };
 
   // Função para obter a cor de um tubo
   const getTuboCor = (numero: number) => {
@@ -186,20 +183,20 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
       2: '#FFFF00', // Amarelo (direcional)
       3: '#FFFFFF', // Branco/Natural
     };
-    
+
     return cores[numero as keyof typeof cores] || '#FFFFFF';
   };
 
   // Função para verificar se uma fibra está conectada
   const isFibraConectada = (fibraId: string) => {
-    return fusoes.some(fusao => 
+    return fusoes.some(fusao =>
       fusao.fibraOrigem === fibraId || fusao.fibraDestino === fibraId
     );
   };
 
   // Função para obter a cor da fusão de uma fibra
   const getFusaoCor = (fibraId: string) => {
-    const fusao = fusoes.find(fusao => 
+    const fusao = fusoes.find(fusao =>
       fusao.fibraOrigem === fibraId || fusao.fibraDestino === fibraId
     );
     return fusao?.cor || '#CCCCCC';
@@ -213,8 +210,8 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
             <span className="text-sm font-medium text-blue-700">
               Modo de seleção ativo: Selecione um splitter para conectar
             </span>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               className="h-7 text-xs"
               onClick={() => {
@@ -243,67 +240,68 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-medium">{cabo.nome} ({cabo.tipo} FO)</div>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           className="h-7 text-xs"
                           onClick={() => toggleAllTubos(cabo.id, cabo.tubos)}
                         >
-                          {cabo.tubos.every(tubo => expandedTubos[`${cabo.id}-${tubo.id}`]) 
-                            ? 'Recolher Todos' 
+                          {cabo.tubos.every(tubo => expandedTubos[`${cabo.id}-${tubo.id}`])
+                            ? 'Recolher Todos'
                             : 'Expandir Todos'}
                         </Button>
                       </div>
-                      
+
                       <div className="space-y-2">
                         {cabo.tubos.map(tubo => (
                           <div key={tubo.id} className="border rounded-sm p-2">
-                            <div 
+                            <div
                               className="flex items-center cursor-pointer"
                               onClick={() => toggleTubo(cabo.id, tubo.id)}
                             >
-                              <div 
-                                className="w-3 h-3 rounded-full mr-2" 
+                              <div
+                                className="w-3 h-3 rounded-full mr-2"
                                 style={{ backgroundColor: getTuboCor(tubo.numero) }}
                               />
                               <span className="text-xs">Tubo {tubo.numero}</span>
                               <Badge variant="outline" className="ml-2 text-xs">
-                                {tubo.fibras.length} fibras
+                                {tubo?.capilares?.length} fibras
                               </Badge>
                               <span className="ml-auto">
                                 {expandedTubos[`${cabo.id}-${tubo.id}`] ? '▼' : '▶'}
                               </span>
                             </div>
-                            
+
                             {expandedTubos[`${cabo.id}-${tubo.id}`] && (
                               <div className="grid grid-cols-6 gap-1 mt-2">
-                                {tubo.fibras.map(fibra => {
+                                {tubo?.capilares?.sort((a, b) => a.numero - b.numero).map(fibra => {
                                   const conectada = isFibraConectada(fibra.id);
                                   const fusaoCor = getFusaoCor(fibra.id);
                                   const selecionada = fibraSelecionada === fibra.id;
-                                  
+
                                   return (
-                                    <Button 
-                                      key={fibra.id} 
+                                    <Button
+                                      key={fibra.id}
                                       variant={selecionada ? "default" : "ghost"}
                                       size="sm"
                                       className={`flex flex-col items-center p-1 rounded h-auto ${conectada ? 'bg-gray-100' : ''} ${selecionada ? 'ring-2 ring-primary' : ''}`}
                                       onClick={() => selecionarFibra(fibra.id)}
                                     >
-                                      <div 
-                                        className="w-4 h-4 rounded-full mb-1" 
-                                        style={{ backgroundColor: getFibraCor(fibra.numero) }}
+                                      <div
+                                        className="w-4 h-4 rounded-full mb-1"
+                                        style={{ backgroundColor: getColor(fibra.numero) }}
                                       />
                                       <span className="text-xs">{fibra.numero}</span>
                                       {conectada && (
-                                        <div 
-                                          className="w-2 h-2 rounded-full mt-1" 
+                                        <div
+                                          className="w-2 h-2 rounded-full mt-1"
                                           style={{ backgroundColor: fusaoCor }}
                                         />
                                       )}
                                     </Button>
                                   );
-                                })}
+                                })
+                                }
                               </div>
                             )}
                           </div>
@@ -315,7 +313,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
               </div>
             </div>
           )}
-          
+
           {/* Seção de Splitters */}
           {splitters.length > 0 && (
             <div className="mt-4">
@@ -330,11 +328,11 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                           {splitter.balanceado ? 'Balanceado' : 'Desbalanceado'}
                         </Badge>
                       </div>
-                      
+
                       <div className="grid grid-cols-2 gap-2 mt-3">
                         <div className="border rounded-sm p-2">
                           <div className="text-xs font-medium mb-1">Entrada</div>
-                          <Button 
+                          <Button
                             variant="ghost"
                             size="sm"
                             className={`flex items-center w-full justify-start p-1 ${modoSelecao ? 'hover:bg-gray-100 cursor-pointer' : 'cursor-default'}`}
@@ -348,26 +346,26 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                             )}
                           </Button>
                         </div>
-                        
+
                         <div className="border rounded-sm p-2">
                           <div className="text-xs font-medium mb-1">Saídas ({splitter.portasSaida.length})</div>
                           <div className="grid grid-cols-4 gap-1">
                             {splitter.portasSaida.map((porta, index) => {
                               const conectada = fusoes.some(fusao => fusao.fibraDestino === porta);
-                              const fusaoCor = conectada 
-                                ? fusoes.find(fusao => fusao.fibraDestino === porta)?.cor 
+                              const fusaoCor = conectada
+                                ? fusoes.find(fusao => fusao.fibraDestino === porta)?.cor
                                 : '#CCCCCC';
-                              
+
                               return (
-                                <Button 
-                                  key={porta} 
+                                <Button
+                                  key={porta}
                                   variant="ghost"
                                   size="sm"
                                   className={`flex flex-col items-center p-1 h-auto ${modoSelecao ? 'hover:bg-gray-100' : ''}`}
                                   disabled={!modoSelecao || conectada}
                                   onClick={() => associarFibraASplitter(splitter.id, porta)}
                                 >
-                                  <div 
+                                  <div
                                     className={`w-3 h-3 rounded-full ${conectada ? 'ring-1 ring-offset-1' : ''}`}
                                     style={{ backgroundColor: conectada ? fusaoCor : '#CCCCCC' }}
                                   />
@@ -384,7 +382,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
               </div>
             </div>
           )}
-          
+
           {/* Seção de Fusões */}
           {fusoes.length > 0 && (
             <div className="mt-4">
@@ -394,24 +392,24 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                   // Encontrar os detalhes da fibra de origem
                   let origemInfo = "Desconhecida";
                   let destinoInfo = "Desconhecida";
-                  
+
                   // Busca informações da origem (fibra)
                   for (const cabo of cabos) {
                     for (const tubo of cabo.tubos) {
-                      const fibra = tubo.fibras.find(f => f.id === fusao.fibraOrigem);
+                      const fibra = tubo?.capilares?.find(f => f.id === fusao.fibraOrigem);
                       if (fibra) {
                         origemInfo = `${cabo.nome} - Tubo ${tubo.numero} - Fibra ${fibra.numero}`;
                         break;
                       }
                     }
                   }
-                  
+
                   // Busca informações do destino (pode ser fibra ou porta de splitter)
                   // Primeiro verifica se é uma fibra
                   let destinoEncontrado = false;
                   for (const cabo of cabos) {
                     for (const tubo of cabo.tubos) {
-                      const fibra = tubo.fibras.find(f => f.id === fusao.fibraDestino);
+                      const fibra = tubo?.capilares?.find(f => f.id === fusao.fibraDestino);
                       if (fibra) {
                         destinoInfo = `${cabo.nome} - Tubo ${tubo.numero} - Fibra ${fibra.numero}`;
                         destinoEncontrado = true;
@@ -420,7 +418,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                     }
                     if (destinoEncontrado) break;
                   }
-                  
+
                   // Se não for fibra, verifica se é porta de splitter
                   if (!destinoEncontrado) {
                     for (const splitter of splitters) {
@@ -428,7 +426,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                         destinoInfo = `Splitter ${splitter.tipo} - Entrada`;
                         break;
                       }
-                      
+
                       const portaIndex = splitter.portasSaida.findIndex(p => p === fusao.fibraDestino);
                       if (portaIndex >= 0) {
                         destinoInfo = `Splitter ${splitter.tipo} - Saída ${portaIndex + 1}`;
@@ -436,14 +434,14 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                       }
                     }
                   }
-                  
+
                   return (
-                    <div 
-                      key={fusao.id} 
+                    <div
+                      key={fusao.id}
                       className="flex items-center p-2 border rounded-sm"
                     >
-                      <div 
-                        className="w-3 h-3 rounded-full mr-2" 
+                      <div
+                        className="w-3 h-3 rounded-full mr-2"
                         style={{ backgroundColor: fusao.cor }}
                       />
                       <div className="text-xs">
