@@ -217,6 +217,47 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       data: dadosAtualizacao,
     });
 
+    // Se o tipoCabo foi alterado, recria tubos e capilares conforme o novo tipo
+    if (tipoCabo !== undefined) {
+      // Remove tubos e capilares antigos
+      const tubosAntigos = await prisma.tubo.findMany({ where: { rotaId: id } });
+      for (const tubo of tubosAntigos) {
+        await prisma.capilar.deleteMany({ where: { tuboId: tubo.id } });
+      }
+      await prisma.tubo.deleteMany({ where: { rotaId: id } });
+      // Cria novos tubos e capilares
+      const tipoCaboNum = parseInt(tipoCabo);
+      let numTubos = 1;
+      if (tipoCaboNum === 24) numTubos = 2;
+      else if (tipoCaboNum === 36) numTubos = 3;
+      else if (tipoCaboNum === 48) numTubos = 4;
+      else if (tipoCaboNum === 96) numTubos = 8;
+      else if (tipoCaboNum === 144) numTubos = 12;
+      for (let t = 1; t <= numTubos; t++) {
+        const tubo = await prisma.tubo.create({
+          data: {
+            numero: t,
+            tipo: '12',
+            quantidadeCapilares: 12,
+            rotaId: id
+          }
+        });
+        for (let c = 1; c <= 12; c++) {
+          await prisma.capilar.create({
+            data: {
+              numero: c,
+              tipo: tipoCabo,
+              comprimento: distancia || 0,
+              status: 'Ativo',
+              potencia: 0,
+              tuboId: tubo.id,
+              cidadeId: cidadeId || rotaAtualizada.cidadeId
+            }
+          });
+        }
+      }
+    }
+
     // Registra a ação no log de auditoria
     if (token) {
       await registrarLog({

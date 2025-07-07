@@ -159,8 +159,6 @@ export async function POST(req: NextRequest) {
       cidadeId
     } = result.data;
 
-    console.log(tipoCabo)
-
     // Verifica se a cidade existe
     const cidade = await prisma.cidade.findUnique({
       where: { id: cidadeId },
@@ -207,35 +205,41 @@ export async function POST(req: NextRequest) {
         coordenadas,
         cor,
         observacoes,
-        cidadeId,
-        tubos: {
-          create: [{
-            tipo: tipoCabo,
-            numero: 1,
-            quantidadeCapilares: parseInt(tipoCabo) || 0
-          }]
-        }
-      },
-      include: { tubos: true }
+        cidadeId
+      }
     });
 
-    // Cria os capilares automaticamente para o tubo criado
-    const tubo = novaRota.tubos[0];
-    const quantidadeDeCapilares = tubo.quantidadeCapilares;
-    if (quantidadeDeCapilares > 0) {
-      const capilaresData = [];
-      for (let i = 1; i <= quantidadeDeCapilares; i++) {
-        capilaresData.push({
-          numero: i,
-          tipo: tipoCabo,
-          comprimento: distancia || 0,
-          status: "Ativo",
-          potencia: 0,
-          tuboId: tubo.id,
-          cidadeId: cidadeId
+    // Lógica para criar tubos e capilares conforme o tipo de cabo
+    const tipoCaboNum = parseInt(tipoCabo);
+    let numTubos = 1;
+    if (tipoCaboNum === 24) numTubos = 2;
+    else if (tipoCaboNum === 36) numTubos = 3;
+    else if (tipoCaboNum === 48) numTubos = 4;
+    else if (tipoCaboNum === 96) numTubos = 8;
+    else if (tipoCaboNum === 144) numTubos = 12;
+    for (let t = 1; t <= numTubos; t++) {
+      const tubo = await prisma.tubo.create({
+        data: {
+          numero: t,
+          tipo: '12',
+          quantidadeCapilares: 12,
+          rotaId: novaRota.id
+        }
+      });
+      // Cria 12 capilares para cada tubo
+      for (let c = 1; c <= 12; c++) {
+        await prisma.capilar.create({
+          data: {
+            numero: c,
+            tipo: tipoCabo,
+            comprimento: distancia || 0,
+            status: 'Ativo',
+            potencia: 0,
+            tuboId: tubo.id,
+            cidadeId: cidadeId
+          }
         });
       }
-      await prisma.capilar.createMany({ data: capilaresData });
     }
 
     // Registra a ação no log de auditoria
@@ -246,7 +250,7 @@ export async function POST(req: NextRequest) {
         acao: "Criação",
         entidade: "Rota",
         entidadeId: novaRota.id,
-        detalhes: { nome, cidadeId, quantidadeCapilares: quantidadeDeCapilares },
+        detalhes: { nome, cidadeId, quantidadeCapilares: tipoCaboNum },
       });
     }
 

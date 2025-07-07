@@ -557,6 +557,44 @@ export async function POST(req: NextRequest) {
               ordem: 1
             }
           });
+
+          // Busca a rota para saber o tipoCabo
+          const rotaDb = await prisma.rota.findUnique({ where: { id: rota.id } });
+          if (rotaDb && rotaDb.tipoCabo) {
+            const tipoCabo = parseInt(rotaDb.tipoCabo);
+            let numTubos = 0;
+            if (tipoCabo === 24) numTubos = 2;
+            else if (tipoCabo === 36) numTubos = 3;
+            else if (tipoCabo === 48) numTubos = 4;
+            else if (tipoCabo === 96) numTubos = 8;
+            else if (tipoCabo === 144) numTubos = 12;
+            else numTubos = 1;
+            const tubosCriados = [];
+            for (let t = 1; t <= numTubos; t++) {
+              const tubo = await prisma.tubo.create({
+                data: {
+                  numero: t,
+                  tipo: '12',
+                  quantidadeCapilares: 12,
+                  rotaId: rota.id
+                }
+              });
+              tubosCriados.push(tubo);
+              // Cria 12 capilares para cada tubo
+              for (let c = 1; c <= 12; c++) {
+                await prisma.capilar.create({
+                  data: {
+                    numero: c,
+                    tipo: 'fibra',
+                    comprimento: 0,
+                    status: 'disponível',
+                    potencia: 0,
+                    tuboId: tubo.id
+                  }
+                });
+              }
+            }
+          }
         }
       }
     }
