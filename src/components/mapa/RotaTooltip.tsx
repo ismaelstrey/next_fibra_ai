@@ -20,28 +20,28 @@ export const RotaTooltip: React.FC<RotaTooltipProps> = ({ rota, position, visibl
   // Calcula a distância total da rota
   const calcularDistancia = (path: { lat: number; lng: number }[]) => {
     if (path.length < 2) return 0;
-    
+
     let distanciaTotal = 0;
     for (let i = 0; i < path.length - 1; i++) {
       const p1 = path[i];
       const p2 = path[i + 1];
-      
+
       // Fórmula de Haversine para calcular distância entre dois pontos
       const R = 6371000; // Raio da Terra em metros
       const dLat = (p2.lat - p1.lat) * Math.PI / 180;
       const dLng = (p2.lng - p1.lng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       distanciaTotal += R * c;
     }
-    
+
     return Math.round(distanciaTotal);
   };
 
   const distancia = rota.distancia || calcularDistancia(rota.path);
-  const distanciaFormatada = distancia > 1000 
+  const distanciaFormatada = distancia > 1000
     ? `${(distancia / 1000).toFixed(2)} km`
     : `${distancia} m`;
 
@@ -56,7 +56,7 @@ export const RotaTooltip: React.FC<RotaTooltipProps> = ({ rota, position, visibl
     >
       <Card className="w-80 shadow-lg border-2 bg-background/95 backdrop-blur-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+          <CardTitle className="text-sm text-white font-semibold flex items-center gap-2">
             <CableIcon className="h-4 w-4" />
             {rota.nome}
           </CardTitle>

@@ -32,6 +32,7 @@ const GoogleMapsComponent = ({
   // Estado para o centro do mapa
   const [mapCenter, setMapCenter] = useState(defaultCenter);
 
+
   // Estado para controlar o modal de detalhes do marcador
   const [detalhesModalAberto, setDetalhesModalAberto] = useState(false);
   const [marcadorSelecionado, setMarcadorSelecionado] = useState<Caixa | null>(null);
@@ -39,13 +40,13 @@ const GoogleMapsComponent = ({
   // Estado para controlar o modal de fusões
   const [fusoesModalAberto, setFusoesModalAberto] = useState(false);
   const [rotasDivididas, setRotasDivididas] = useState<{ rota1: Rota; rota2: Rota; caixaConexao: Caixa } | null>(null);
-  
+
   // Estados para controlar tooltip e modal da rota
   const [hoveredRota, setHoveredRota] = useState<Rota | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   const [selectedRota, setSelectedRota] = useState<Rota | null>(null);
   const [isRotaModalOpen, setIsRotaModalOpen] = useState(false);
-  console.log(rotasDivididas)
+  // console.log(rotasDivididas)
   // Função para lidar com o carregamento do mapa
   const handleMapLoaded = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
@@ -71,11 +72,13 @@ const GoogleMapsComponent = ({
   }, []);
 
   const handleRotaClick = useCallback((rota: Rota) => {
+
     setSelectedRota(rota);
     setIsRotaModalOpen(true);
     // Esconder tooltip ao abrir modal
     setHoveredRota(null);
     setTooltipPosition(null);
+
   }, []);
 
   // Adiciona um listener para o evento personalizado 'marcador-clicado'
@@ -283,20 +286,20 @@ const GoogleMapsComponent = ({
       {/* Os marcadores avançados são criados e gerenciados diretamente nos hooks */}
 
       {/* Tooltip da rota */}
-       {hoveredRota && tooltipPosition && (
-         <RotaTooltip
-           rota={hoveredRota}
-           position={tooltipPosition}
-           visible={true}
-         />
-       )}
+      {hoveredRota && tooltipPosition && (
+        <RotaTooltip
+          rota={hoveredRota}
+          position={tooltipPosition}
+          visible={true}
+        />
+      )}
 
       {/* Modal de detalhes da rota */}
-       <DetalhesRotaModal
-         aberto={isRotaModalOpen}
-         aoFechar={() => setIsRotaModalOpen(false)}
-         rota={selectedRota}
-       />
+      <DetalhesRotaModal
+        aberto={isRotaModalOpen}
+        aoFechar={() => setIsRotaModalOpen(false)}
+        rota={selectedRota}
+      />
 
       {/* Modal para adicionar CTO ou CEO */}
       {/* -      {posicaoClicada && (

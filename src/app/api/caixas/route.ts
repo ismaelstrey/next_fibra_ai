@@ -92,51 +92,51 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   console.log('Rota 2 criada:', rota2.id, rota2.nome);
 
   // Cria tubos para cada nova rota
-  // Criação dos tubos para cada nova rota
-  // O campo 'numero' deve ser sequencial e 'quantidadeCapilares' igual ao número de capilares criados
-  const tubo1 = await prisma.tubo.create({
-    data: {
-      numero: 1, // ou lógica para determinar o próximo número sequencial
-      tipo: totalCapilares.toString(),
-
-      quantidadeCapilares: totalCapilares,
-      rotaId: rota1.id,
-    },
-  });
-  const tubo2 = await prisma.tubo.create({
-    data: {
-      numero: 1, // ou lógica para determinar o próximo número sequencial
-      tipo: totalCapilares.toString(),
-      quantidadeCapilares: totalCapilares,
-      rotaId: rota2.id,
-    },
-  });
-
-  // Cria capilares para cada tubo
-  for (let i = 1; i <= totalCapilares; i++) {
-    await prisma.capilar.create({
-      data: {
-        numero: i,
-        tipo: 'fibra',
-        comprimento: distancia1,
-        status: 'disponível',
-        potencia: 0,
-        tuboId: tubo1.id
-      }
-    });
+  // Cria tubos e capilares para cada nova rota conforme a quantidade de fibras
+  function criarTubosECapilares(rotaId: string, distancia: number, tipoCabo: number) {
+    let numTubos = 1;
+    if (tipoCabo === 24) numTubos = 2;
+    else if (tipoCabo === 36) numTubos = 3;
+    else if (tipoCabo === 48) numTubos = 4;
+    else if (tipoCabo === 96) numTubos = 8;
+    else if (tipoCabo === 144) numTubos = 12;
+    const promises: Promise<any>[] = [];
+    for (let t = 1; t <= numTubos; t++) {
+      promises.push(
+        prisma.tubo.create({
+          data: {
+            numero: t,
+            tipo: '12',
+            quantidadeCapilares: 12,
+            rotaId: rotaId
+          }
+        }).then(tubo => {
+          const capilaresPromises = [];
+          for (let c = 1; c <= 12; c++) {
+            capilaresPromises.push(
+              prisma.capilar.create({
+                data: {
+                  numero: c,
+                  tipo: 'fibra',
+                  comprimento: distancia,
+                  status: 'disponível',
+                  potencia: 0,
+                  tuboId: tubo.id
+                }
+              })
+            );
+          }
+          return Promise.all(capilaresPromises);
+        })
+      );
+    }
+    return Promise.all(promises);
   }
-  for (let i = 1; i <= totalCapilares; i++) {
-    await prisma.capilar.create({
-      data: {
-        numero: i,
-        tipo: 'fibra',
-        comprimento: distancia2,
-        status: 'disponível',
-        potencia: 0,
-        tuboId: tubo2.id
-      }
-    });
-  }
+
+  // Determina o tipo de cabo (quantidade de fibras)
+  const tipoCaboNum = totalCapilares;
+  await criarTubosECapilares(rota1.id, distancia1, tipoCaboNum);
+  await criarTubosECapilares(rota2.id, distancia2, tipoCaboNum);
   console.log('Tubos e capilares criados para as novas rotas');
 
   // Associa a nova CTO às duas rotas criadas
@@ -431,7 +431,7 @@ export async function POST(req: NextRequest) {
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
-    console.log(body)
+    // console.log(body)
 
     // Valida os dados com o esquema Zod
     const result = caixaSchema.safeParse(body);
@@ -543,7 +543,7 @@ export async function POST(req: NextRequest) {
               }
             }
           });
-          console.log(rotaCompleta)
+          console.log({ rotaCompleta })
           if (rotaCompleta) {
             await implementarDivisaoRota(rotaCompleta, novaCaixa, coordenadas);
           }
@@ -561,7 +561,9 @@ export async function POST(req: NextRequest) {
           // Busca a rota para saber o tipoCabo
           const rotaDb = await prisma.rota.findUnique({ where: { id: rota.id } });
           if (rotaDb && rotaDb.tipoCabo) {
+
             const tipoCabo = parseInt(rotaDb.tipoCabo);
+            console.log({ tipocabo: tipoCabo })
             let numTubos = 0;
             if (tipoCabo === 24) numTubos = 2;
             else if (tipoCabo === 36) numTubos = 3;

@@ -10,11 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  CableIcon, 
-  RulerIcon, 
-  MapPinIcon, 
-  InfoIcon, 
+import {
+  CableIcon,
+  RulerIcon,
+  MapPinIcon,
+  InfoIcon,
   CalendarIcon,
   FactoryIcon,
   LayersIcon,
@@ -30,38 +30,38 @@ interface DetalhesRotaModalProps {
 /**
  * Modal para exibir detalhes completos da rota
  */
-export const DetalhesRotaModal: React.FC<DetalhesRotaModalProps> = ({ 
-  rota, 
-  aberto, 
-  aoFechar 
+export const DetalhesRotaModal: React.FC<DetalhesRotaModalProps> = ({
+  rota,
+  aberto,
+  aoFechar
 }) => {
   if (!rota) return null;
 
   // Calcula a distância total da rota
   const calcularDistancia = (path: { lat: number; lng: number }[]) => {
     if (path.length < 2) return 0;
-    
+
     let distanciaTotal = 0;
     for (let i = 0; i < path.length - 1; i++) {
       const p1 = path[i];
       const p2 = path[i + 1];
-      
+
       // Fórmula de Haversine para calcular distância entre dois pontos
       const R = 6371000; // Raio da Terra em metros
       const dLat = (p2.lat - p1.lat) * Math.PI / 180;
       const dLng = (p2.lng - p1.lng) * Math.PI / 180;
-      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
-                Math.sin(dLng/2) * Math.sin(dLng/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       distanciaTotal += R * c;
     }
-    
+
     return Math.round(distanciaTotal);
   };
 
   const distancia = rota.distancia || calcularDistancia(rota.path);
-  const distanciaFormatada = distancia > 1000 
+  const distanciaFormatada = distancia > 1000
     ? `${(distancia / 1000).toFixed(2)} km`
     : `${distancia} m`;
 
@@ -79,14 +79,14 @@ export const DetalhesRotaModal: React.FC<DetalhesRotaModalProps> = ({
 
   return (
     <Dialog open={aberto} onOpenChange={aoFechar}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
+      <DialogContent className="max-w-2xl text-foreground max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CableIcon className="h-5 w-5" />
             Detalhes da Rota: {rota.nome}
           </DialogTitle>
         </DialogHeader>
-        
+
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="space-y-6">
             {/* Informações Básicas */}
@@ -108,7 +108,7 @@ export const DetalhesRotaModal: React.FC<DetalhesRotaModalProps> = ({
                     <p className="text-xs font-mono bg-muted p-1 rounded">{rota.id}</p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
@@ -171,7 +171,7 @@ export const DetalhesRotaModal: React.FC<DetalhesRotaModalProps> = ({
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-muted-foreground">Cor da Rota</label>
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-4 h-4 rounded border"
                         style={{ backgroundColor: rota.cor }}
                       />
