@@ -26,14 +26,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     const capilar = await prisma.capilar.findUnique({
       where: { id },
       include: {
-        rota: {
-          select: {
-            id: true,
-            nome: true,
-            tipoCabo: true,
-            fabricante: true,
-          },
-        },
+
         saidas: {
           include: {
             capilarEntrada: true,
@@ -44,12 +37,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
             capilarSaida: true,
           },
         },
-        spliter_saida: {
-          include: {
-            caixa: true,
-            capilarEntrada: true,
-          },
-        },
+
         spliter_entrada: {
           include: {
             caixa: true,
@@ -60,7 +48,6 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
           select: {
             saidas: true,
             entradas: true,
-            spliter_saida: true,
             spliter_entrada: true,
           },
         },
@@ -188,7 +175,6 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
           select: {
             saidas: true,
             entradas: true,
-            spliter_saida: true,
             spliter_entrada: true,
           },
         },
@@ -206,7 +192,6 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     if (
       capilar._count.saidas > 0 ||
       capilar._count.entradas > 0 ||
-      capilar._count.spliter_saida > 0 ||
       capilar._count.spliter_entrada > 0
     ) {
       return NextResponse.json(

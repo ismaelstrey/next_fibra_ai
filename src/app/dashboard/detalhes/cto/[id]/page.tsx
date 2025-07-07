@@ -27,7 +27,6 @@ export default function ExemploCTOPage() {
   const [portaSelecionada, setPortaSelecionada] = useState<number | null>(null)
   const [mostrarModalStatus, setMostrarModalStatus] = useState(false)
   const [clientes, setClientes] = useState<ClienteAPI[]>([])
-  const [portas, setPortas] = useState<PortaAPI[]>([])
 
 
   const { criarSpliter } = useSpliter()
@@ -183,7 +182,7 @@ export default function ExemploCTOPage() {
     }
   };
   // const portasLivres = cto?.portas?.filter((item) => item.status === 'Disponivel').map((item) => item.numero) || []
-  console.log(cto)
+  // console.log(cto)
 
   return (
     <div className="container mx-auto py-8">

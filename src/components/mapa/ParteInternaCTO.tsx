@@ -9,6 +9,7 @@ import { ConexaoRota } from '@/types/caixa';
 import { useCapilar } from '@/hooks/useCapilar';
 import { CapilarAPI } from '@/types/capilar';
 import { getColor } from '@/functions/color';
+import { TuboAPI, useTubo } from '@/hooks/useTubo';
 
 interface ParteInternaCTOProps {
     /**
@@ -33,18 +34,20 @@ interface PropsCapilar extends CapilarAPI {
  */
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
     const [capilar, setCapilar] = useState<PropsCapilar[]>([]);
+    const [tubos, setTubos] = useState<TuboAPI[]>([]);
     const { buscarCapilarPorRota } = useCapilar()
-    async function busacaCapilar() {
+    const { buscarPorRotaId } = useTubo()
+    async function buscaCapilar() {
         const capilar = await buscarCapilarPorRota(cabosAS[0].rota.id)
         const geraCapilar = capilar.data.capilares.map((c) => ({ ...c, cor: getColor(c.numero) }))
         capilar && setCapilar(geraCapilar)
 
-
-        console.log(geraCapilar)
+        const tubo = await buscarPorRotaId(cabosAS[0].rota.id)
+        console.log(tubo)
     }
 
     useEffect(() => {
-        busacaCapilar()
+        buscaCapilar()
     }, [])
     return (
         <>
