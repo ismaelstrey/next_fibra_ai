@@ -156,8 +156,8 @@ model Bandeja {
 
 model Fusao {
   id           String   @id @default(cuid())
-  fibraOrigem  Int
-  fibraDestino Int
+  origem  String
+  destino String
   tuboOrigem   String?
   tuboDestino  String?
   status       String
@@ -171,6 +171,8 @@ model Fusao {
   bandeja      Bandeja? @relation(fields: [bandejaId], references: [id])
   caixa        Caixa    @relation(fields: [caixaId], references: [id])
   rotaOrigem   Rota     @relation(fields: [rotaOrigemId], references: [id])
+  fibraOrigem Capilar[] @relation("fusao_origem")
+  fibraDestino Capilar[] @relation("fusao_destino")
 }
 
 model Manutencao {
@@ -428,6 +430,9 @@ model Capilar {
   spliter         Spliter?     @relation(fields: [spliterId], references: [id])
   tuboId          String?
   tubo            Tubo?        @relation(fields: [tuboId], references: [id])
+  fusao_origem           Fusao[] @relation("fusao_origem")
+  fusao_destino           Fusao[] @relation("fusao_destino")
+
 }
 
 model Emenda {

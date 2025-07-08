@@ -1,12 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { SpliterType } from '@/types/fibra';
 import { PortaAPI } from '@/types/porta';
+import { useSpliter } from '@/hooks/useSpliter';
+import { SpliterAPI } from '@/types/spliter';
 
 interface ConfiguracoesCTOProps {
   /**
@@ -45,7 +47,8 @@ interface ConfiguracoesCTOProps {
   /**
    * Função para remover o último splitter adicionado
    */
-  removerSplitter: () => void;
+  removerSplitter: (id: string) => void;
+  ctoId: string;
 
   /**
    * Array com os IDs dos cabos AS ativos
@@ -72,12 +75,14 @@ export function ConfiguracoesCTO({
   adicionarSplitter,
   removerSplitter,
   cabosAtivos,
-  alternarCabo
+  alternarCabo, ctoId
 }: ConfiguracoesCTOProps) {
+
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Configurações da CTO</CardTitle>
+        <CardTitle>Configurações da CTO {ctoId}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
@@ -118,7 +123,7 @@ export function ConfiguracoesCTO({
             <Button
               size="sm"
               variant="outline"
-              onClick={removerSplitter}
+              onClick={() => removerSplitter(splitters[0].id)}
               disabled={splitters.length === 0}
             >
               - Remover

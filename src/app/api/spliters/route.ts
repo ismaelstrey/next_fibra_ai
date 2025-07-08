@@ -28,8 +28,8 @@ export async function GET(req: NextRequest) {
     const caixaId = searchParams.get("caixaId");
     const capilarSaidaId = searchParams.get("capilarSaidaId");
     const capilarEntradaId = searchParams.get("capilarEntradaId");
-    const atendimento = searchParams.get("atendimento") === "true" ? true : 
-                       searchParams.get("atendimento") === "false" ? false : undefined;
+    const atendimento = searchParams.get("atendimento") === "true" ? true :
+      searchParams.get("atendimento") === "false" ? false : undefined;
 
     // Calcula o offset para paginação
     const skip = (pagina - 1) * limite;
@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
           tipo: true,
           caixaId: true,
           capilarEntradaId: true,
+
           caixa: {
             select: {
               id: true,
@@ -117,6 +118,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       spliters,
+
       paginacao: {
         total,
         pagina,
@@ -184,7 +186,7 @@ export async function POST(req: NextRequest) {
     ]);
 
 
-  
+
     // if (!capilarSaida) {
     //   return NextResponse.json(
     //     { erro: "Capilar de saída não encontrado" },
@@ -205,28 +207,50 @@ export async function POST(req: NextRequest) {
         nome,
         atendimento,
         tipo,
-        caixaId,
-        capilarEntradaId,
+        caixaId
       },
     });
 
-if(novoSpliter){
-  if(tipo === "1/8"){
-    for (let i = 0; i < 8; i++) {
-       await prisma.capilar.create({
-        data: {
-         comprimento:1,
-         numero: i,
-         potencia:0,
-         status: "Livre",
-         tipo: "spliter:saida",
-         spliterId:novoSpliter.id
-        },
-      });
+    if (novoSpliter) {
+      const totalSaida = Number(tipo.split("/")[1]) + 1
+      if (totalSaida) {
+        for (let i = 1; i < totalSaida; i++) {
+          await prisma.capilar.create({
+            data: {
+              comprimento: 1,
+              numero: i,
+              potencia: 0,
+              status: "Livre",
+              tipo: "spliter:saida",
+              spliterId: novoSpliter.id
+            },
+          });
+
+        }
+        const capilarDeEntrada = await prisma.capilar.create({
+          data: {
+            comprimento: 1,
+            numero: 20,
+            potencia: 0,
+            status: "Livre",
+            tipo: "spliter:entrada",
+            spliterId: novoSpliter.id,
+
+          },
+        });
+
+        if (capilarDeEntrada) {
+          await prisma.spliter.update({
+            where: {
+              id: novoSpliter.id
+            }, data: {
+              capilarEntradaId: capilarDeEntrada.id
+            }
+          })
+        }
+      }
     }
-  }
-}
-    
+
 
     // Registra a ação no log de auditoria
     const token = await verificarAutenticacao(req);

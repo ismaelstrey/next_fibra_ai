@@ -21,11 +21,11 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
     }
 
     const { id } = params;
-const capilares = prisma.capilar.findMany({
-  where:{
-    spliterId:id, 
-  }
-})
+    const capilares = prisma.capilar.findMany({
+      where: {
+        spliterId: id,
+      }
+    })
     // Busca o spliter com todas as informações relacionadas
     const spliter = await prisma.spliter.findUnique({
       where: { id },
@@ -65,14 +65,8 @@ const capilares = prisma.capilar.findMany({
             tipo: true,
             comprimento: true,
             status: true,
-            potencia: true,
-            rota: {
-              select: {
-                id: true,
-                nome: true,
-                tipoCabo: true,
-              },
-            },
+            potencia: true
+
           },
         },
         capilarEntrada: {
@@ -83,13 +77,6 @@ const capilares = prisma.capilar.findMany({
             comprimento: true,
             status: true,
             potencia: true,
-            rota: {
-              select: {
-                id: true,
-                nome: true,
-                tipoCabo: true,
-              },
-            },
           },
         },
       },
@@ -102,7 +89,7 @@ const capilares = prisma.capilar.findMany({
       );
     }
 
-    return NextResponse.json({spliter,capilares});
+    return NextResponse.json({ spliter, capilares });
   } catch (error) {
     return tratarErro(error);
   }
@@ -248,11 +235,19 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         { status: 404 }
       );
     }
+    const deleteCapilares = await prisma.capilar.deleteMany({
+      where: {
+        spliterId: id
 
-    // Exclui o spliter
-    await prisma.spliter.delete({
-      where: { id },
-    });
+      }
+    })
+    if (deleteCapilares) {
+      // Exclui o spliter
+      await prisma.spliter.delete({
+        where: { id },
+      });
+    }
+
 
     // Registra a ação no log de auditoria
     const token = await verificarAutenticacao(req);

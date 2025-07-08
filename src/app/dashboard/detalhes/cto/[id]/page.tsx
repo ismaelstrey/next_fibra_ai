@@ -6,14 +6,12 @@ import { usePathname } from 'next/navigation';
 import { useSpliter } from '@/hooks/useSpliter';
 import useCaixa from '@/hooks/useCaixa';
 import { CTO } from '@/components/mapa/CTO';
-import { useCapilar } from '@/hooks/useCapilar';
 import { usePorta } from '@/hooks/usePorta';
 import { SpliterType } from '@/types/fibra';
 import { CaixaAPI } from '@/types/caixa';
 import { ModalStatusPorta } from '@/components/mapa/ModalStatusPorta';
 import { useClient } from '@/hooks/useClient';
 import { ClienteAPI } from '@/types/cliente';
-import { PortaAPI } from '@/types/porta';
 
 /**
  * Página de exemplo para demonstrar o componente CTO
@@ -28,9 +26,7 @@ export default function ExemploCTOPage() {
   const [mostrarModalStatus, setMostrarModalStatus] = useState(false)
   const [clientes, setClientes] = useState<ClienteAPI[]>([])
 
-
-  const { criarSpliter } = useSpliter()
-  const { obterCapilarPorCaixa } = useCapilar()
+  const { criarSpliter, excluirSpliter } = useSpliter()
   const { buscarClientesPorCto } = useClient()
 
   const path = usePathname();
@@ -63,8 +59,6 @@ export default function ExemploCTOPage() {
   useEffect(() => {
     buscarClientesPorCto(id).then((cliente) => setClientes(cliente.data.clientes))
     loadCaixa()
-    const capilares = obterCapilarPorCaixa(id)
-
     // console.log({ capilares, clientes })
 
   }, [])
@@ -100,22 +94,31 @@ export default function ExemploCTOPage() {
 
 
   // Adiciona um splitter
-  const adicionarSplitter = (tipo: '1/8' | '1/16' | '1/2') => {
+  const adicionarSplitter = async (tipo: '1/8' | '1/16' | '1/2') => {
     if (splitters.length < 2) {
-      criarSpliter({
-        atendimento: true,
-        tipo,
-        caixaId: cto?.id || '',
-        nome: "Spliter" + cto?.nome,
-      })
+      try {
+        await criarSpliter({
+
+          atendimento: true,
+          tipo,
+          caixaId: cto?.id || '',
+          nome: "Spliter" + cto?.nome,
+        })
+        await loadCaixa()
+      } catch (error) {
+        console.error('Erro ao criar splitter:', error)
+      }
 
     }
   };
 
   // Remove um splitter
-  const removerSplitter = () => {
-    if (splitters.length > 0) {
-      setSplitters(splitters.slice(0, -1));
+  const removerSplitter = async (id: string) => {
+    try {
+      await excluirSpliter(id)
+      await loadCaixa()
+    } catch (error) {
+      console.error('Erro ao remover splitter:', error)
     }
   };
 
@@ -192,6 +195,7 @@ export default function ExemploCTOPage() {
         <div>
           <ConfiguracoesCTO
             portas={cto?.portas}
+            ctoId={cto?.id || ''}
             capacidade={cto?.capacidade as 8 | 16 || capacidade}
             setCapacidade={setCapacidade}
             portasAtivas={portasAtivas}
@@ -214,6 +218,7 @@ export default function ExemploCTOPage() {
             splitters={splitters}
             cabosAS={cto?.rotaCaixas}
             observacoes={cto?.observacoes || "Sem observações"}
+            removerSplitter={removerSplitter}
           />
         </div>
       </div>

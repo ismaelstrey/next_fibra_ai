@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,8 @@ import { ParteInternaCTO } from './ParteInternaCTO';
 import { SpliterType } from '@/types/fibra';
 import { ClienteAPI } from '@/types/cliente';
 import { ConexaoRota } from '@/types/caixa';
+import { useSpliter } from '@/hooks/useSpliter';
+import { SpliterAPI } from '@/types/spliter';
 
 interface Cliente {
     id: number;
@@ -66,6 +68,8 @@ interface CTOProps {
      */
     splitters?: SpliterType[];
 
+    removerSplitter: (id: string) => void;
+
     /**
      * Lista de cabos AS conectados
      */
@@ -89,6 +93,7 @@ export function CTO({
     clientes = [],
     splitters = [],
     cabosAS = [],
+    removerSplitter,
     observacoes
 }: CTOProps) {
     // Estado para controlar se a CTO está expandida ou não
@@ -96,7 +101,18 @@ export function CTO({
     const toggleExpandir = () => {
         setExpandida(!expandida);
     };
+    const { buscarSpliterPorCaixa } = useSpliter()
+    const [splitersPorcaixa, setSplitersPorcaixa] = useState<SpliterAPI[]>([])
+    const loadSpliter = async () => {
+        const spliters = await buscarSpliterPorCaixa(id)
+        setSplitersPorcaixa(spliters.data.spliters)
+    }
 
+    useEffect(() => {
+        loadSpliter()
+    }, [id])
+
+    console.log(splitersPorcaixa)
 
 
     return (
@@ -168,6 +184,8 @@ export function CTO({
                     {/* Conteúdo da aba "Parte Interna" */}
                     <TabsContent value="interna">
                         <ParteInternaCTO
+                            removerSplitter={removerSplitter}
+                            splitersPorcaixa={splitersPorcaixa}
                             splitters={splitters}
                             cabosAS={cabosAS}
                         />
