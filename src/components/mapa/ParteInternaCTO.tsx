@@ -23,8 +23,22 @@ interface ParteInternaCTOProps {
     cabosAS?: ConexaoRota[];
 }
 
-interface PropsCapilar extends CapilarAPI {
-    cor: string;
+
+
+// Interface para mapear os dados da API para o formato esperado pelo AreaFusao
+interface CaboFormatado {
+    id: string;
+    nome: string;
+    tipo: '6' | '12' | '24' | '48' | '96';
+    tubos: TuboAPI[];
+}
+
+interface SplitterFormatado {
+    id: string;
+    tipo: '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64';
+    balanceado: boolean;
+    portaEntrada: string;
+    portasSaida: string[];
 }
 
 
@@ -35,22 +49,79 @@ interface PropsCapilar extends CapilarAPI {
 export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
     const [capilar, setCapilar] = useState<CapilarAPI[]>([]);
     const [tubos, setTubos] = useState<TuboAPI[]>([]);
-    const { buscarCapilarPorRota } = useCapilar()
+    const [cabosFormatados, setCabosFormatados] = useState<CaboFormatado[]>([]);
+    const [splittersFormatados, setSplittersFormatados] = useState<SplitterFormatado[]>([]);
+    const {  buscarCapilarPorTubo } = useCapilar()
     const { buscarPorRotaId } = useTubo()
+    
     async function buscaCapilar() {
-        const capilar = await buscarCapilarPorRota(cabosAS[0].rota.id)
-        const geraCapilar = capilar.data.capilares.map((c) => ({ ...c, cor: getColor(c.numero) }))
-        capilar && setCapilar(geraCapilar)
+        if (cabosAS.length === 0) return;
 
-        const tubo = await buscarPorRotaId(cabosAS[0].rota.id)
-        setTubos(tubo || [])
+        try {
+            // Buscar dados para cada cabo AS conectado
+            const cabosPromises = cabosAS.map(async (caboAS) => {
+                // Primeiro buscar os tubos da rota
+                const tubosResponse = await buscarPorRotaId(caboAS.rota.id);
+                const tubosData = tubosResponse || [];
 
-        console.log(cabosAS)
+                // Para cada tubo, buscar seus capilares específicos
+                const tubosComCapilares = await Promise.all(
+                    tubosData.map(async (tubo) => {
+                        const capilaresResponse = await buscarCapilarPorTubo(tubo.id);
+                        const capilaresDoTubo = capilaresResponse?.data?.capilares || [];
+                        
+                        return {
+                            ...tubo,
+                            capilares: capilaresDoTubo
+                        };
+                    })
+                );
+
+                return {
+                    id: caboAS.rota.id,
+                    nome: caboAS.rota.nome,
+                    tipo: caboAS.rota.tipoCabo as '6' | '12' | '24' | '48' | '96',
+                    tubos: tubosComCapilares
+                };
+            });
+
+            const cabosData = await Promise.all(cabosPromises);
+            setCabosFormatados(cabosData);
+
+            // Definir capilares e tubos do primeiro cabo para compatibilidade
+            if (cabosData.length > 0) {
+                const primeiroTubo = cabosData[0].tubos;
+                setTubos(primeiroTubo);
+                
+                const todosCapilares = cabosData.flatMap(cabo => 
+                    cabo.tubos.flatMap(tubo => tubo.capilares || [])
+                );
+                setCapilar(todosCapilares);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar dados dos cabos:', error);
+        }
     }
+
+    // Formatar splitters para o formato esperado pelo AreaFusao
+    useEffect(() => {
+        const formatados = splitters.map((splitter, index) => {
+            const numPortas = splitter.tipo === '1/8' ? 8 : splitter.tipo === '1/16' ? 16 : 2;
+            
+            return {
+                id: splitter.id,
+                tipo: splitter.tipo as '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64',
+                balanceado: true, // Assumindo balanceado por padrão
+                portaEntrada: `entrada-${splitter.id}`,
+                portasSaida: Array.from({ length: numPortas }, (_, i) => `saida-${splitter.id}-${i + 1}`)
+            };
+        });
+        setSplittersFormatados(formatados);
+    }, [splitters]);
 
     useEffect(() => {
         buscaCapilar()
-    }, [])
+    }, [cabosAS]);
     return (
         <>
             <CardHeader className="border-b pb-4">
@@ -113,38 +184,22 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                     <div>
                         <h3 className="font-medium mb-2">Área de Fusões</h3>
                         <AreaFusao
-                            cabos={[
-                                // Exemplo de cabo para demonstração
-                                {
-                                    id: 'cabo-demo-1',
-                                    nome: 'Cabo AS-01',
-                                    tipo: '12',
-                                    tubos: tubos
-                                }
-                            ]}
-                            splitters={[
-                                // Exemplo de splitter para demonstração
-                                {
-                                    id: 'splitter-demo-1',
-                                    tipo: '1/8',
-                                    balanceado: true,
-                                    portaEntrada: 'entrada-demo-1',
-                                    portasSaida: Array.from({ length: 8 }, (_, i) => `saida-demo-${i + 1}`)
-                                }
-                            ]}
+                            cabos={cabosFormatados}
+                            splitters={splittersFormatados}
                             fusoes={[
-                                // Exemplo de fusão para demonstração
-                                {
-                                    id: 'fusao-demo-1',
-                                    fibraOrigem: 'fibra-demo-1',
-                                    fibraDestino: 'entrada-demo-1',
-                                    cor: '#FF0000'
-                                }
+                                // TODO: Implementar busca de fusões da API
+                                // Por enquanto, array vazio até implementar a funcionalidade
                             ]}
                             onCriarFusao={(novaFusao) => {
                                 console.log('Nova fusão criada:', novaFusao);
-                                // Aqui você implementaria a lógica para adicionar a nova fusão ao estado
-                                // Por exemplo, usando um estado local ou chamando uma API
+                                // TODO: Implementar chamada para API para salvar a fusão
+                                // Exemplo de implementação:
+                                // await criarFusao({
+                                //     fibraOrigem: novaFusao.fibraOrigem,
+                                //     fibraDestino: novaFusao.fibraDestino,
+                                //     cor: novaFusao.cor,
+                                //     caixaId: caixaId // ID da CTO atual
+                                // });
                                 alert(`Fusão criada com sucesso entre ${novaFusao.fibraOrigem} e ${novaFusao.fibraDestino}`);
                             }}
                         />

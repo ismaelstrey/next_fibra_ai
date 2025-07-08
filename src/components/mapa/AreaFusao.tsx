@@ -6,38 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getColor } from '@/functions/color';
 import { CapilarAPI } from '@/types/capilar';
-import { TuboAPI, useTubo } from '@/hooks/useTubo';
+import { TuboAPI } from '@/hooks/useTubo';
 
-interface Fibra {
-  id: string;
-  numero: number;
-  conectadaA?: string;
-  rotaId?: string;
-  tipo?: string;
-  comprimento?: number;
-  status?: string;
-  potencia?: number;
-  cidadeId?: string;
-  splitterId?: string;
-  tuboId?: string;
-}
-
-interface TuboLoose {
-  id: string;
-  numero: number;
-  cor?: string;
-  observacoes?: string;
-  criadoEm?: string;
-  atualizadoEm?: string;
-  cidadeId?: string;
-  capilares?: CapilarAPI[];
-}
-
+// Interfaces para os dados formatados vindos da API
 interface Cabo {
   id: string;
   nome: string;
   tipo: '6' | '12' | '24' | '48' | '96';
-  tubos: TuboLoose[];
+  tubos: TuboAPI[];
 }
 
 interface Splitter {
@@ -84,10 +60,8 @@ interface AreaFusaoProps {
 export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusao }: AreaFusaoProps) {
   // Estado para controlar quais tubos estão expandidos
   const [expandedTubos, setExpandedTubos] = useState<Record<string, boolean>>({});
-  const { buscarPorRotaId } = useTubo()
   // Estado para controlar a fibra selecionada
   const [fibraSelecionada, setFibraSelecionada] = useState<string | null>(null);
-  const [tubos, setTubos] = useState<TuboAPI[]>([]);
   // Estado para controlar o modo de seleção (se está selecionando para fusão)
   const [modoSelecao, setModoSelecao] = useState<boolean>(false);
 
@@ -101,7 +75,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
   };
 
   // Função para expandir ou recolher todos os tubos de um cabo
-  const toggleAllTubos = (caboId: string, tubos: TuboLoose[]) => {
+  const toggleAllTubos = (caboId: string, tubos: TuboAPI[]) => {
     // Verifica se todos os tubos do cabo estão expandidos
     const allExpanded = tubos.every(tubo => expandedTubos[`${caboId}-${tubo.id}`]);
 

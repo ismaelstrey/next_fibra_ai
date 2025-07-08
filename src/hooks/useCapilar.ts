@@ -210,6 +210,16 @@ export const useCapilar = () => {
     }, [listarCapilar]);
 
     /**
+     * Busca capilares por tubo específico
+     * @param tuboId - ID do tubo
+     * @param params - Parâmetros adicionais de filtro
+     * @returns Promise com lista de capilares do tubo
+     */
+    const buscarCapilarPorTubo = useCallback(async (tuboId: string, params?: Omit<ListarCapilarParams, 'tuboId'>) => {
+        return request<{ capilares: CapilarAPI[], paginacao: any }>('GET', '/capilares', undefined, { ...params, tuboId });
+    }, [request]);
+
+    /**
      * Verifica se um capilar pode ser excluído (sem conexões)
      * @param id - ID do capilar
      * @returns Promise com boolean indicando se pode ser excluído
@@ -241,6 +251,7 @@ export const useCapilar = () => {
         buscarCapilarPorTipo,
         buscarCapilarPorStatus,
         buscarCapilarPorNumero,
+        buscarCapilarPorTubo,
         obterCapilarPorCaixa,
         buscarCapilaresDisponiveis,
         buscarCapilaresConectados,
