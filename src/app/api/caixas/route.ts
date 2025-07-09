@@ -180,7 +180,7 @@ async function implementarDivisaoRota(rotaOriginal: any, novaCaixa: any, coorden
   // Remove as fusões associadas à rota original
   await prisma.fusao.deleteMany({
     where: {
-      rotaOrigemId: rotaOriginal.id
+      capilarOrigemId: rotaOriginal.id
     }
   });
 

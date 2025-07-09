@@ -241,8 +241,8 @@ const GoogleMapsComponent = ({
         const midIndex = Math.floor(path.length / 2);
         const midPoint = path[midIndex];
         return (
-          <>
-            <Polyline
+        <div key={index}>
+             <Polyline
               onClick={(e) => {
                 handlePolylineClick(e, rota);
                 handleRotaClick(rota);
@@ -279,7 +279,7 @@ const GoogleMapsComponent = ({
                 {rota.nome}
               </div>
             )}
-          </>
+        </div>
         );
       })}
 
