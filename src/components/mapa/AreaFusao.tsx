@@ -129,10 +129,10 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
   // Função para criar fusão entre dois capilares
   const criarFusaoCapilarCapilar = (capilarOrigemId: string, capilarDestinoId: string) => {
     // Verificar se algum dos capilares já está conectado
-    const origemJaConectada = fusoes.some(fusao => 
+    const origemJaConectada = fusoes.some(fusao =>
       fusao.capilarOrigemId === capilarOrigemId || fusao.capilarDestinoId === capilarOrigemId
     );
-    const destinoJaConectado = fusoes.some(fusao => 
+    const destinoJaConectado = fusoes.some(fusao =>
       fusao.capilarOrigemId === capilarDestinoId || fusao.capilarDestinoId === capilarDestinoId
     );
 
@@ -180,7 +180,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
     if (!fibraSelecionada || !modoSelecao) return;
 
     // Verificar se a fibra já está conectada
-    const fibraJaConectada = fusoes.some(fusao => 
+    const fibraJaConectada = fusoes.some(fusao =>
       fusao.capilarOrigemId === fibraSelecionada || fusao.capilarDestinoId === fibraSelecionada
     );
     if (fibraJaConectada) {
@@ -338,13 +338,10 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                                       key={fibra.id}
                                       variant={selecionada ? "default" : "ghost"}
                                       size="sm"
-                                      className={`flex flex-col items-center p-1 rounded h-auto ${
-                                        conectada ? 'bg-gray-100 opacity-75' : ''
-                                      } ${
-                                        selecionada ? 'ring-2 ring-primary' : ''
-                                      } ${
-                                        modoSelecao && !selecionada && !conectada ? 'hover:ring-1 hover:ring-blue-300' : ''
-                                      }`}
+                                      className={`flex flex-col items-center p-1 rounded h-auto ${conectada ? 'bg-gray-100 opacity-75' : ''
+                                        } ${selecionada ? 'ring-2 ring-primary' : ''
+                                        } ${modoSelecao && !selecionada && !conectada ? 'hover:ring-1 hover:ring-blue-300' : ''
+                                        }`}
                                       onClick={() => selecionarFibra(fibra.id)}
                                       disabled={conectada && !selecionada}
                                     >
