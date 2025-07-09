@@ -14,12 +14,7 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
     return { erro: NextResponse.json({ erro: "Não autorizado" }, { status: 401 }) };
   }
 
-  // Gerentes têm acesso a todas as caixas
-  if (token.cargo === "Gerente") {
-    return { temAcesso: true, token };
-  }
-
-  // Verifica se o usuário tem acesso à cidade da caixa
+  // Busca os dados da caixa primeiro
   const caixa = await prisma.caixa.findUnique({
     where: { id: caixaId },
     select: {
@@ -44,6 +39,12 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
     return { erro: NextResponse.json({ erro: "Caixa não encontrada" }, { status: 404 }) };
   }
 
+  // Gerentes têm acesso a todas as caixas
+  if (token.cargo === "Gerente") {
+    return { temAcesso: true, token, caixa };
+  }
+
+  // Verifica se o usuário tem acesso à cidade da caixa
   if (caixa.cidade.usuarios.length === 0) {
     return { erro: NextResponse.json({ erro: "Você não tem acesso a esta caixa" }, { status: 403 }) };
   }
@@ -274,6 +275,37 @@ export async function POST(req: NextRequest) {
 
       const caixaId = fusoes[0].caixaId;
 
+      // Verifica se todos os capilares existem
+      const capilarIds = [...new Set([
+        ...fusoes.map(f => f.capilarOrigemId),
+        ...fusoes.map(f => f.capilarDestinoId)
+      ])];
+
+      // Filtrar apenas IDs que não são sintéticos (não começam com 'entrada-' ou 'saida-')
+      const capilaresReais = capilarIds.filter(id => 
+        !id.startsWith('entrada-') && !id.startsWith('saida-')
+      );
+
+      if (capilaresReais.length > 0) {
+        const capilaresExistentes = await prisma.capilar.findMany({
+          where: { id: { in: capilaresReais } },
+          select: { id: true }
+        });
+
+        const capilaresEncontrados = capilaresExistentes.map(c => c.id);
+        const capilaresNaoEncontrados = capilaresReais.filter(id => !capilaresEncontrados.includes(id));
+
+        if (capilaresNaoEncontrados.length > 0) {
+          return NextResponse.json(
+            { 
+              erro: "Alguns capilares não foram encontrados", 
+              capilaresNaoEncontrados 
+            },
+            { status: 404 }
+          );
+        }
+      }
+
       // Verifica se o usuário tem acesso à caixa
       const acesso = await verificarAcessoCaixa(req, caixaId);
       if (acesso.erro) return acesso.erro;
@@ -285,6 +317,8 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+
+
 
       // Verifica se a caixa é do tipo CTO e se foram especificadas bandejas
       if (acesso.caixa?.tipo === "CTO" && fusoes.some(f => f.bandejaId)) {
@@ -353,10 +387,56 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Cria as fusões no banco de dados
-      const novasFusoes = await prisma.fusao.createMany({
-        data: fusoes,
-      });
+      // Processar fusões uma por uma para lidar com IDs sintéticos
+      const novasFusoes = [];
+      for (const fusaoData of fusoes) {
+        let capilarOrigemIdFinal = fusaoData.capilarOrigemId;
+        let capilarDestinoIdFinal = fusaoData.capilarDestinoId;
+        
+        // Verificar se são IDs sintéticos
+        const isOrigemSintetico = fusaoData.capilarOrigemId.startsWith('entrada-') || fusaoData.capilarOrigemId.startsWith('saida-');
+        const isDestinoSintetico = fusaoData.capilarDestinoId.startsWith('entrada-') || fusaoData.capilarDestinoId.startsWith('saida-');
+        
+        // Criar capilares virtuais se necessário
+        if (isOrigemSintetico) {
+          const capilarVirtual = await prisma.capilar.create({
+            data: {
+              numero: 0,
+              tipo: fusaoData.capilarOrigemId.startsWith('entrada-') ? 'virtual_splitter_entrada' : 'virtual_splitter_saida',
+              comprimento: 0,
+              status: 'Ativo',
+              potencia: 0,
+            }
+          });
+          capilarOrigemIdFinal = capilarVirtual.id;
+        }
+        
+        if (isDestinoSintetico) {
+          const capilarVirtual = await prisma.capilar.create({
+            data: {
+              numero: 0,
+              tipo: fusaoData.capilarDestinoId.startsWith('entrada-') ? 'virtual_splitter_entrada' : 'virtual_splitter_saida',
+              comprimento: 0,
+              status: 'Ativo',
+              potencia: 0,
+            }
+          });
+          capilarDestinoIdFinal = capilarVirtual.id;
+        }
+        
+        // Criar a fusão individual
+        const novaFusao = await prisma.fusao.create({
+          data: {
+            ...fusaoData,
+            capilarOrigemId: capilarOrigemIdFinal,
+            capilarDestinoId: capilarDestinoIdFinal,
+            observacoes: `${fusaoData.observacoes || ''} [IDs originais: ${fusaoData.capilarOrigemId} -> ${fusaoData.capilarDestinoId}]`,
+            criadoPorId: acesso.token.id as string,
+          }
+        });
+        
+        novasFusoes.push(novaFusao);
+      }
 
       // Registra a ação no log de auditoria
       if (acesso.token) {
@@ -371,7 +451,7 @@ export async function POST(req: NextRequest) {
       }
 
       return NextResponse.json(
-        { mensagem: `${novasFusoes.count} fusões criadas com sucesso` },
+        { mensagem: `${novasFusoes.length} fusões criadas com sucesso` },
         { status: 201 }
       );
     } else {
@@ -410,6 +490,39 @@ export async function POST(req: NextRequest) {
           { erro: "Só é possível registrar fusões em caixas do tipo CEO ou CTO" },
           { status: 400 }
         );
+      }
+
+      // Verifica se os capilares existem
+      // IDs que começam com 'entrada-' ou 'saida-' são IDs sintéticos de splitters
+      const isCapilarOrigemSintetico = capilarOrigemId.startsWith('entrada-') || capilarOrigemId.startsWith('saida-');
+      const isCapilarDestinoSintetico = capilarDestinoId.startsWith('entrada-') || capilarDestinoId.startsWith('saida-');
+      
+      if (!isCapilarOrigemSintetico) {
+        const capilarOrigem = await prisma.capilar.findUnique({
+          where: { id: capilarOrigemId },
+          select: { id: true, numero: true, status: true }
+        });
+
+        if (!capilarOrigem) {
+          return NextResponse.json(
+            { erro: "Capilar de origem não encontrado", capilarId: capilarOrigemId },
+            { status: 404 }
+          );
+        }
+      }
+
+      if (!isCapilarDestinoSintetico) {
+        const capilarDestino = await prisma.capilar.findUnique({
+          where: { id: capilarDestinoId },
+          select: { id: true, numero: true, status: true }
+        });
+
+        if (!capilarDestino) {
+          return NextResponse.json(
+            { erro: "Capilar de destino não encontrado", capilarId: capilarDestinoId },
+            { status: 404 }
+          );
+        }
       }
 
       // Verifica se a caixa é do tipo CTO e se foi especificada uma bandeja
@@ -464,17 +577,49 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Para IDs sintéticos, precisamos criar capilares virtuais temporariamente
+      // ou usar uma abordagem diferente para armazenar essas fusões
+      let capilarOrigemIdFinal = capilarOrigemId;
+      let capilarDestinoIdFinal = capilarDestinoId;
+      
+      // Se for ID sintético de entrada de splitter, criar um capilar virtual
+      if (isCapilarOrigemSintetico) {
+        const capilarVirtual = await prisma.capilar.create({
+          data: {
+            numero: 0, // Número especial para capilares virtuais
+            tipo: 'virtual_splitter_entrada',
+            comprimento: 0,
+            status: 'Ativo',
+            potencia: 0,
+          }
+        });
+        capilarOrigemIdFinal = capilarVirtual.id;
+      }
+      
+      if (isCapilarDestinoSintetico) {
+        const capilarVirtual = await prisma.capilar.create({
+          data: {
+            numero: 0, // Número especial para capilares virtuais
+            tipo: capilarDestinoId.startsWith('entrada-') ? 'virtual_splitter_entrada' : 'virtual_splitter_saida',
+            comprimento: 0,
+            status: 'Ativo',
+            potencia: 0,
+          }
+        });
+        capilarDestinoIdFinal = capilarVirtual.id;
+      }
+
       // Cria a fusão no banco de dados
       const novaFusao = await prisma.fusao.create({
         data: {
-          capilarOrigemId: result.data.capilarOrigemId,
-          capilarDestinoId: result.data.capilarDestinoId,
+          capilarOrigemId: capilarOrigemIdFinal,
+          capilarDestinoId: capilarDestinoIdFinal,
           tipoFusao: result.data.tipoFusao,
           status,
           qualidadeSinal: result.data.qualidadeSinal,
           perdaInsercao: result.data.perdaInsercao,
           cor,
-          observacoes,
+          observacoes: `${observacoes || ''} [IDs originais: ${capilarOrigemId} -> ${capilarDestinoId}]`,
           caixaId,
           bandejaId,
           posicaoFusao: result.data.posicaoFusao,
