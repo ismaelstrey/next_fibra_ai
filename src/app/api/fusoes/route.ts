@@ -702,10 +702,17 @@ console.log({capilarOrigemIdFinal,capilarDestinoIdFinal})
         });
       }
 
-      // Retorna os dados da fusão criada
-      return NextResponse.json(
-        { mensagem: "Fusão criada com sucesso", fusao: novaFusao },
-        { status: 201 }
+      // Serializa BigInt para string
+      function replacerBigInt(key: string, value: any) {
+        return typeof value === "bigint" ? value.toString() : value;
+      }
+
+      return new NextResponse(
+        JSON.stringify({
+          mensagem: "Fusão criada com sucesso",
+          fusao: JSON.parse(JSON.stringify(novaFusao, replacerBigInt))
+        }),
+        { headers: { "Content-Type": "application/json" } }
       );
     }
   } catch (error) {

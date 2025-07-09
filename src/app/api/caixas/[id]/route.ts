@@ -260,26 +260,26 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
       }
     }
 
-    // Se estiver alterando a rota, verifica se a rota existe
-    if (dadosAtualizacao.rotaId) {
-      const rota = await prisma.rota.findUnique({
-        where: { id: dadosAtualizacao.rotaId },
-      });
-
-      if (!rota) {
-        return NextResponse.json(
-          { erro: "Rota não encontrada" },
-          { status: 404 }
-        );
-      }
-
-      // Verifica se a rota pertence à cidade da caixa (ou à nova cidade, se estiver sendo alterada)
-      const cidadeId = dadosAtualizacao.cidadeId || caixaExistente.cidadeId;
-      if (rota.cidadeId !== cidadeId) {
-        return NextResponse.json(
-          { erro: "A rota não pertence à cidade especificada" },
-          { status: 400 }
-        );
+    // Se estiver alterando a(s) rota(s), verifica se as rotas existem
+    if (dadosAtualizacao.rotaIds && Array.isArray(dadosAtualizacao.rotaIds)) {
+      for (const rotaId of dadosAtualizacao.rotaIds) {
+        const rota = await prisma.rota.findUnique({
+          where: { id: rotaId },
+        });
+        if (!rota) {
+          return NextResponse.json(
+            { erro: `Rota com id ${rotaId} não encontrada` },
+            { status: 404 }
+          );
+        }
+        // Verifica se a rota pertence à cidade da caixa (ou à nova cidade, se estiver sendo alterada)
+        const cidadeId = dadosAtualizacao.cidadeId || caixaExistente.cidadeId;
+        if (rota.cidadeId !== cidadeId) {
+          return NextResponse.json(
+            { erro: `A rota com id ${rotaId} não pertence à cidade especificada` },
+            { status: 400 }
+          );
+        }
       }
     }
 
