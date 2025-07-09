@@ -160,7 +160,15 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
       );
     }
 
-    return NextResponse.json(caixa);
+    // Serializa BigInt para string
+    function replacerBigInt(key: string, value: any) {
+      return typeof value === "bigint" ? value.toString() : value;
+    }
+
+    return new NextResponse(
+      JSON.stringify(caixa, replacerBigInt),
+      { headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     return tratarErro(error);
   }
