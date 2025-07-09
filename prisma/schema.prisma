@@ -168,8 +168,8 @@ model Fusao {
   observacoes      String?
   // Localização da fusão
   caixaId          String
-  bandejaId        String?
-  posicaoFusao     Int?     // posição na bandeja de fusão
+  bandejaId        String?  
+  posicaoFusao     BigInt?  // posição na bandeja de fusão
   // Metadados
   criadoEm         DateTime @default(now())
   atualizadoEm     DateTime @updatedAt

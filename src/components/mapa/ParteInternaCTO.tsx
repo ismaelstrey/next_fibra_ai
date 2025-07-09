@@ -301,7 +301,7 @@ export default function ParteInternaCTO({
                                         status: 'Ativa' as const,
                                         qualidadeSinal: 95.0,
                                         perdaInsercao: 0.15,
-                                        posicaoFusao: Date.now(),
+                                        posicaoFusao: Math.floor(Math.random() * 100) + 1, // Valor entre 1 e 100
                                         caixaId: caixaId,
                                         criadoPorId: usuarioId,
                                         observacoes: `Fusão ${novaFusao.tipoFusao.replace('_', '-')} criada automaticamente`

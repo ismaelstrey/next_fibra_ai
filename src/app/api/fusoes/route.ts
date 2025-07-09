@@ -582,6 +582,17 @@ export async function POST(req: NextRequest) {
       let capilarOrigemIdFinal = capilarOrigemId;
       let capilarDestinoIdFinal = capilarDestinoId;
       
+      // Debug: verificar se cidadeId está disponível
+      console.log('Debug - acesso.caixa:', acesso.caixa);
+      console.log('Debug - cidadeId:', acesso.caixa?.cidadeId);
+      
+      if (!acesso.caixa?.cidadeId) {
+        return NextResponse.json(
+          { erro: "Cidade da caixa não encontrada. Não é possível criar capilares virtuais." },
+          { status: 400 }
+        );
+      }
+      
       // Se for ID sintético de entrada de splitter, criar um capilar virtual
       if (isCapilarOrigemSintetico) {
         const capilarVirtual = await prisma.capilar.create({
@@ -591,6 +602,7 @@ export async function POST(req: NextRequest) {
             comprimento: 0,
             status: 'Ativo',
             potencia: 0,
+            cidadeId: acesso.caixa.cidadeId, // Usar a cidade da caixa
           }
         });
         capilarOrigemIdFinal = capilarVirtual.id;
@@ -604,10 +616,12 @@ export async function POST(req: NextRequest) {
             comprimento: 0,
             status: 'Ativo',
             potencia: 0,
+            cidadeId: acesso.caixa.cidadeId, // Usar a cidade da caixa
           }
         });
         capilarDestinoIdFinal = capilarVirtual.id;
       }
+console.log({capilarOrigemIdFinal,capilarDestinoIdFinal})
 
       // Cria a fusão no banco de dados
       const novaFusao = await prisma.fusao.create({
