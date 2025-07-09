@@ -155,6 +155,7 @@ model Bandeja {
 }
 
 model Fusao {
+<<<<<<< HEAD
   id                String   @id @default(cuid())
   // Relacionamentos diretos com capilares
   capilarOrigemId   String
@@ -184,6 +185,26 @@ model Fusao {
   @@unique([capilarOrigemId, capilarDestinoId]) // Evita fusões duplicadas
   @@index([caixaId]) // Índice para consultas por caixa
   @@index([status]) // Índice para consultas por status
+=======
+  id           String   @id @default(cuid())
+  origem  String
+  destino String
+  tuboOrigem   String?
+  tuboDestino  String?
+  status       String
+  cor          String?
+  observacoes  String?
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  rotaOrigemId String
+  caixaId      String
+  bandejaId    String?
+  bandeja      Bandeja? @relation(fields: [bandejaId], references: [id])
+  caixa        Caixa    @relation(fields: [caixaId], references: [id])
+  rotaOrigem   Rota     @relation(fields: [rotaOrigemId], references: [id])
+  fibraOrigem Capilar[] @relation("fusao_origem")
+  fibraDestino Capilar[] @relation("fusao_destino")
+>>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
 }
 
 model Manutencao {
@@ -441,9 +462,15 @@ model Capilar {
   spliter         Spliter?     @relation(fields: [spliterId], references: [id])
   tuboId          String?
   tubo            Tubo?        @relation(fields: [tuboId], references: [id])
+<<<<<<< HEAD
   // Relacionamentos com fusões
   fusoesOrigem    Fusao[]     @relation("FusaoOrigem")
   fusoesDestino   Fusao[]     @relation("FusaoDestino")
+=======
+  fusao_origem           Fusao[] @relation("fusao_origem")
+  fusao_destino           Fusao[] @relation("fusao_destino")
+
+>>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
 }
 
 model Emenda {

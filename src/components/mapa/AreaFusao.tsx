@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getColor } from '@/functions/color';
-import { CapilarAPI } from '@/types/capilar';
 import { TuboAPI } from '@/hooks/useTubo';
+import { SplitterFormatado } from './ParteInternaCTO';
 
 // Interfaces para os dados formatados vindos da API
 interface Cabo {
@@ -49,7 +49,7 @@ interface AreaFusaoProps {
   /**
    * Splitters instalados na CTO
    */
-  splitters?: Splitter[];
+  splitters?: SplitterFormatado[];
 
   /**
    * Fusões realizadas na CTO
@@ -83,6 +83,12 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
   const [fibraSelecionada, setFibraSelecionada] = useState<string | null>(null);
   // Estado para controlar o modo de seleção (se está selecionando para fusão)
   const [modoSelecao, setModoSelecao] = useState<boolean>(false);
+
+
+
+
+
+
 
 
   // Função para alternar a expansão de um tubo específico
@@ -337,6 +343,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                                     <Button
                                       key={fibra.id}
                                       variant={selecionada ? "default" : "ghost"}
+                                      title={fibra.id}
                                       size="sm"
                                       className={`flex flex-col items-center p-1 rounded h-auto ${
                                         conectada ? 'bg-gray-100 opacity-75' : ''
@@ -412,19 +419,26 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                           <div className="text-xs font-medium mb-1">Saídas ({splitter.portasSaida.length})</div>
                           <div className="grid grid-cols-4 gap-1">
                             {splitter.portasSaida.map((porta, index) => {
+<<<<<<< HEAD
                               const conectada = fusoes.some(fusao => fusao.capilarDestinoId === porta);
                               const fusaoCor = conectada
                                 ? fusoes.find(fusao => fusao.capilarDestinoId === porta)?.cor
+=======
+                              const conectada = fusoes.some(fusao => fusao.fibraDestino === porta.id);
+                              const fusaoCor = conectada
+                                ? fusoes.find(fusao => fusao.fibraDestino === porta.id)?.cor
+>>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
                                 : '#CCCCCC';
 
                               return (
                                 <Button
-                                  key={porta}
+                                  key={porta.id}
                                   variant="ghost"
                                   size="sm"
+                                  title={porta.id}
                                   className={`flex flex-col items-center p-1 h-auto ${modoSelecao ? 'hover:bg-gray-100' : ''}`}
                                   disabled={!modoSelecao || conectada}
-                                  onClick={() => associarFibraASplitter(splitter.id, porta)}
+                                  onClick={() => associarFibraASplitter(splitter.id, porta.id)}
                                 >
                                   <div
                                     className={`w-3 h-3 rounded-full ${conectada ? 'ring-1 ring-offset-1' : ''}`}
@@ -488,7 +502,11 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                         break;
                       }
 
+<<<<<<< HEAD
                       const portaIndex = splitter.portasSaida.findIndex(p => p === fusao.capilarDestinoId);
+=======
+                      const portaIndex = splitter.portasSaida.findIndex(p => p.id === fusao.fibraDestino);
+>>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
                       if (portaIndex >= 0) {
                         destinoInfo = `Splitter ${splitter.tipo} - Saída ${portaIndex + 1}`;
                         break;

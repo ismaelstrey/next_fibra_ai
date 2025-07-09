@@ -16,6 +16,13 @@ export interface PaginatedResponse<T> {
         totalPaginas: number;
     };
 }
+interface PortasSaida {
+    id: string;
+    numero: number;
+    status: string;
+    tipo: string;
+
+}
 
 export interface SpliterAPI {
     id: string;
@@ -44,19 +51,7 @@ export interface SpliterAPI {
             tipoCabo: string;
         };
     };
-    capilarSaida?: {
-        id: string;
-        numero: number;
-        tipo: string;
-        comprimento?: number;
-        status: string;
-        potencia?: number;
-        rota?: {
-            id: string;
-            nome: string;
-            tipoCabo: string;
-        };
-    };
+    capilarSaida?: PortasSaida[];
     capilarEntrada?: {
         id: string;
         numero: number;
