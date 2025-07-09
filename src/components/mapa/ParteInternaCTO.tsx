@@ -7,22 +7,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SpliterType } from '@/types/fibra';
 import { ConexaoRota } from '@/types/caixa';
 import { useCapilar } from '@/hooks/useCapilar';
+import { CapilarAPI } from '@/types/capilar';
+import { getColor } from '@/functions/color';
 import { TuboAPI, useTubo } from '@/hooks/useTubo';
-import Spliter from './components/Spliter';
-import { SpliterAPI } from '@/types/spliter';
 
 interface ParteInternaCTOProps {
     /**
      * Lista de splitters instalados
      */
     splitters?: SpliterType[];
-    splitersPorcaixa: SpliterAPI[];
 
     /**
      * Lista de cabos AS conectados
      */
     cabosAS?: ConexaoRota[];
-<<<<<<< HEAD
 
     /**
      * ID da caixa CTO atual
@@ -38,9 +36,6 @@ interface ParteInternaCTOProps {
      * ID do usuário atual
      */
     usuarioId?: string;
-=======
-    removerSplitter: (id: string) => void;
->>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
 }
 
 
@@ -52,20 +47,13 @@ interface CaboFormatado {
     tipo: '6' | '12' | '24' | '48' | '96';
     tubos: TuboAPI[];
 }
-interface PortasSaida {
-    id: string;
-    numero: number;
-    status: string;
-    tipo: string;
 
-}
-
-export interface SplitterFormatado {
+interface SplitterFormatado {
     id: string;
-    tipo: '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64',
+    tipo: '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64';
     balanceado: boolean;
     portaEntrada: string;
-    portasSaida: PortasSaida[];
+    portasSaida: string[];
 }
 
 
@@ -73,7 +61,6 @@ export interface SplitterFormatado {
 /**
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
-<<<<<<< HEAD
 export default function ParteInternaCTO({ 
     splitters = [], 
     cabosAS = [],
@@ -85,16 +72,11 @@ export default function ParteInternaCTO({
     const [tubos, setTubos] = useState<TuboAPI[]>([]);
     const [fusoes, setFusoes] = useState<any[]>([]);
     const [carregandoFusoes, setCarregandoFusoes] = useState(false);
-=======
-export function ParteInternaCTO({ splitters = [], splitersPorcaixa, cabosAS = [], removerSplitter }: ParteInternaCTOProps) {
-
->>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
     const [cabosFormatados, setCabosFormatados] = useState<CaboFormatado[]>([]);
     const [splittersFormatados, setSplittersFormatados] = useState<SplitterFormatado[]>([]);
-    const { buscarCapilarPorTubo } = useCapilar()
+    const {  buscarCapilarPorTubo } = useCapilar()
     const { buscarPorRotaId } = useTubo()
-
-
+    
     async function buscaCapilar() {
         if (cabosAS.length === 0) return;
 
@@ -110,7 +92,7 @@ export function ParteInternaCTO({ splitters = [], splitersPorcaixa, cabosAS = []
                     tubosData.map(async (tubo) => {
                         const capilaresResponse = await buscarCapilarPorTubo(tubo.id);
                         const capilaresDoTubo = capilaresResponse?.data?.capilares || [];
-
+                        
                         return {
                             ...tubo,
                             capilares: capilaresDoTubo
@@ -130,46 +112,36 @@ export function ParteInternaCTO({ splitters = [], splitersPorcaixa, cabosAS = []
             setCabosFormatados(cabosData);
 
             // Definir capilares e tubos do primeiro cabo para compatibilidade
-
+            if (cabosData.length > 0) {
+                const primeiroTubo = cabosData[0].tubos;
+                setTubos(primeiroTubo);
+                
+                const todosCapilares = cabosData.flatMap(cabo => 
+                    cabo.tubos.flatMap(tubo => tubo.capilares || [])
+                );
+                setCapilar(todosCapilares);
+            }
         } catch (error) {
             console.error('Erro ao buscar dados dos cabos:', error);
         }
     }
 
     // Formatar splitters para o formato esperado pelo AreaFusao
-    // useEffect(() => {
-    //     const formatados = splitters.map((splitter) => {
-    //         const numPortas = splitter.tipo === '1/8' ? 8 : splitter.tipo === '1/16' ? 16 : 2;
-
-    //         return {
-    //             id: splitter.id,
-    //             tipo: splitter.tipo as '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64',
-    //             balanceado: true, // Assumindo balanceado por padrão
-    //             portaEntrada: `entrada-${splitter.id}`,
-    //             portasSaida: Array.from({ length: numPortas }, (_, i) => `saida-${splitter.id}-${i + 1}`)
-    //         };
-    //     });
-    //     setSplittersFormatados(formatados);
-    // }, [splitters]);
-
-
     useEffect(() => {
-        const formatados = splitersPorcaixa.map((splitterCx) => {
-            console.log(splitterCx)
-
+        const formatados = splitters.map((splitter, index) => {
+            const numPortas = splitter.tipo === '1/8' ? 8 : splitter.tipo === '1/16' ? 16 : 2;
+            
             return {
-                id: splitterCx.id,
-                tipo: splitterCx.tipo as '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64',
+                id: splitter.id,
+                tipo: splitter.tipo as '1/2' | '1/4' | '1/8' | '1/16' | '1/32' | '1/64',
                 balanceado: true, // Assumindo balanceado por padrão
-                portaEntrada: splitterCx.capilarEntrada?.id || '',
-                portasSaida: splitterCx.capilarSaida || []
+                portaEntrada: `entrada-${splitter.id}`,
+                portasSaida: Array.from({ length: numPortas }, (_, i) => `saida-${splitter.id}-${i + 1}`)
             };
         });
-        formatados && setSplittersFormatados(formatados);
-        console.log({ formatados })
-    }, []);
+        setSplittersFormatados(formatados);
+    }, [splitters]);
 
-<<<<<<< HEAD
     // Função para carregar fusões existentes
      async function carregarFusoes() {
          if (!caixaId || !bandejaId) return;
@@ -206,13 +178,6 @@ export function ParteInternaCTO({ splitters = [], splitersPorcaixa, cabosAS = []
          return tipos[tipo] || tipo;
      }
 
-=======
-
-
-
-    // console.log({ splitters })
-    // console.log({ splittersFormatados })
->>>>>>> 45d665e3b29f06cfeb4e02bc33dadbb1ee2045fd
     useEffect(() => {
         buscaCapilar()
     }, [cabosAS]);
@@ -233,7 +198,12 @@ export function ParteInternaCTO({ splitters = [], splitersPorcaixa, cabosAS = []
                         {splitters.length > 0 ? (
                             <div className="grid grid-cols-2 gap-3">
                                 {splitters.map((splitter, index) => (
-                                    <Spliter {...splitter} removerSplitter={removerSplitter} key={index} index={index} />
+                                    <div key={index} className={`p-3 text-accent rounded-md border border-blue-300 ${splitter.tipo === '1/8' ? 'bg-red-500' : splitter.tipo === '1/16' ? 'bg-green-500' : 'bg-blue-500'}`}>
+                                        <div className="flex items-center justify-between">
+                                            <span>Splitter {splitter.tipo}</span>
+                                            <Badge variant="secondary">Posição {index + 1}</Badge>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         ) : (
