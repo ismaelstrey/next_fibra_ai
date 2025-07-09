@@ -140,17 +140,17 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
   }
 
   return (
-    <div className='fixed top-0 left-0 w-full h-full bg-black/50'>
+    <div className='fixed top-0 left-0 w-full h-full text-foreground bg-black/50'>
       <div className="container mx-auto py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-background rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-foreground">
                 {isEdit ? `Editar Cliente: ${cliente?.nome || 'Carregando...'}` : 'Novo Cliente'}
               </h1>
               <button
                 onClick={handleCancel}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-foreground hover:text-foreground/50 text-2xl"
               >
                 ×
               </button>
@@ -159,7 +159,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Nome *
                   </label>
                   <input
@@ -168,12 +168,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     value={formData.nome}
                     onChange={handleInputChange}
                     required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Email
                   </label>
                   <input
@@ -181,12 +181,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Telefone
                   </label>
                   <input
@@ -194,12 +194,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="telefone"
                     value={formData.telefone}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Endereço
                   </label>
                   <input
@@ -207,12 +207,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="endereco"
                     value={formData.endereco}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Apartamento
                   </label>
                   <input
@@ -220,12 +220,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="apartamento"
                     value={formData.apartamento}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Casa
                   </label>
                   <input
@@ -233,12 +233,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="casa"
                     value={formData.casa}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Número *
                   </label>
                   <input
@@ -247,12 +247,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     value={formData.numero}
                     onChange={handleInputChange}
                     required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Potência
                   </label>
                   <input
@@ -260,12 +260,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="potencia"
                     value={formData.potencia}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Wi-Fi
                   </label>
                   <input
@@ -273,12 +273,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="wifi"
                     value={formData.wifi}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     Senha Wi-Fi
                   </label>
                   <input
@@ -286,12 +286,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="senhaWifi"
                     value={formData.senhaWifi}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     ID Neutra
                   </label>
                   <input
@@ -299,12 +299,12 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="neutraId"
                     value={formData.neutraId}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     ID Porta
                   </label>
                   <input
@@ -312,15 +312,15 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                     name="portaId"
                     value={formData.portaId}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-foreground/50 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
                 <div className="col-span-2 flex items-center gap-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">Status</label>
                   <div className="relative">
                     <motion.button
                       type="button"
-                      className={`flex items-center px-4 py-2 rounded-full border transition-colors duration-300 focus:outline-none ${formData.status === "Em uso" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"}`}
+                      className={`flex items-center px-4 py-2 rounded-full border transition-colors duration-300 focus:outline-none ${formData.status === "Em uso" ? "bg-blue-600 text-white" : "bg-gray-200 text-foreground"}`}
                       onClick={handleStatusToggle}
                       whileTap={{ scale: 0.95 }}
                       animate={{ backgroundColor: formData.status === "Em uso" ? "#2563eb" : "#e5e7eb", color: formData.status === "Em uso" ? "#fff" : "#374151" }}
@@ -335,7 +335,7 @@ export default function ClienteFormPage({ params }: ClienteFormPageProps) {
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="px-6 py-2 border border-foreground/50 rounded-md text-foreground hover:bg-gray-50 transition-colors"
                 >
                   Cancelar
                 </button>

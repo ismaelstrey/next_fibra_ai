@@ -33,7 +33,11 @@ export default function ToolsMap() {
         getLocaStorage().then((cidade) => {
             setCidadeSelecionada(cidade || '');
         })
+
     }, [cidades])
+    useEffect(() => {
+        carregarDados();
+    }, []);
 
     // Estado para controlar a expansão do painel
     const [painelExpandido, setPainelExpandido] = useState(false);
