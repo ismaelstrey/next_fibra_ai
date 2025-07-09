@@ -13,6 +13,7 @@ import { TuboAPI, useTubo } from '@/hooks/useTubo';
 import { useFusao } from '@/hooks/useFusao';
 import { Trash2 } from 'lucide-react';
 import { FusoesVisual } from './fusoesVisual';
+import { ConexaoGrafica } from "./conexaoGrafica";
 
 interface ParteInternaCTOProps {
     /**
@@ -195,6 +196,8 @@ export default function ParteInternaCTO({
             </CardHeader>
             <CardContent className="pt-4">
                 <div className="space-y-4">
+                    {/* Visualização gráfica das conexões */}
+                    <ConexaoGrafica cabos={cabosFormatados} splitters={splittersFormatados} fusoes={fusoes} />
                     {/* Seção de Splitters */}
                     <div>
                         <h3 className="font-medium mb-2">Splitters Instalados</h3>
