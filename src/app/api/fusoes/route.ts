@@ -278,15 +278,23 @@ export async function POST(req: NextRequest) {
       const acesso = await verificarAcessoCaixa(req, caixaId);
       if (acesso.erro) return acesso.erro;
 
-      // Verifica se a caixa é do tipo CEO
-      if (acesso.caixa?.tipo !== "CEO") {
+      // Verifica se a caixa é do tipo CEO ou CTO
+      if (acesso.caixa?.tipo !== "CEO" && acesso.caixa?.tipo !== "CTO") {
         return NextResponse.json(
-          { erro: "Só é possível registrar fusões em caixas do tipo CEO" },
+          { erro: "Só é possível registrar fusões em caixas do tipo CEO ou CTO" },
           { status: 400 }
         );
       }
 
-      // Verifica se as bandejas existem e pertencem à caixa
+      // Verifica se a caixa é do tipo CTO e se foram especificadas bandejas
+      if (acesso.caixa?.tipo === "CTO" && fusoes.some(f => f.bandejaId)) {
+        return NextResponse.json(
+          { erro: "Caixas do tipo CTO não possuem bandejas" },
+          { status: 400 }
+        );
+      }
+
+      // Verifica se as bandejas existem e pertencem à caixa (apenas para CEO)
       const bandejaIds = new Set(fusoes.filter(f => f.bandejaId).map(f => f.bandejaId));
       if (bandejaIds.size > 0) {
         const bandejas = await prisma.bandeja.findMany({
@@ -396,15 +404,23 @@ export async function POST(req: NextRequest) {
       const acesso = await verificarAcessoCaixa(req, caixaId);
       if (acesso.erro) return acesso.erro;
 
-      // Verifica se a caixa é do tipo CEO
-      if (acesso.caixa?.tipo !== "CEO") {
+      // Verifica se a caixa é do tipo CEO ou CTO
+      if (acesso.caixa?.tipo !== "CEO" && acesso.caixa?.tipo !== "CTO") {
         return NextResponse.json(
-          { erro: "Só é possível registrar fusões em caixas do tipo CEO" },
+          { erro: "Só é possível registrar fusões em caixas do tipo CEO ou CTO" },
           { status: 400 }
         );
       }
 
-      // Se foi especificada uma bandeja, verifica se ela existe e pertence à caixa
+      // Verifica se a caixa é do tipo CTO e se foi especificada uma bandeja
+      if (acesso.caixa?.tipo === "CTO" && bandejaId) {
+        return NextResponse.json(
+          { erro: "Caixas do tipo CTO não possuem bandejas" },
+          { status: 400 }
+        );
+      }
+
+      // Se foi especificada uma bandeja (apenas para CEO), verifica se ela existe e pertence à caixa
       if (bandejaId) {
         const bandeja = await prisma.bandeja.findUnique({
           where: { id: bandejaId },

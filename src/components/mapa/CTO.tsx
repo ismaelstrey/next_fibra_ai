@@ -184,11 +184,12 @@ export function CTO({
                     {/* Conteúdo da aba "Parte Interna" */}
                     <TabsContent value="interna">
                         <ParteInternaCTO
-                            removerSplitter={removerSplitter}
-                            splitersPorcaixa={splitersPorcaixa}
-                            splitters={splitters}
-                            cabosAS={cabosAS}
-                        />
+                        splitters={splitters}
+                        cabosAS={cabosAS}
+                        caixaId={id}
+                        removerSplitter={removerSplitter}
+                        tipoCaixa="CTO"
+                    />
                     </TabsContent>
                 </Tabs>
             </div>

@@ -10,6 +10,8 @@ import { useCapilar } from '@/hooks/useCapilar';
 import { CapilarAPI } from '@/types/capilar';
 import { getColor } from '@/functions/color';
 import { TuboAPI, useTubo } from '@/hooks/useTubo';
+import { useFusao } from '@/hooks/useFusao';
+import { Trash2 } from 'lucide-react';
 
 interface ParteInternaCTOProps {
     /**
@@ -23,19 +25,29 @@ interface ParteInternaCTOProps {
     cabosAS?: ConexaoRota[];
 
     /**
-     * ID da caixa CTO atual
+     * ID da caixa CTO/CEO atual
      */
     caixaId?: string;
 
     /**
-     * ID da bandeja atual
+     * ID da bandeja atual (apenas para CEOs)
      */
     bandejaId?: string;
+    
+    /**
+     * Função para remover splitter
+     */
+    removerSplitter: (id: string) => void;
 
     /**
      * ID do usuário atual
      */
     usuarioId?: string;
+
+    /**
+     * Tipo da caixa (CTO ou CEO)
+     */
+    tipoCaixa?: 'CTO' | 'CEO';
 }
 
 
@@ -62,11 +74,13 @@ interface SplitterFormatado {
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
 export default function ParteInternaCTO({ 
+    removerSplitter,
     splitters = [], 
     cabosAS = [],
     caixaId = '1',
     bandejaId = '1', 
-    usuarioId = '1'
+    usuarioId = '1',
+    tipoCaixa = 'CTO'
 }: ParteInternaCTOProps) {
     const [capilar, setCapilar] = useState<CapilarAPI[]>([]);
     const [tubos, setTubos] = useState<TuboAPI[]>([]);
@@ -76,6 +90,7 @@ export default function ParteInternaCTO({
     const [splittersFormatados, setSplittersFormatados] = useState<SplitterFormatado[]>([]);
     const {  buscarCapilarPorTubo } = useCapilar()
     const { buscarPorRotaId } = useTubo()
+    const { criarFusao, excluirFusao, listarFusoesPorCaixa, isLoading: loadingFusao } = useFusao()
     
     async function buscaCapilar() {
         if (cabosAS.length === 0) return;
@@ -143,25 +158,27 @@ export default function ParteInternaCTO({
     }, [splitters]);
 
     // Função para carregar fusões existentes
-     async function carregarFusoes() {
-         if (!caixaId || !bandejaId) return;
-         
-         setCarregandoFusoes(true);
-         try {
-             // TODO: Implementar chamada real para API
-             // const response = await fetch(`/api/fusoes?caixaId=${caixaId}&bandejaId=${bandejaId}`);
-             // const fusoesData = await response.json();
-             // setFusoes(fusoesData);
-             
-             // Simulação por enquanto
-             console.log('Carregando fusões para caixa:', caixaId, 'bandeja:', bandejaId);
-             setFusoes([]);
-         } catch (error) {
-             console.error('Erro ao carregar fusões:', error);
-         } finally {
-             setCarregandoFusoes(false);
-         }
-     }
+      async function carregarFusoes() {
+          if (!caixaId) return;
+          
+          setCarregandoFusoes(true);
+          try {
+              // Só filtra por bandejaId se existir (CTOs não possuem bandejas)
+              const filtros = bandejaId ? { bandejaId } : {};
+              const response = await listarFusoesPorCaixa(caixaId, filtros);
+              if (response.data && response.data.fusoes) {
+                  setFusoes(response.data.fusoes);
+                  console.log('Fusões carregadas:', response.data.fusoes.length);
+              } else {
+                  setFusoes([]);
+              }
+          } catch (error) {
+              console.error('Erro ao carregar fusões:', error);
+              setFusoes([]);
+          } finally {
+              setCarregandoFusoes(false);
+          }
+      }
 
      // Função para buscar informações de um capilar
      function buscarCapilar(capilarId: string) {
@@ -202,6 +219,8 @@ export default function ParteInternaCTO({
                                         <div className="flex items-center justify-between">
                                             <span>Splitter {splitter.tipo}</span>
                                             <Badge variant="secondary">Posição {index + 1}</Badge>
+                                            {splitter.id && <button className='cursor-pointer hover:scale-110' title='Ecluir spliter' onClick={() => removerSplitter(splitter.id)}><Trash2 size={20}/></button>}
+
                                         </div>
                                     </div>
                                 ))}
@@ -250,7 +269,7 @@ export default function ParteInternaCTO({
                             cabos={cabosFormatados}
                             splitters={splittersFormatados}
                             fusoes={fusoes}
-                            carregandoFusoes={carregandoFusoes}
+                            carregandoFusoes={carregandoFusoes || loadingFusao}
                             onCriarFusao={async (novaFusao) => {
                                 try {
                                     console.log('Criando nova fusão:', novaFusao);
@@ -275,37 +294,30 @@ export default function ParteInternaCTO({
                                     }
                                     
                                     // Preparar dados da fusão para envio à API
-                                    const dadosFusao = {
+                                    const dadosFusao: any = {
                                         capilarOrigemId: novaFusao.capilarOrigemId,
                                         capilarDestinoId: novaFusao.capilarDestinoId,
                                         tipoFusao: novaFusao.tipoFusao,
                                         status: 'Ativa' as const,
-                                        qualidadeSinal: 95.0, // Valor padrão
-                                        perdaInsercao: 0.15, // Valor padrão
-                                        posicaoFusao: `Pos-${Date.now()}`, // Posição única
+                                        qualidadeSinal: 95.0,
+                                        perdaInsercao: 0.15,
+                                        posicaoFusao: Date.now(),
                                         caixaId: caixaId,
-                                         bandejaId: bandejaId,
-                                         criadoPorId: usuarioId,
-                                         observacoes: `Fusão ${novaFusao.tipoFusao.replace('_', '-')} criada automaticamente`
+                                        criadoPorId: usuarioId,
+                                        observacoes: `Fusão ${novaFusao.tipoFusao.replace('_', '-')} criada automaticamente`
                                     };
-
-                                    // TODO: Implementar chamada real para API
-                                    // const response = await fetch('/api/fusoes', {
-                                    //     method: 'POST',
-                                    //     headers: {
-                                    //         'Content-Type': 'application/json',
-                                    //     },
-                                    //     body: JSON.stringify(dadosFusao)
-                                    // });
-                                    // 
-                                    // if (!response.ok) {
-                                    //     throw new Error('Erro ao criar fusão');
-                                    // }
-                                    // 
-                                    // const fusaoCriada = await response.json();
                                     
-                                    // Simulação de sucesso por enquanto
-                                    console.log('Dados da fusão preparados:', dadosFusao);
+                                    // Só adiciona bandejaId se existir e for CEO
+                                    if (bandejaId && tipoCaixa === 'CEO') {
+                                        dadosFusao.bandejaId = bandejaId;
+                                    }
+
+                                    // Chamar API real para criar fusão
+                                    const response = await criarFusao(dadosFusao);
+                                    
+                                    if (response.error) {
+                                        throw new Error(response.error);
+                                    }
                                     
                                     // Buscar informações dos capilares para feedback
                                     const capilarOrigem = buscarCapilar(novaFusao.capilarOrigemId);
@@ -318,20 +330,8 @@ export default function ParteInternaCTO({
                                     
                                     alert(`✅ Fusão criada com sucesso!\n\nDetalhes:\n- Origem: Capilar ${detalhesOrigem}\n- Destino: Capilar ${detalhesDestino}\n- Tipo: ${tipoFusaoDescricao}\n- Status: Ativa\n- Qualidade: ${dadosFusao.qualidadeSinal}%\n- Perda: ${dadosFusao.perdaInsercao}dB`);
                                     
-                                    // Atualizar estado local das fusões
-                                    const fusaoSimulada = {
-                                        id: `fusao-${Date.now()}`,
-                                        ...dadosFusao,
-                                        createdAt: new Date().toISOString(),
-                                        updatedAt: new Date().toISOString(),
-                                        // Adicionar informações dos capilares para exibição
-                                        capilarOrigem: capilarOrigem,
-                                        capilarDestino: capilarDestino
-                                    };
-                                    setFusoes(prev => [...prev, fusaoSimulada]);
-                                    
-                                    console.log('Fusão adicionada ao estado local:', fusaoSimulada);
-                                    console.log('Total de fusões:', fusoes.length + 1);
+                                    // Recarregar fusões da API
+                                    await carregarFusoes();
                                     
                                 } catch (error) {
                                     console.error('Erro ao criar fusão:', error);
@@ -342,23 +342,18 @@ export default function ParteInternaCTO({
                                 try {
                                     console.log('Removendo fusão:', fusaoId);
                                     
-                                    // TODO: Implementar chamada real para API
-                                    // const response = await fetch(`/api/fusoes/${fusaoId}`, {
-                                    //     method: 'DELETE'
-                                    // });
-                                    // 
-                                    // if (!response.ok) {
-                                    //     throw new Error('Erro ao remover fusão');
-                                    // }
+                                    // Chamar API real para remover fusão
+                                    const response = await excluirFusao(fusaoId);
                                     
-                                    // Simulação de sucesso por enquanto
-                                    console.log('Fusão removida com sucesso:', fusaoId);
+                                    if (response.error) {
+                                        throw new Error(response.error);
+                                    }
                                     
                                     // Feedback visual de sucesso
                                     alert(`✅ Fusão removida com sucesso!`);
                                     
-                                    // Atualizar estado local das fusões
-                                    setFusoes(prev => prev.filter(f => f.id !== fusaoId));
+                                    // Recarregar fusões da API
+                                    await carregarFusoes();
                                     
                                 } catch (error) {
                                     console.error('Erro ao remover fusão:', error);

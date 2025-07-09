@@ -91,8 +91,8 @@ async function verificarAcessoFusao(req: NextRequest, fusaoId: string) {
     return { erro: NextResponse.json({ erro: "Fusão não encontrada" }, { status: 404 }) };
   }
 
-  // Verifica se a caixa é do tipo CEO
-  if (fusao.caixa.tipo !== "CEO") {
+  // Verifica se a caixa é do tipo CEO ou CTO
+  if (fusao.caixa.tipo !== "CEO" && fusao.caixa.tipo !== "CTO") {
     return { erro: NextResponse.json({ erro: "Esta caixa não suporta fusões" }, { status: 400 }) };
   }
 
@@ -160,6 +160,14 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
 
     const dadosAtualizacao = result.data;
 
+    // Se estiver alterando a bandeja, verifica se a caixa é do tipo CTO
+    if (acesso.fusao?.caixa.tipo === "CTO" && dadosAtualizacao.bandejaId) {
+      return NextResponse.json(
+        { erro: "Caixas do tipo CTO não possuem bandejas" },
+        { status: 400 }
+      );
+    }
+    
     // Se estiver alterando a bandeja, verifica se a nova bandeja existe e pertence à mesma caixa
     if (dadosAtualizacao.bandejaId && dadosAtualizacao.bandejaId !== acesso.fusao?.bandejaId) {
       const bandeja = await prisma.bandeja.findUnique({
@@ -221,9 +229,17 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
         );
       }
 
-      if (caixa.tipo !== "CEO") {
+      if (caixa.tipo !== "CEO" && caixa.tipo !== "CTO") {
         return NextResponse.json(
-          { erro: "Só é possível registrar fusões em caixas do tipo CEO" },
+          { erro: "Só é possível registrar fusões em caixas do tipo CEO ou CTO" },
+          { status: 400 }
+        );
+      }
+      
+      // Verifica se a caixa é do tipo CTO e se foi especificada uma bandeja
+      if (caixa.tipo === "CTO" && dadosAtualizacao.bandejaId) {
+        return NextResponse.json(
+          { erro: "Caixas do tipo CTO não possuem bandejas" },
           { status: 400 }
         );
       }
