@@ -437,15 +437,21 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                                   key={porta}
                                   variant="ghost"
                                   size="sm"
-                                  className={`flex flex-col items-center p-1 h-auto ${modoSelecao ? 'hover:bg-gray-100' : ''}`}
+                                  className={`flex flex-col items-center p-1 h-auto relative transition-all duration-200
+                                    ${conectada ? 'ring-2 ring-green-400 scale-105 bg-green-50 dark:bg-green-900/40' : ''}
+                                    ${modoSelecao ? 'hover:ring-2 hover:ring-blue-400' : ''}
+                                  `}
                                   disabled={!modoSelecao || conectada}
                                   onClick={() => associarFibraASplitter(splitter.id, porta)}
                                 >
                                   <div
-                                    className={`w-3 h-3 rounded-full ${conectada ? 'ring-1 ring-offset-1' : ''}`}
+                                    className={`w-3 h-3 rounded-full ${conectada ? 'animate-pulse shadow-lg' : ''}`}
                                     style={{ backgroundColor: conectada ? fusaoCor : '#CCCCCC' }}
                                   />
                                   <span className="text-xs mt-1">{index + 1}</span>
+                                  {conectada && (
+                                    <span className="absolute -top-2 right-0 text-green-600 dark:text-green-300 text-[10px] font-bold animate-bounce">●</span>
+                                  )}
                                 </Button>
                               );
                             })}
