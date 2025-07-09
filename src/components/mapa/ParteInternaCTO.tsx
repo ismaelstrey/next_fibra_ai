@@ -21,6 +21,21 @@ interface ParteInternaCTOProps {
      * Lista de cabos AS conectados
      */
     cabosAS?: ConexaoRota[];
+
+    /**
+     * ID da caixa CTO atual
+     */
+    caixaId?: string;
+
+    /**
+     * ID da bandeja atual
+     */
+    bandejaId?: string;
+
+    /**
+     * ID do usuário atual
+     */
+    usuarioId?: string;
 }
 
 
@@ -46,9 +61,17 @@ interface SplitterFormatado {
 /**
  * Componente que representa a parte interna de uma CTO, incluindo splitters, cabos AS e área de fusões
  */
-export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCTOProps) {
+export default function ParteInternaCTO({ 
+    splitters = [], 
+    cabosAS = [],
+    caixaId = '1',
+    bandejaId = '1', 
+    usuarioId = '1'
+}: ParteInternaCTOProps) {
     const [capilar, setCapilar] = useState<CapilarAPI[]>([]);
     const [tubos, setTubos] = useState<TuboAPI[]>([]);
+    const [fusoes, setFusoes] = useState<any[]>([]);
+    const [carregandoFusoes, setCarregandoFusoes] = useState(false);
     const [cabosFormatados, setCabosFormatados] = useState<CaboFormatado[]>([]);
     const [splittersFormatados, setSplittersFormatados] = useState<SplitterFormatado[]>([]);
     const {  buscarCapilarPorTubo } = useCapilar()
@@ -119,9 +142,49 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
         setSplittersFormatados(formatados);
     }, [splitters]);
 
+    // Função para carregar fusões existentes
+     async function carregarFusoes() {
+         if (!caixaId || !bandejaId) return;
+         
+         setCarregandoFusoes(true);
+         try {
+             // TODO: Implementar chamada real para API
+             // const response = await fetch(`/api/fusoes?caixaId=${caixaId}&bandejaId=${bandejaId}`);
+             // const fusoesData = await response.json();
+             // setFusoes(fusoesData);
+             
+             // Simulação por enquanto
+             console.log('Carregando fusões para caixa:', caixaId, 'bandeja:', bandejaId);
+             setFusoes([]);
+         } catch (error) {
+             console.error('Erro ao carregar fusões:', error);
+         } finally {
+             setCarregandoFusoes(false);
+         }
+     }
+
+     // Função para buscar informações de um capilar
+     function buscarCapilar(capilarId: string) {
+         return capilar.find(c => c.id === capilarId);
+     }
+
+     // Função para obter descrição amigável do tipo de fusão
+     function obterDescricaoTipoFusao(tipo: string): string {
+         const tipos: Record<string, string> = {
+             'capilar_capilar': 'Capilar para Capilar',
+             'capilar_splitter': 'Capilar para Splitter',
+             'splitter_cliente': 'Splitter para Cliente'
+         };
+         return tipos[tipo] || tipo;
+     }
+
     useEffect(() => {
         buscaCapilar()
     }, [cabosAS]);
+    
+    useEffect(() => {
+        carregarFusoes();
+    }, [caixaId, bandejaId]);
     return (
         <>
             <CardHeader className="border-b pb-4">
@@ -186,21 +249,121 @@ export function ParteInternaCTO({ splitters = [], cabosAS = [] }: ParteInternaCT
                         <AreaFusao
                             cabos={cabosFormatados}
                             splitters={splittersFormatados}
-                            fusoes={[
-                                // TODO: Implementar busca de fusões da API
-                                // Por enquanto, array vazio até implementar a funcionalidade
-                            ]}
-                            onCriarFusao={(novaFusao) => {
-                                console.log('Nova fusão criada:', novaFusao);
-                                // TODO: Implementar chamada para API para salvar a fusão
-                                // Exemplo de implementação:
-                                // await criarFusao({
-                                //     fibraOrigem: novaFusao.fibraOrigem,
-                                //     fibraDestino: novaFusao.fibraDestino,
-                                //     cor: novaFusao.cor,
-                                //     caixaId: caixaId // ID da CTO atual
-                                // });
-                                alert(`Fusão criada com sucesso entre ${novaFusao.fibraOrigem} e ${novaFusao.fibraDestino}`);
+                            fusoes={fusoes}
+                            carregandoFusoes={carregandoFusoes}
+                            onCriarFusao={async (novaFusao) => {
+                                try {
+                                    console.log('Criando nova fusão:', novaFusao);
+                                    
+                                    // Validações antes de criar a fusão
+                                    if (!novaFusao.capilarOrigemId || !novaFusao.capilarDestinoId) {
+                                        throw new Error('Capilares de origem e destino são obrigatórios');
+                                    }
+                                    
+                                    if (novaFusao.capilarOrigemId === novaFusao.capilarDestinoId) {
+                                        throw new Error('Não é possível criar fusão entre o mesmo capilar');
+                                    }
+                                    
+                                    // Verificar se já existe fusão entre estes capilares
+                                    const fusaoExistente = fusoes.find(f => 
+                                        (f.capilarOrigemId === novaFusao.capilarOrigemId && f.capilarDestinoId === novaFusao.capilarDestinoId) ||
+                                        (f.capilarOrigemId === novaFusao.capilarDestinoId && f.capilarDestinoId === novaFusao.capilarOrigemId)
+                                    );
+                                    
+                                    if (fusaoExistente) {
+                                        throw new Error('Já existe uma fusão entre estes capilares');
+                                    }
+                                    
+                                    // Preparar dados da fusão para envio à API
+                                    const dadosFusao = {
+                                        capilarOrigemId: novaFusao.capilarOrigemId,
+                                        capilarDestinoId: novaFusao.capilarDestinoId,
+                                        tipoFusao: novaFusao.tipoFusao,
+                                        status: 'Ativa' as const,
+                                        qualidadeSinal: 95.0, // Valor padrão
+                                        perdaInsercao: 0.15, // Valor padrão
+                                        posicaoFusao: `Pos-${Date.now()}`, // Posição única
+                                        caixaId: caixaId,
+                                         bandejaId: bandejaId,
+                                         criadoPorId: usuarioId,
+                                         observacoes: `Fusão ${novaFusao.tipoFusao.replace('_', '-')} criada automaticamente`
+                                    };
+
+                                    // TODO: Implementar chamada real para API
+                                    // const response = await fetch('/api/fusoes', {
+                                    //     method: 'POST',
+                                    //     headers: {
+                                    //         'Content-Type': 'application/json',
+                                    //     },
+                                    //     body: JSON.stringify(dadosFusao)
+                                    // });
+                                    // 
+                                    // if (!response.ok) {
+                                    //     throw new Error('Erro ao criar fusão');
+                                    // }
+                                    // 
+                                    // const fusaoCriada = await response.json();
+                                    
+                                    // Simulação de sucesso por enquanto
+                                    console.log('Dados da fusão preparados:', dadosFusao);
+                                    
+                                    // Buscar informações dos capilares para feedback
+                                    const capilarOrigem = buscarCapilar(novaFusao.capilarOrigemId);
+                                    const capilarDestino = buscarCapilar(novaFusao.capilarDestinoId);
+                                    const tipoFusaoDescricao = obterDescricaoTipoFusao(novaFusao.tipoFusao);
+                                    
+                                    // Feedback visual de sucesso
+                                    const detalhesOrigem = capilarOrigem ? `${capilarOrigem.numero} (${getColor(capilarOrigem.numero)})` : novaFusao.capilarOrigemId;
+                                    const detalhesDestino = capilarDestino ? `${capilarDestino.numero} (${getColor(capilarDestino.numero)})` : novaFusao.capilarDestinoId;
+                                    
+                                    alert(`✅ Fusão criada com sucesso!\n\nDetalhes:\n- Origem: Capilar ${detalhesOrigem}\n- Destino: Capilar ${detalhesDestino}\n- Tipo: ${tipoFusaoDescricao}\n- Status: Ativa\n- Qualidade: ${dadosFusao.qualidadeSinal}%\n- Perda: ${dadosFusao.perdaInsercao}dB`);
+                                    
+                                    // Atualizar estado local das fusões
+                                    const fusaoSimulada = {
+                                        id: `fusao-${Date.now()}`,
+                                        ...dadosFusao,
+                                        createdAt: new Date().toISOString(),
+                                        updatedAt: new Date().toISOString(),
+                                        // Adicionar informações dos capilares para exibição
+                                        capilarOrigem: capilarOrigem,
+                                        capilarDestino: capilarDestino
+                                    };
+                                    setFusoes(prev => [...prev, fusaoSimulada]);
+                                    
+                                    console.log('Fusão adicionada ao estado local:', fusaoSimulada);
+                                    console.log('Total de fusões:', fusoes.length + 1);
+                                    
+                                } catch (error) {
+                                    console.error('Erro ao criar fusão:', error);
+                                    alert(`❌ Erro ao criar fusão: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+                                }
+                            }}
+                            onRemoverFusao={async (fusaoId) => {
+                                try {
+                                    console.log('Removendo fusão:', fusaoId);
+                                    
+                                    // TODO: Implementar chamada real para API
+                                    // const response = await fetch(`/api/fusoes/${fusaoId}`, {
+                                    //     method: 'DELETE'
+                                    // });
+                                    // 
+                                    // if (!response.ok) {
+                                    //     throw new Error('Erro ao remover fusão');
+                                    // }
+                                    
+                                    // Simulação de sucesso por enquanto
+                                    console.log('Fusão removida com sucesso:', fusaoId);
+                                    
+                                    // Feedback visual de sucesso
+                                    alert(`✅ Fusão removida com sucesso!`);
+                                    
+                                    // Atualizar estado local das fusões
+                                    setFusoes(prev => prev.filter(f => f.id !== fusaoId));
+                                    
+                                } catch (error) {
+                                    console.error('Erro ao remover fusão:', error);
+                                    alert(`❌ Erro ao remover fusão: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+                                }
                             }}
                         />
                     </div>

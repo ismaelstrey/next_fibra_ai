@@ -190,25 +190,35 @@ export const useApiService = () => {
         }, [request]),
 
         criar: useCallback(async (fusao: {
-            posicao: number;
+            capilarOrigemId: string;
+            capilarDestinoId: string;
+            tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente';
+            status: 'Ativa' | 'Inativa' | 'Manutencao';
+            qualidadeSinal?: number;
+            perdaInsercao?: number;
             cor?: string;
-            origem: string;
-            destino: string;
             observacoes?: string;
             caixaId: string;
             bandejaId?: string;
+            posicaoFusao?: number;
+            criadoPorId?: string;
         }) => {
             return request<{ mensagem: string, fusao: FusaoAPI }>('POST', '/fusoes', fusao);
         }, [request]),
 
         criarEmLote: useCallback(async (fusoes: {
-            posicao: number;
+            capilarOrigemId: string;
+            capilarDestinoId: string;
+            tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente';
+            status: 'Ativa' | 'Inativa' | 'Manutencao';
+            qualidadeSinal?: number;
+            perdaInsercao?: number;
             cor?: string;
-            origem: string;
-            destino: string;
             observacoes?: string;
             caixaId: string;
             bandejaId?: string;
+            posicaoFusao?: number;
+            criadoPorId?: string;
         }[]) => {
             return request<{ mensagem: string, fusoes: FusaoAPI[] }>('POST', '/fusoes/lote', { fusoes });
         }, [request])

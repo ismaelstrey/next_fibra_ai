@@ -26,9 +26,18 @@ interface Splitter {
 
 interface Fusao {
   id: string;
-  fibraOrigem: string; // ID da fibra de origem
-  fibraDestino: string; // ID da fibra de destino ou porta do splitter
-  cor: string;
+  capilarOrigemId: string; // ID do capilar de origem
+  capilarDestinoId: string; // ID do capilar de destino
+  tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente';
+  status: 'Ativa' | 'Inativa' | 'Manutencao';
+  qualidadeSinal?: number;
+  perdaInsercao?: number;
+  cor?: string;
+  observacoes?: string;
+  caixaId: string;
+  bandejaId?: string;
+  posicaoFusao?: number;
+  criadoPorId?: string;
 }
 
 interface AreaFusaoProps {
@@ -48,16 +57,26 @@ interface AreaFusaoProps {
   fusoes?: Fusao[];
 
   /**
+   * Indica se as fusões estão sendo carregadas
+   */
+  carregandoFusoes?: boolean;
+
+  /**
    * Callback chamado quando uma nova fusão é criada
    */
   onCriarFusao?: (fusao: Fusao) => void;
+
+  /**
+   * Callback chamado quando uma fusão é removida
+   */
+  onRemoverFusao?: (fusaoId: string) => void;
 }
 
 /**
  * Componente que representa a área de fusão dentro de uma CTO
  * Mostra os cabos conectados, splitters e fusões
  */
-export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusao }: AreaFusaoProps) {
+export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoFusoes = false, onCriarFusao, onRemoverFusao }: AreaFusaoProps) {
   // Estado para controlar quais tubos estão expandidos
   const [expandedTubos, setExpandedTubos] = useState<Record<string, boolean>>({});
   // Estado para controlar a fibra selecionada
@@ -95,8 +114,64 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
       setFibraSelecionada(null);
       setModoSelecao(false);
     } else {
-      setFibraSelecionada(fibraId);
-      setModoSelecao(true);
+      // Se já há uma fibra selecionada e é diferente, criar fusão capilar-capilar
+      if (fibraSelecionada && fibraSelecionada !== fibraId) {
+        criarFusaoCapilarCapilar(fibraSelecionada, fibraId);
+        setFibraSelecionada(null);
+        setModoSelecao(false);
+      } else {
+        setFibraSelecionada(fibraId);
+        setModoSelecao(true);
+      }
+    }
+  };
+
+  // Função para criar fusão entre dois capilares
+  const criarFusaoCapilarCapilar = (capilarOrigemId: string, capilarDestinoId: string) => {
+    // Verificar se algum dos capilares já está conectado
+    const origemJaConectada = fusoes.some(fusao => 
+      fusao.capilarOrigemId === capilarOrigemId || fusao.capilarDestinoId === capilarOrigemId
+    );
+    const destinoJaConectado = fusoes.some(fusao => 
+      fusao.capilarOrigemId === capilarDestinoId || fusao.capilarDestinoId === capilarDestinoId
+    );
+
+    if (origemJaConectada) {
+      alert('O capilar de origem já está conectado a outro dispositivo.');
+      return;
+    }
+
+    if (destinoJaConectado) {
+      alert('O capilar de destino já está conectado a outro dispositivo.');
+      return;
+    }
+
+    // Encontrar a cor do capilar de origem
+    let corCapilar = '#FF0000'; // Cor padrão
+    for (const cabo of cabos) {
+      for (const tubo of cabo.tubos) {
+        const fibra = tubo?.capilares?.find(f => f.id === capilarOrigemId);
+        if (fibra) {
+          corCapilar = getColor(fibra.numero);
+          break;
+        }
+      }
+    }
+
+    // Criar a nova fusão
+    const novaFusao: Fusao = {
+      id: `fusao-${Date.now()}`,
+      capilarOrigemId,
+      capilarDestinoId,
+      tipoFusao: 'capilar_capilar',
+      status: 'Ativa',
+      cor: corCapilar,
+      caixaId: '', // Será preenchido pelo componente pai
+    };
+
+    // Chamar o callback se existir
+    if (onCriarFusao) {
+      onCriarFusao(novaFusao);
     }
   };
 
@@ -105,14 +180,16 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
     if (!fibraSelecionada || !modoSelecao) return;
 
     // Verificar se a fibra já está conectada
-    const fibraJaConectada = fusoes.some(fusao => fusao.fibraOrigem === fibraSelecionada);
+    const fibraJaConectada = fusoes.some(fusao => 
+      fusao.capilarOrigemId === fibraSelecionada || fusao.capilarDestinoId === fibraSelecionada
+    );
     if (fibraJaConectada) {
       alert('Esta fibra já está conectada a outro dispositivo.');
       return;
     }
 
     // Verificar se a porta do splitter já está conectada
-    const portaJaConectada = fusoes.some(fusao => fusao.fibraDestino === portaId);
+    const portaJaConectada = fusoes.some(fusao => fusao.capilarDestinoId === portaId);
     if (portaJaConectada) {
       alert('Esta porta do splitter já está conectada.');
       return;
@@ -133,9 +210,12 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
     // Criar a nova fusão
     const novaFusao: Fusao = {
       id: `fusao-${Date.now()}`,
-      fibraOrigem: fibraSelecionada,
-      fibraDestino: portaId,
-      cor: corFibra
+      capilarOrigemId: fibraSelecionada,
+      capilarDestinoId: portaId,
+      tipoFusao: 'capilar_splitter',
+      status: 'Ativa',
+      cor: corFibra,
+      caixaId: '', // Será preenchido pelo componente pai
     };
 
     // Chamar o callback se existir
@@ -164,14 +244,14 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
   // Função para verificar se uma fibra está conectada
   const isFibraConectada = (fibraId: string) => {
     return fusoes.some(fusao =>
-      fusao.fibraOrigem === fibraId || fusao.fibraDestino === fibraId
+      fusao.capilarOrigemId === fibraId || fusao.capilarDestinoId === fibraId
     );
   };
 
   // Função para obter a cor da fusão de uma fibra
   const getFusaoCor = (fibraId: string) => {
     const fusao = fusoes.find(fusao =>
-      fusao.fibraOrigem === fibraId || fusao.fibraDestino === fibraId
+      fusao.capilarOrigemId === fibraId || fusao.capilarDestinoId === fibraId
     );
     return fusao?.cor || '#CCCCCC';
   };
@@ -182,7 +262,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
         <div className="bg-blue-50 p-2 rounded-md border border-blue-200 mb-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-blue-700">
-              Modo de seleção ativo: Selecione um splitter para conectar
+              Capilar selecionado: Clique em outro capilar para fusão capilar-capilar ou em um splitter para fusão capilar-splitter
             </span>
             <Button
               variant="outline"
@@ -258,8 +338,15 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                                       key={fibra.id}
                                       variant={selecionada ? "default" : "ghost"}
                                       size="sm"
-                                      className={`flex flex-col items-center p-1 rounded h-auto ${conectada ? 'bg-gray-100' : ''} ${selecionada ? 'ring-2 ring-primary' : ''}`}
+                                      className={`flex flex-col items-center p-1 rounded h-auto ${
+                                        conectada ? 'bg-gray-100 opacity-75' : ''
+                                      } ${
+                                        selecionada ? 'ring-2 ring-primary' : ''
+                                      } ${
+                                        modoSelecao && !selecionada && !conectada ? 'hover:ring-1 hover:ring-blue-300' : ''
+                                      }`}
                                       onClick={() => selecionarFibra(fibra.id)}
+                                      disabled={conectada && !selecionada}
                                     >
                                       <div
                                         className="w-4 h-4 rounded-full mb-1"
@@ -325,9 +412,9 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                           <div className="text-xs font-medium mb-1">Saídas ({splitter.portasSaida.length})</div>
                           <div className="grid grid-cols-4 gap-1">
                             {splitter.portasSaida.map((porta, index) => {
-                              const conectada = fusoes.some(fusao => fusao.fibraDestino === porta);
+                              const conectada = fusoes.some(fusao => fusao.capilarDestinoId === porta);
                               const fusaoCor = conectada
-                                ? fusoes.find(fusao => fusao.fibraDestino === porta)?.cor
+                                ? fusoes.find(fusao => fusao.capilarDestinoId === porta)?.cor
                                 : '#CCCCCC';
 
                               return (
@@ -370,7 +457,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                   // Busca informações da origem (fibra)
                   for (const cabo of cabos) {
                     for (const tubo of cabo.tubos) {
-                      const fibra = tubo?.capilares?.find(f => f.id === fusao.fibraOrigem);
+                      const fibra = tubo?.capilares?.find(f => f.id === fusao.capilarOrigemId);
                       if (fibra) {
                         origemInfo = `${cabo.nome} - Tubo ${tubo.numero} - Fibra ${fibra.numero}`;
                         break;
@@ -383,7 +470,7 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                   let destinoEncontrado = false;
                   for (const cabo of cabos) {
                     for (const tubo of cabo.tubos) {
-                      const fibra = tubo?.capilares?.find(f => f.id === fusao.fibraDestino);
+                      const fibra = tubo?.capilares?.find(f => f.id === fusao.capilarDestinoId);
                       if (fibra) {
                         destinoInfo = `${cabo.nome} - Tubo ${tubo.numero} - Fibra ${fibra.numero}`;
                         destinoEncontrado = true;
@@ -396,12 +483,12 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                   // Se não for fibra, verifica se é porta de splitter
                   if (!destinoEncontrado) {
                     for (const splitter of splitters) {
-                      if (splitter.portaEntrada === fusao.fibraDestino) {
+                      if (splitter.portaEntrada === fusao.capilarDestinoId) {
                         destinoInfo = `Splitter ${splitter.tipo} - Entrada`;
                         break;
                       }
 
-                      const portaIndex = splitter.portasSaida.findIndex(p => p === fusao.fibraDestino);
+                      const portaIndex = splitter.portasSaida.findIndex(p => p === fusao.capilarDestinoId);
                       if (portaIndex >= 0) {
                         destinoInfo = `Splitter ${splitter.tipo} - Saída ${portaIndex + 1}`;
                         break;
@@ -412,17 +499,32 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], onCriarFusa
                   return (
                     <div
                       key={fusao.id}
-                      className="flex items-center p-2 border rounded-sm"
+                      className="flex items-center justify-between p-2 border rounded-sm hover:bg-gray-50"
                     >
-                      <div
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: fusao.cor }}
-                      />
-                      <div className="text-xs">
-                        <span className="font-medium">{origemInfo}</span>
-                        <span className="mx-2">→</span>
-                        <span className="font-medium">{destinoInfo}</span>
+                      <div className="flex items-center">
+                        <div
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: fusao.cor }}
+                        />
+                        <div className="text-xs">
+                          <div className="font-medium">{origemInfo}</div>
+                          <div className="text-gray-500">→ {destinoInfo}</div>
+                          <div className="text-gray-400 mt-1">
+                            Tipo: {fusao.tipoFusao.replace('_', '-')} | Status: {fusao.status}
+                          </div>
+                        </div>
                       </div>
+                      {onRemoverFusao && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => onRemoverFusao(fusao.id)}
+                          title="Remover fusão"
+                        >
+                          ×
+                        </Button>
+                      )}
                     </div>
                   );
                 })}

@@ -19,6 +19,34 @@ async function verificarAcessoFusao(req: NextRequest, fusaoId: string) {
   const fusao = await prisma.fusao.findUnique({
     where: { id: fusaoId },
     include: {
+      capilarOrigem: {
+        select: {
+          id: true,
+          numero: true,
+          tipo: true,
+          status: true,
+          tubo: {
+            select: {
+              numero: true,
+              tipo: true,
+            },
+          },
+        },
+      },
+      capilarDestino: {
+        select: {
+          id: true,
+          numero: true,
+          tipo: true,
+          status: true,
+          tubo: {
+            select: {
+              numero: true,
+              tipo: true,
+            },
+          },
+        },
+      },
       caixa: {
         select: {
           id: true,
@@ -47,6 +75,13 @@ async function verificarAcessoFusao(req: NextRequest, fusaoId: string) {
           id: true,
           numero: true,
           capacidade: true,
+        },
+      },
+      criadoPor: {
+        select: {
+          id: true,
+          nome: true,
+          cargo: true,
         },
       },
     },
@@ -278,8 +313,9 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
         entidade: "Fusão",
         entidadeId: id,
         detalhes: {
-          origem: acesso.fusao?.fibraOrigem,
-          destino: acesso.fusao?.fibraDestino,
+          capilarOrigemId: acesso.fusao?.capilarOrigemId,
+          capilarDestinoId: acesso.fusao?.capilarDestinoId,
+          tipoFusao: acesso.fusao?.tipoFusao,
           caixaId: acesso.fusao?.caixaId,
           bandejaId: acesso.fusao?.bandejaId,
         },

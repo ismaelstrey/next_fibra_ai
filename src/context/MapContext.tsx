@@ -46,14 +46,16 @@ export interface PontoFusao {
   id: string;
   caixaId: string; // ID da caixa (CEO) onde está localizado
   bandeja?: number;
-  fibraOrigem: number;
-  fibraDestino: number;
-  tuboOrigem?: string;
-  tuboDestino?: string;
-  status: string;
+  capilarOrigemId: string;
+  capilarDestinoId: string;
+  tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente';
+  status: 'Ativa' | 'Inativa' | 'Manutencao';
+  qualidadeSinal?: number;
+  perdaInsercao?: number;
   cor?: string;
   observacoes?: string;
-  rotaOrigemId: string;
+  posicaoFusao?: number;
+  criadoPorId?: string;
 }
 
 /**
@@ -183,15 +185,17 @@ const converterFusaoApiParaContexto = (fusaoApi: FusaoAPI): PontoFusao => {
   return {
     id: fusaoApi.id,
     caixaId: fusaoApi.caixaId,
-    bandeja: fusaoApi.bandejaId ? parseInt(fusaoApi.bandejaId) : undefined,
-    fibraOrigem: fusaoApi.fibraOrigem,
-    fibraDestino: fusaoApi.fibraDestino,
-    tuboOrigem: fusaoApi.tuboOrigem,
-    tuboDestino: fusaoApi.tuboDestino,
+    capilarOrigemId: fusaoApi.capilarOrigemId,
+    capilarDestinoId: fusaoApi.capilarDestinoId,
+    tipoFusao: fusaoApi.tipoFusao,
     status: fusaoApi.status,
+    qualidadeSinal: fusaoApi.qualidadeSinal,
+    perdaInsercao: fusaoApi.perdaInsercao,
     cor: fusaoApi.cor,
     observacoes: fusaoApi.observacoes,
-    rotaOrigemId: fusaoApi.rotaOrigemId
+    posicaoFusao: fusaoApi.posicaoFusao,
+    criadoPorId: fusaoApi.criadoPorId,
+    bandeja: fusaoApi.bandejaId ? parseInt(fusaoApi.bandejaId) : undefined,
   };
 };
 
@@ -576,13 +580,18 @@ export function MapProvider({ children }: { children: ReactNode }) {
     try {
       // Prepara os dados para a API
       const fusaoParaApi = {
-        posicao: pontoFusao.fibraOrigem,
-        origem: pontoFusao.tuboOrigem || `Fibra ${pontoFusao.fibraOrigem}`,
-        destino: pontoFusao.tuboDestino || `Fibra ${pontoFusao.fibraDestino}`,
+        capilarOrigemId: pontoFusao.capilarOrigemId,
+        capilarDestinoId: pontoFusao.capilarDestinoId,
+        tipoFusao: pontoFusao.tipoFusao,
+        status: pontoFusao.status,
+        qualidadeSinal: pontoFusao.qualidadeSinal,
+        perdaInsercao: pontoFusao.perdaInsercao,
         cor: pontoFusao.cor,
         observacoes: pontoFusao.observacoes,
         caixaId: pontoFusao.caixaId,
-        bandejaId: pontoFusao.bandeja?.toString()
+        bandejaId: pontoFusao.bandeja?.toString(),
+        posicaoFusao: pontoFusao.posicaoFusao,
+        criadoPorId: pontoFusao.criadoPorId
       };
 
       // Envia para a API

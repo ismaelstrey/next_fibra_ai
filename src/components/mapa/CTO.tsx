@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { PortaCliente } from './PortaCliente';
-import { ParteInternaCTO } from './ParteInternaCTO';
+import ParteInternaCTO  from './ParteInternaCTO';
 import { SpliterType } from '@/types/fibra';
 import { ClienteAPI } from '@/types/cliente';
 import { ConexaoRota } from '@/types/caixa';

@@ -80,11 +80,24 @@ export async function GET(req: NextRequest) {
     // Constrói o filtro
     const where: any = {};
 
-    // Adiciona filtro de busca por origem ou destino
+    // Adiciona filtro de busca por capilares
     if (busca) {
       where.OR = [
-        { origem: { contains: busca } },
-        { destino: { contains: busca } },
+        { 
+          capilarOrigem: { 
+            numero: { 
+              equals: parseInt(busca) || undefined 
+            } 
+          } 
+        },
+        { 
+          capilarDestino: { 
+            numero: { 
+              equals: parseInt(busca) || undefined 
+            } 
+          } 
+        },
+        { observacoes: { contains: busca } },
       ];
     }
 
@@ -126,17 +139,47 @@ export async function GET(req: NextRequest) {
         where,
         select: {
           id: true,
-          fibraOrigem: true,
-          fibraDestino: true,
-          tuboOrigem: true,
-          tuboDestino: true,
+          capilarOrigemId: true,
+          capilarDestinoId: true,
+          tipoFusao: true,
           status: true,
+          qualidadeSinal: true,
+          perdaInsercao: true,
           cor: true,
           observacoes: true,
+          posicaoFusao: true,
           criadoEm: true,
           atualizadoEm: true,
           caixaId: true,
           bandejaId: true,
+          capilarOrigem: {
+            select: {
+              id: true,
+              numero: true,
+              tipo: true,
+              status: true,
+              tubo: {
+                select: {
+                  numero: true,
+                  tipo: true,
+                },
+              },
+            },
+          },
+          capilarDestino: {
+            select: {
+              id: true,
+              numero: true,
+              tipo: true,
+              status: true,
+              tubo: {
+                select: {
+                  numero: true,
+                  tipo: true,
+                },
+              },
+            },
+          },
           caixa: {
             select: {
               nome: true,
@@ -155,13 +198,20 @@ export async function GET(req: NextRequest) {
               capacidade: true,
             },
           },
+          criadoPor: {
+            select: {
+              id: true,
+              nome: true,
+              cargo: true,
+            },
+          },
         },
         skip,
         take: limite,
         orderBy: [
           { caixa: { nome: "asc" } },
           { bandeja: { numero: "asc" } },
-          { fibraOrigem: "asc" },
+          { capilarOrigem: { numero: "asc" } },
         ],
       }),
       prisma.fusao.count({ where }),
@@ -329,16 +379,17 @@ export async function POST(req: NextRequest) {
       }
 
       const {
-        fibraOrigem,
-        fibraDestino,
-        tuboOrigem,
-        tuboDestino,
+        capilarOrigemId,
+        capilarDestinoId,
+        tipoFusao,
         status,
+        qualidadeSinal,
+        perdaInsercao,
         cor,
         observacoes,
         caixaId,
         bandejaId,
-        rotaOrigemId
+        posicaoFusao
       } = result.data;
 
       // Verifica se o usuário tem acesso à caixa
@@ -400,16 +451,67 @@ export async function POST(req: NextRequest) {
       // Cria a fusão no banco de dados
       const novaFusao = await prisma.fusao.create({
         data: {
-          fibraOrigem,
-          fibraDestino,
-          tuboOrigem,
-          tuboDestino,
+          capilarOrigemId: result.data.capilarOrigemId,
+          capilarDestinoId: result.data.capilarDestinoId,
+          tipoFusao: result.data.tipoFusao,
           status,
+          qualidadeSinal: result.data.qualidadeSinal,
+          perdaInsercao: result.data.perdaInsercao,
           cor,
           observacoes,
           caixaId,
           bandejaId,
-          rotaOrigemId,
+          posicaoFusao: result.data.posicaoFusao,
+          criadoPorId: acesso.token.id as string,
+        },
+        include: {
+          capilarOrigem: {
+            select: {
+              id: true,
+              numero: true,
+              tipo: true,
+              status: true,
+              tubo: {
+                select: {
+                  numero: true,
+                  tipo: true,
+                },
+              },
+            },
+          },
+          capilarDestino: {
+            select: {
+              id: true,
+              numero: true,
+              tipo: true,
+              status: true,
+              tubo: {
+                select: {
+                  numero: true,
+                  tipo: true,
+                },
+              },
+            },
+          },
+          caixa: {
+            select: {
+              nome: true,
+              tipo: true,
+            },
+          },
+          bandeja: {
+            select: {
+              numero: true,
+              capacidade: true,
+            },
+          },
+          criadoPor: {
+            select: {
+              id: true,
+              nome: true,
+              cargo: true,
+            },
+          },
         },
       });
 
@@ -421,7 +523,7 @@ export async function POST(req: NextRequest) {
           acao: "Criação",
           entidade: "Fusão",
           entidadeId: novaFusao.id,
-          detalhes: { fibraOrigem, fibraDestino, caixaId, bandejaId },
+          detalhes: { capilarOrigemId, capilarDestinoId, caixaId, bandejaId },
         });
       }
 

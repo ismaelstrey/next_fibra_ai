@@ -19,20 +19,26 @@ import { Label } from '@/components/ui/label';
 
 // Definindo a interface para o tipo Fusao
 interface Fusao {
-  id: number;
-  caixa: string;
-  tipoCaixa: string;
-  bandeja: number;
-  porta: number;
-  fibra: string;
-  destino: string;
-  destinoPorta: number;
-  destinoFibra: string;
-  status: string;
-  dataCriacao: string;
-  criadoPor: string;
-  ultimaAtualizacao: string;
-  observacoes: string;
+  id: string;
+  capilarOrigemId: string;
+  capilarDestinoId: string;
+  tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente' | '';
+  status: 'Ativa' | 'Inativa' | 'Manutencao';
+  qualidadeSinal?: number;
+  perdaInsercao?: number;
+  posicaoFusao?: number;
+  observacoes?: string;
+  caixaId: string;
+  bandejaId?: string;
+  criadoPorId?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Campos para exibição (vindos das relações)
+  capilarOrigem?: { numero: number; cor: string };
+  capilarDestino?: { numero: number; cor: string };
+  caixa?: { nome: string; tipo: string };
+  bandeja?: { numero: number };
+  criadoPor?: { nome: string };
 }
 
 export default function FusoesPage() {
@@ -51,82 +57,115 @@ export default function FusoesPage() {
   const [modoEdicao, setModoEdicao] = useState(false);
 
   // Dados simulados de fusões
-  const [fusoes, setFusoes] = useState([
+  const [fusoes, setFusoes] = useState<Fusao[]>([
     {
-      id: 1,
-      caixa: 'CTO-001',
-      tipoCaixa: 'CTO',
-      bandeja: 1,
-      porta: 1,
-      fibra: 'Azul',
-      destino: 'CEO-002',
-      destinoPorta: 3,
-      destinoFibra: 'Verde',
-      status: 'Ativo',
-      dataCriacao: '2023-10-15',
-      criadoPor: 'João Silva',
-      ultimaAtualizacao: '2023-10-15',
-      observacoes: 'Fusão realizada com sucesso'
+      id: '1',
+      capilarOrigemId: 'cap-001',
+      capilarDestinoId: 'cap-002',
+      tipoFusao: '' as const,
+      status: 'Ativa',
+      qualidadeSinal: 95.5,
+      perdaInsercao: 0.1,
+      posicaoFusao: 1,
+      caixaId: 'cto-001',
+      bandejaId: 'bandeja-001',
+      criadoPorId: 'user-001',
+      createdAt: '2023-10-15T10:00:00Z',
+      updatedAt: '2023-10-15T10:00:00Z',
+      observacoes: 'Fusão realizada com sucesso',
+      capilarOrigem: { numero: 1, cor: 'Azul' },
+      capilarDestino: { numero: 3, cor: 'Verde' },
+      caixa: { nome: 'CTO-001', tipo: 'CTO' },
+      bandeja: { numero: 1 },
+      criadoPor: { nome: 'João Silva' }
     },
     {
-      id: 2,
-      caixa: 'CTO-001',
-      tipoCaixa: 'CTO',
-      bandeja: 1,
-      porta: 2,
-      fibra: 'Verde',
-      destino: 'CEO-002',
-      destinoPorta: 4,
-      destinoFibra: 'Azul',
-      status: 'Ativo',
-      dataCriacao: '2023-10-15',
-      criadoPor: 'João Silva',
-      ultimaAtualizacao: '2023-10-15',
-      observacoes: 'Fusão realizada com sucesso'
+      id: '2',
+      capilarOrigemId: 'cap-003',
+      capilarDestinoId: 'cap-004',
+      tipoFusao: 'capilar_splitter',
+      status: 'Ativa',
+      qualidadeSinal: 92.3,
+      perdaInsercao: 0.2,
+      posicaoFusao: 2,
+      caixaId: 'cto-001',
+      bandejaId: 'bandeja-001',
+      criadoPorId: 'user-001',
+      createdAt: '2023-10-15T11:00:00Z',
+      updatedAt: '2023-10-15T11:00:00Z',
+      observacoes: 'Fusão realizada com sucesso',
+      capilarOrigem: { numero: 2, cor: 'Verde' },
+      capilarDestino: { numero: 4, cor: 'Azul' },
+      caixa: { nome: 'CTO-001', tipo: 'CTO' },
+      bandeja: { numero: 1 },
+      criadoPor: { nome: 'João Silva' }
     },
     {
-      id: 3,
-      caixa: 'CEO-002',
-      tipoCaixa: 'CEO',
-      bandeja: 2,
-      porta: 1,
-      fibra: 'Azul',
-      destino: 'CTO-003',
-      destinoPorta: 1,
-      destinoFibra: 'Azul',
-      status: 'Ativo',
-      dataCriacao: '2023-10-16',
-      criadoPor: 'Maria Santos',
-      ultimaAtualizacao: '2023-10-16',
-      observacoes: 'Fusão realizada com atenuação de 0.1dB'
+      id: '3',
+      capilarOrigemId: 'cap-005',
+      capilarDestinoId: 'cap-006',
+      tipoFusao: 'splitter_cliente',
+      status: 'Ativa',
+      qualidadeSinal: 88.7,
+      perdaInsercao: 0.15,
+      posicaoFusao: 1,
+      caixaId: 'ceo-002',
+      bandejaId: 'bandeja-002',
+      criadoPorId: 'user-002',
+      createdAt: '2023-10-16T09:00:00Z',
+      updatedAt: '2023-10-16T09:00:00Z',
+      observacoes: 'Fusão realizada com atenuação de 0.15dB',
+      capilarOrigem: { numero: 1, cor: 'Azul' },
+      capilarDestino: { numero: 1, cor: 'Azul' },
+      caixa: { nome: 'CEO-002', tipo: 'CEO' },
+      bandeja: { numero: 2 },
+      criadoPor: { nome: 'Maria Santos' }
     },
     {
-      id: 4,
-      caixa: 'CTO-003',
-      tipoCaixa: 'CTO',
-      bandeja: 1,
-      porta: 3,
-      fibra: 'Laranja',
-      destino: 'CEO-004',
-      destinoPorta: 2,
-      destinoFibra: 'Marrom',
-      status: 'Inativo',
-      dataCriacao: '2023-10-17',
-      criadoPor: 'Carlos Oliveira',
-      ultimaAtualizacao: '2023-10-20',
-      observacoes: 'Fusão com problema, necessita revisão'
+      id: '4',
+      capilarOrigemId: 'cap-007',
+      capilarDestinoId: 'cap-008',
+      tipoFusao: 'capilar_capilar',
+      status: 'Manutencao',
+      qualidadeSinal: 75.2,
+      perdaInsercao: 0.8,
+      posicaoFusao: 3,
+      caixaId: 'cto-003',
+      bandejaId: 'bandeja-003',
+      criadoPorId: 'user-003',
+      createdAt: '2023-10-17T14:00:00Z',
+      updatedAt: '2023-10-20T16:00:00Z',
+      observacoes: 'Fusão com problema, necessita revisão',
+      capilarOrigem: { numero: 3, cor: 'Laranja' },
+      capilarDestino: { numero: 2, cor: 'Marrom' },
+      caixa: { nome: 'CTO-003', tipo: 'CTO' },
+      bandeja: { numero: 1 },
+      criadoPor: { nome: 'Carlos Oliveira' }
     },
   ]);
 
   // Formulário para nova fusão ou edição
-  const [formulario, setFormulario] = useState({
-    caixa: '',
-    bandeja: '',
-    porta: '',
-    fibra: '',
-    destino: '',
-    destinoPorta: '',
-    destinoFibra: '',
+  const [formulario, setFormulario] = useState<{
+    caixaId: string;
+    bandejaId: string;
+    capilarOrigemId: string;
+    capilarDestinoId: string;
+    tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente' | '';
+    status: 'Ativa' | 'Inativa' | 'Manutencao';
+    qualidadeSinal: string;
+    perdaInsercao: string;
+    posicaoFusao: string;
+    observacoes: string;
+  }>({
+    caixaId: '',
+    bandejaId: '',
+    capilarOrigemId: '',
+    capilarDestinoId: '',
+    tipoFusao: '' as const,
+    status: 'Ativa',
+    qualidadeSinal: '',
+    perdaInsercao: '',
+    posicaoFusao: '',
     observacoes: ''
   });
 
@@ -137,21 +176,22 @@ export default function FusoesPage() {
         // Filtro por pesquisa
         const termoPesquisa = pesquisa.toLowerCase();
         if (termoPesquisa && !(
-          fusao.caixa.toLowerCase().includes(termoPesquisa) ||
-          fusao.destino.toLowerCase().includes(termoPesquisa) ||
-          fusao.fibra.toLowerCase().includes(termoPesquisa) ||
-          fusao.destinoFibra.toLowerCase().includes(termoPesquisa)
+          fusao.caixa?.nome.toLowerCase().includes(termoPesquisa) ||
+          fusao.capilarOrigem?.cor.toLowerCase().includes(termoPesquisa) ||
+          fusao.capilarDestino?.cor.toLowerCase().includes(termoPesquisa) ||
+          fusao.tipoFusao.toLowerCase().includes(termoPesquisa) ||
+          fusao.status.toLowerCase().includes(termoPesquisa)
         )) {
           return false;
         }
 
         // Filtro por tipo de caixa
-        if (filtroTipo !== 'todos' && fusao.tipoCaixa !== filtroTipo) {
+        if (filtroTipo !== 'todos' && fusao.caixa?.tipo !== filtroTipo) {
           return false;
         }
 
         // Filtro por caixa específica
-        if (filtroCaixa !== 'todas' && fusao.caixa !== filtroCaixa) {
+        if (filtroCaixa !== 'todas' && fusao.caixa?.nome !== filtroCaixa) {
           return false;
         }
 
@@ -161,13 +201,13 @@ export default function FusoesPage() {
         // Ordenação
         switch (ordenacao) {
           case 'recentes':
-            return new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime();
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
           case 'antigos':
-            return new Date(a.dataCriacao).getTime() - new Date(b.dataCriacao).getTime();
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           case 'caixa-asc':
-            return a.caixa.localeCompare(b.caixa);
+            return (a.caixa?.nome || '').localeCompare(b.caixa?.nome || '');
           case 'caixa-desc':
-            return b.caixa.localeCompare(a.caixa);
+            return (b.caixa?.nome || '').localeCompare(a.caixa?.nome || '');
           default:
             return 0;
         }
@@ -184,13 +224,15 @@ export default function FusoesPage() {
   const abrirNovaFusao = () => {
     setModoEdicao(false);
     setFormulario({
-      caixa: '',
-      bandeja: '',
-      porta: '',
-      fibra: '',
-      destino: '',
-      destinoPorta: '',
-      destinoFibra: '',
+      caixaId: '',
+      bandejaId: '',
+      capilarOrigemId: '',
+      capilarDestinoId: '',
+      tipoFusao: '' as const,
+      status: 'Ativa',
+      qualidadeSinal: '',
+      perdaInsercao: '',
+      posicaoFusao: '',
       observacoes: ''
     });
     setModalFormularioAberto(true);
@@ -200,62 +242,97 @@ export default function FusoesPage() {
   const abrirEdicao = (fusao: Fusao) => {
     setModoEdicao(true);
     setFormulario({
-      caixa: fusao.caixa,
-      bandeja: fusao.bandeja.toString(),
-      porta: fusao.porta.toString(),
-      fibra: fusao.fibra,
-      destino: fusao.destino,
-      destinoPorta: fusao.destinoPorta.toString(),
-      destinoFibra: fusao.destinoFibra,
-      observacoes: fusao.observacoes
+      caixaId: fusao.caixaId,
+      bandejaId: fusao.bandejaId || '',
+      capilarOrigemId: fusao.capilarOrigemId,
+      capilarDestinoId: fusao.capilarDestinoId,
+      tipoFusao: fusao.tipoFusao,
+      status: fusao.status,
+      qualidadeSinal: fusao.qualidadeSinal?.toString() || '',
+      perdaInsercao: fusao.perdaInsercao?.toString() || '',
+      posicaoFusao: fusao.posicaoFusao?.toString() || '',
+      observacoes: fusao.observacoes || ''
     });
     setFusaoSelecionada(fusao);
     setModalFormularioAberto(true);
   };
 
+  // Função para editar fusão (compatibilidade)
+  const editarFusao = (fusao: Fusao) => {
+    abrirEdicao(fusao);
+  };
+
   // Função para salvar fusão (nova ou editada)
   const salvarFusao = () => {
     // Validação básica
-    if (!formulario.caixa || !formulario.bandeja || !formulario.porta || !formulario.fibra ||
-      !formulario.destino || !formulario.destinoPorta || !formulario.destinoFibra) {
+    if (!formulario.caixaId || !formulario.capilarOrigemId || !formulario.capilarDestinoId) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
 
+    const getCoresCapilares = () => {
+      return ['Azul', 'Verde', 'Laranja', 'Marrom', 'Cinza', 'Branco', 'Vermelho', 'Preto', 'Amarelo', 'Violeta', 'Rosa', 'Ciano'];
+    };
+
+    const getCaixaNome = (caixaId: string) => {
+      const caixaMap: { [key: string]: { nome: string; tipo: string } } = {
+        'cto-001': { nome: 'CTO-001', tipo: 'CTO' },
+        'cto-002': { nome: 'CTO-002', tipo: 'CTO' },
+        'cto-003': { nome: 'CTO-003', tipo: 'CTO' },
+        'ceo-002': { nome: 'CEO-002', tipo: 'CEO' }
+      };
+      return caixaMap[caixaId] || { nome: 'N/A', tipo: 'N/A' };
+    };
+
     if (modoEdicao && fusaoSelecionada) {
       // Atualizar fusão existente
-      const fusaoAtualizada = {
+      const fusaoAtualizada: Fusao = {
         ...fusaoSelecionada,
-        caixa: formulario.caixa,
-        bandeja: parseInt(formulario.bandeja),
-        porta: parseInt(formulario.porta),
-        fibra: formulario.fibra,
-        destino: formulario.destino,
-        destinoPorta: parseInt(formulario.destinoPorta),
-        destinoFibra: formulario.destinoFibra,
-        observacoes: formulario.observacoes,
-        ultimaAtualizacao: new Date().toISOString().split('T')[0]
+        capilarOrigemId: formulario.capilarOrigemId,
+        capilarDestinoId: formulario.capilarDestinoId,
+        tipoFusao: formulario.tipoFusao,
+        status: formulario.status,
+        qualidadeSinal: formulario.qualidadeSinal ? parseFloat(formulario.qualidadeSinal) : undefined,
+        perdaInsercao: formulario.perdaInsercao ? parseFloat(formulario.perdaInsercao) : undefined,
+        posicaoFusao: formulario.posicaoFusao ? parseInt(formulario.posicaoFusao) : undefined,
+        caixaId: formulario.caixaId,
+        bandejaId: formulario.bandejaId || undefined,
+        observacoes: formulario.observacoes || undefined,
+        updatedAt: new Date().toISOString()
       };
 
       setFusoes(fusoes.map(f => f.id === fusaoSelecionada.id ? fusaoAtualizada : f));
       toast.success('Fusão atualizada com sucesso!');
     } else {
       // Criar nova fusão
-      const novaFusao = {
-        id: Math.max(...fusoes.map(f => f.id)) + 1,
-        caixa: formulario.caixa,
-        tipoCaixa: formulario.caixa.startsWith('CTO') ? 'CTO' : 'CEO',
-        bandeja: parseInt(formulario.bandeja),
-        porta: parseInt(formulario.porta),
-        fibra: formulario.fibra,
-        destino: formulario.destino,
-        destinoPorta: parseInt(formulario.destinoPorta),
-        destinoFibra: formulario.destinoFibra,
-        status: 'Ativo',
-        dataCriacao: new Date().toISOString().split('T')[0],
-        criadoPor: 'Usuário Atual', // Em um sistema real, seria o usuário logado
-        ultimaAtualizacao: new Date().toISOString().split('T')[0],
-        observacoes: formulario.observacoes
+      const caixaInfo = getCaixaNome(formulario.caixaId);
+      const novaFusao: Fusao = {
+        id: (Math.max(...fusoes.map(f => parseInt(f.id))) + 1).toString(),
+        capilarOrigemId: formulario.capilarOrigemId,
+        capilarDestinoId: formulario.capilarDestinoId,
+        tipoFusao: formulario.tipoFusao,
+        status: formulario.status,
+        qualidadeSinal: formulario.qualidadeSinal ? parseFloat(formulario.qualidadeSinal) : undefined,
+        perdaInsercao: formulario.perdaInsercao ? parseFloat(formulario.perdaInsercao) : undefined,
+        posicaoFusao: formulario.posicaoFusao ? parseInt(formulario.posicaoFusao) : undefined,
+        caixaId: formulario.caixaId,
+        bandejaId: formulario.bandejaId || undefined,
+        criadoPorId: 'user-current', // Em um sistema real, seria o usuário logado
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        observacoes: formulario.observacoes || undefined,
+        // Dados relacionados para exibição
+        caixa: caixaInfo,
+        bandeja: { numero: parseInt(formulario.bandejaId?.replace('bandeja-', '') || '1') },
+        capilarOrigem: { 
+          numero: parseInt(formulario.capilarOrigemId.replace('cap-', '')) || 1, 
+          cor: getCoresCapilares()[parseInt(formulario.capilarOrigemId.replace('cap-', '')) - 1] || 'Azul' 
+        },
+        capilarDestino: { 
+          numero: parseInt(formulario.capilarDestinoId.replace('cap-', '')) || 1, 
+          cor: getCoresCapilares()[parseInt(formulario.capilarDestinoId.replace('cap-', '')) - 1] || 'Azul' 
+        },
+        criadoPor: { nome: 'Usuário Atual' }
       };
 
       setFusoes([...fusoes, novaFusao]);
@@ -266,7 +343,7 @@ export default function FusoesPage() {
   };
 
   // Função para excluir fusão
-  const excluirFusao = (id: number) => {
+  const excluirFusao = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta fusão?')) {
       setFusoes(fusoes.filter(f => f.id !== id));
       toast.success('Fusão excluída com sucesso!');
@@ -278,8 +355,8 @@ export default function FusoesPage() {
     // Simulação de exportação de dados
     if (formato === 'csv') {
       // Gera CSV simples
-      const header = 'Caixa,Bandeja,Porta,Fibra,Destino,Destino Porta,Destino Fibra,Status,Data de Criação,Observações';
-      const rows = fusoes.map(f => `${f.caixa},${f.bandeja},${f.porta},${f.fibra},${f.destino},${f.destinoPorta},${f.destinoFibra},${f.status},${f.dataCriacao},${f.observacoes}`);
+      const header = 'ID,Caixa,Bandeja,Capilar Origem,Capilar Destino,Tipo Fusão,Status,Qualidade Sinal,Perda Inserção,Posição,Data Criação,Observações';
+      const rows = fusoes.map(f => `${f.id},${f.caixa?.nome || ''},${f.bandeja?.numero || ''},${f.capilarOrigem?.numero || ''},${f.capilarDestino?.numero || ''},${f.tipoFusao},${f.status},${f.qualidadeSinal || ''},${f.perdaInsercao || ''},${f.posicaoFusao || ''},${f.createdAt},${f.observacoes || ''}`);
       const csvContent = [header, ...rows].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
@@ -304,23 +381,23 @@ export default function FusoesPage() {
         // Simples parse de CSV (apenas para demo)
         const lines = text.split('\n').slice(1); // ignora header
         const novasFusoes = lines.filter(Boolean).map((line, idx) => {
-          const [caixa, bandeja, porta, fibra, destino, destinoPorta, destinoFibra, status, dataCriacao, observacoes] = line.split(',');
+          const [id, caixa, bandeja, capilarOrigem, capilarDestino, tipoFusao, status, qualidadeSinal, perdaInsercao, posicao, dataCriacao, observacoes] = line.split(',');
           return {
-            id: Math.max(...fusoes.map(f => f.id)) + idx + 1,
-            caixa,
-            tipoCaixa: caixa.startsWith('CTO') ? 'CTO' : 'CEO',
-            bandeja: Number(bandeja),
-            porta: Number(porta),
-            fibra,
-            destino,
-            destinoPorta: Number(destinoPorta),
-            destinoFibra,
-            status,
-            dataCriacao,
-            criadoPor: 'Importado',
-            ultimaAtualizacao: dataCriacao,
-            observacoes
-          };
+            id: id || (Math.max(...fusoes.map(f => parseInt(f.id))) + idx + 1).toString(),
+            capilarOrigemId: `cap-${capilarOrigem}`,
+            capilarDestinoId: `cap-${capilarDestino}`,
+            tipoFusao: (tipoFusao as 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente') || 'capilar_capilar',
+            status: (status as 'Ativa' | 'Inativa' | 'Manutencao') || 'Ativa',
+            qualidadeSinal: qualidadeSinal ? parseFloat(qualidadeSinal) : undefined,
+            perdaInsercao: perdaInsercao ? parseFloat(perdaInsercao) : undefined,
+            posicaoFusao: posicao ? parseInt(posicao) : undefined,
+            caixaId: `caixa-${caixa}`,
+            bandejaId: bandeja ? `bandeja-${bandeja}` : undefined,
+            criadoPorId: 'user-imported',
+            createdAt: dataCriacao || new Date().toISOString(),
+            updatedAt: dataCriacao || new Date().toISOString(),
+            observacoes: observacoes || undefined
+          } as Fusao;
         });
         setFusoes([...fusoes, ...novasFusoes]);
         toast.success('Importação concluída!');
@@ -451,10 +528,10 @@ export default function FusoesPage() {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="p-2 text-left">Caixa</th>
-                  <th className="p-2 text-left">Bandeja/Porta</th>
-                  <th className="p-2 text-left">Fibra</th>
-                  <th className="p-2 text-left">Destino</th>
-                  <th className="p-2 text-left">Destino Porta/Fibra</th>
+                  <th className="p-2 text-left">Bandeja</th>
+                  <th className="p-2 text-left">Capilar Origem</th>
+                  <th className="p-2 text-left">Capilar Destino</th>
+                  <th className="p-2 text-left">Tipo Fusão</th>
                   <th className="p-2 text-left">Status</th>
                   <th className="p-2 text-right">Ações</th>
                 </tr>
@@ -462,14 +539,37 @@ export default function FusoesPage() {
               <tbody>
                 {fusoesFiltradas().map((fusao) => (
                   <tr key={fusao.id} className="border-b last:border-b-0">
-                    <td className="p-2">{fusao.caixa}</td>
-                    <td className="p-2">B{fusao.bandeja}/P{fusao.porta}</td>
-                    <td className="p-2">{fusao.fibra}</td>
-                    <td className="p-2">{fusao.destino}</td>
-                    <td className="p-2">P{fusao.destinoPorta}/{fusao.destinoFibra}</td>
+                    <td className="p-2">{fusao.caixa?.nome || 'N/A'}</td>
+                    <td className="p-2">B{fusao.bandeja?.numero || 'N/A'}</td>
                     <td className="p-2">
                       <div className="flex items-center">
-                        <div className={`h-2 w-2 rounded-full mr-2 ${fusao.status === 'Ativo' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: fusao.capilarOrigem?.cor || '#ccc' }}
+                        />
+                        Cap {fusao.capilarOrigem?.numero || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: fusao.capilarDestino?.cor || '#ccc' }}
+                        />
+                        Cap {fusao.capilarDestino?.numero || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="p-2">
+                      <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                        {fusao.tipoFusao.replace('_', '-')}
+                      </span>
+                    </td>
+                    <td className="p-2">
+                      <div className="flex items-center">
+                        <div className={`h-2 w-2 rounded-full mr-2 ${
+                          fusao.status === 'Ativa' ? 'bg-green-500' : 
+                          fusao.status === 'Inativa' ? 'bg-red-500' : 'bg-yellow-500'
+                        }`}></div>
                         {fusao.status}
                       </div>
                     </td>
@@ -485,7 +585,7 @@ export default function FusoesPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => abrirEdicao(fusao)}
+                          onClick={() => editarFusao(fusao)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -527,50 +627,74 @@ export default function FusoesPage() {
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground">Caixa de Origem</Label>
-                  <p className="font-medium">{fusaoSelecionada.caixa}</p>
+                  <Label className="text-muted-foreground">Caixa</Label>
+                  <p className="font-medium">{fusaoSelecionada.caixa?.nome || 'N/A'}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Tipo</Label>
-                  <p className="font-medium">{fusaoSelecionada.tipoCaixa}</p>
+                  <Label className="text-muted-foreground">Tipo Caixa</Label>
+                  <p className="font-medium">{fusaoSelecionada.caixa?.tipo || 'N/A'}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Bandeja</Label>
-                  <p className="font-medium">{fusaoSelecionada.bandeja}</p>
+                  <p className="font-medium">B{fusaoSelecionada.bandeja?.numero || 'N/A'}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Porta</Label>
-                  <p className="font-medium">{fusaoSelecionada.porta}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Fibra</Label>
-                  <p className="font-medium">{fusaoSelecionada.fibra}</p>
+                  <Label className="text-muted-foreground">Tipo de Fusão</Label>
+                  <p className="font-medium">{fusaoSelecionada.tipoFusao.replace('_', '-')}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground">Caixa de Destino</Label>
-                  <p className="font-medium">{fusaoSelecionada.destino}</p>
+                  <Label className="text-muted-foreground">Capilar Origem</Label>
+                  <div className="flex items-center mt-1">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: fusaoSelecionada.capilarOrigem?.cor || '#ccc' }}
+                    />
+                    <p className="font-medium">Cap {fusaoSelecionada.capilarOrigem?.numero || 'N/A'}</p>
+                  </div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Porta</Label>
-                  <p className="font-medium">{fusaoSelecionada.destinoPorta}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Fibra</Label>
-                  <p className="font-medium">{fusaoSelecionada.destinoFibra}</p>
+                  <Label className="text-muted-foreground">Capilar Destino</Label>
+                  <div className="flex items-center mt-1">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: fusaoSelecionada.capilarDestino?.cor || '#ccc' }}
+                    />
+                    <p className="font-medium">Cap {fusaoSelecionada.capilarDestino?.numero || 'N/A'}</p>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label className="text-muted-foreground">Status</Label>
-                <div className="flex items-center mt-1">
-                  <div className={`h-2 w-2 rounded-full mr-2 ${fusaoSelecionada.status === 'Ativo' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                  <p className="font-medium">{fusaoSelecionada.status}</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Qualidade do Sinal</Label>
+                  <p className="font-medium">{fusaoSelecionada.qualidadeSinal ? `${fusaoSelecionada.qualidadeSinal}%` : 'N/A'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Perda de Inserção</Label>
+                  <p className="font-medium">{fusaoSelecionada.perdaInsercao ? `${fusaoSelecionada.perdaInsercao}dB` : 'N/A'}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-muted-foreground">Posição da Fusão</Label>
+                  <p className="font-medium">{fusaoSelecionada.posicaoFusao || 'N/A'}</p>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground">Status</Label>
+                  <div className="flex items-center mt-1">
+                    <div className={`h-2 w-2 rounded-full mr-2 ${
+                      fusaoSelecionada.status === 'Ativa' ? 'bg-green-500' : 
+                      fusaoSelecionada.status === 'Inativa' ? 'bg-red-500' : 'bg-yellow-500'
+                    }`}></div>
+                    <p className="font-medium">{fusaoSelecionada.status}</p>
+                  </div>
                 </div>
               </div>
 
@@ -582,17 +706,17 @@ export default function FusoesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Data de Criação</Label>
-                  <p className="font-medium">{fusaoSelecionada.dataCriacao}</p>
+                  <p className="font-medium">{new Date(fusaoSelecionada.createdAt).toLocaleString('pt-BR')}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Criado Por</Label>
-                  <p className="font-medium">{fusaoSelecionada.criadoPor}</p>
+                  <p className="font-medium">{fusaoSelecionada.criadoPor?.nome || 'N/A'}</p>
                 </div>
               </div>
 
               <div>
                 <Label className="text-muted-foreground">Última Atualização</Label>
-                <p className="font-medium">{fusaoSelecionada.ultimaAtualizacao}</p>
+                <p className="font-medium">{new Date(fusaoSelecionada.updatedAt).toLocaleString('pt-BR')}</p>
               </div>
             </div>
           )}
@@ -622,61 +746,36 @@ export default function FusoesPage() {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="caixa">Caixa de Origem</Label>
-                <Input
-                  id="caixa"
-                  placeholder="Ex: CTO-001"
-                  value={formulario.caixa}
-                  onChange={(e) => setFormulario({ ...formulario, caixa: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bandeja">Bandeja</Label>
-                <Input
-                  id="bandeja"
-                  type="number"
-                  placeholder="Ex: 1"
-                  value={formulario.bandeja}
-                  onChange={(e) => setFormulario({ ...formulario, bandeja: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="porta">Porta</Label>
-                <Input
-                  id="porta"
-                  type="number"
-                  placeholder="Ex: 1"
-                  value={formulario.porta}
-                  onChange={(e) => setFormulario({ ...formulario, porta: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="fibra">Fibra</Label>
+                <Label htmlFor="caixaId">Caixa</Label>
                 <Select
-                  value={formulario.fibra}
-                  onValueChange={(value) => setFormulario({ ...formulario, fibra: value })}
+                  value={formulario.caixaId}
+                  onValueChange={(value) => setFormulario({ ...formulario, caixaId: value })}
                 >
-                  <SelectTrigger id="fibra">
-                    <SelectValue placeholder="Selecione a cor" />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a caixa" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Azul">Azul</SelectItem>
-                    <SelectItem value="Verde">Verde</SelectItem>
-                    <SelectItem value="Laranja">Laranja</SelectItem>
-                    <SelectItem value="Marrom">Marrom</SelectItem>
-                    <SelectItem value="Cinza">Cinza</SelectItem>
-                    <SelectItem value="Branco">Branco</SelectItem>
-                    <SelectItem value="Vermelho">Vermelho</SelectItem>
-                    <SelectItem value="Preto">Preto</SelectItem>
-                    <SelectItem value="Amarelo">Amarelo</SelectItem>
-                    <SelectItem value="Violeta">Violeta</SelectItem>
-                    <SelectItem value="Rosa">Rosa</SelectItem>
-                    <SelectItem value="Aqua">Aqua</SelectItem>
+                    <SelectItem value="cto-001">CTO-001</SelectItem>
+                    <SelectItem value="cto-002">CTO-002</SelectItem>
+                    <SelectItem value="cto-003">CTO-003</SelectItem>
+                    <SelectItem value="ceo-002">CEO-002</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bandejaId">Bandeja</Label>
+                <Select
+                  value={formulario.bandejaId}
+                  onValueChange={(value) => setFormulario({ ...formulario, bandejaId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a bandeja" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bandeja-001">Bandeja 1</SelectItem>
+                    <SelectItem value="bandeja-002">Bandeja 2</SelectItem>
+                    <SelectItem value="bandeja-003">Bandeja 3</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -684,51 +783,115 @@ export default function FusoesPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="destino">Caixa de Destino</Label>
+                <Label htmlFor="capilarOrigemId">Capilar Origem</Label>
+                <Select
+                  value={formulario.capilarOrigemId}
+                  onValueChange={(value) => setFormulario({ ...formulario, capilarOrigemId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o capilar origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cap-001">Capilar 1 (Azul)</SelectItem>
+                    <SelectItem value="cap-002">Capilar 2 (Verde)</SelectItem>
+                    <SelectItem value="cap-003">Capilar 3 (Laranja)</SelectItem>
+                    <SelectItem value="cap-004">Capilar 4 (Marrom)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="capilarDestinoId">Capilar Destino</Label>
+                <Select
+                  value={formulario.capilarDestinoId}
+                  onValueChange={(value) => setFormulario({ ...formulario, capilarDestinoId: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o capilar destino" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cap-001">Capilar 1 (Azul)</SelectItem>
+                    <SelectItem value="cap-002">Capilar 2 (Verde)</SelectItem>
+                    <SelectItem value="cap-003">Capilar 3 (Laranja)</SelectItem>
+                    <SelectItem value="cap-004">Capilar 4 (Marrom)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="tipoFusao">Tipo de Fusão</Label>
+                <Select
+                   value={formulario.tipoFusao}
+                   onValueChange={(value: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente') => setFormulario({ ...formulario, tipoFusao: value })}
+                 >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="capilar_capilar">Capilar-Capilar</SelectItem>
+                    <SelectItem value="capilar_splitter">Capilar-Splitter</SelectItem>
+                    <SelectItem value="splitter_cliente">Splitter-Cliente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                   value={formulario.status}
+                   onValueChange={(value: 'Ativa' | 'Inativa' | 'Manutencao') => setFormulario({ ...formulario, status: value })}
+                 >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Ativa">Ativa</SelectItem>
+                    <SelectItem value="Inativa">Inativa</SelectItem>
+                    <SelectItem value="Manutencao">Manutenção</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="qualidadeSinal">Qualidade do Sinal (%)</Label>
                 <Input
-                  id="destino"
-                  placeholder="Ex: CEO-002"
-                  value={formulario.destino}
-                  onChange={(e) => setFormulario({ ...formulario, destino: e.target.value })}
+                  id="qualidadeSinal"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  placeholder="Ex: 95.5"
+                  value={formulario.qualidadeSinal}
+                  onChange={(e) => setFormulario({ ...formulario, qualidadeSinal: e.target.value })}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="destinoPorta">Porta de Destino</Label>
+                <Label htmlFor="perdaInsercao">Perda de Inserção (dB)</Label>
                 <Input
-                  id="destinoPorta"
+                  id="perdaInsercao"
                   type="number"
-                  placeholder="Ex: 3"
-                  value={formulario.destinoPorta}
-                  onChange={(e) => setFormulario({ ...formulario, destinoPorta: e.target.value })}
+                  step="0.01"
+                  placeholder="Ex: 0.15"
+                  value={formulario.perdaInsercao}
+                  onChange={(e) => setFormulario({ ...formulario, perdaInsercao: e.target.value })}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="destinoFibra">Fibra de Destino</Label>
-              <Select
-                value={formulario.destinoFibra}
-                onValueChange={(value) => setFormulario({ ...formulario, destinoFibra: value })}
-              >
-                <SelectTrigger id="destinoFibra">
-                  <SelectValue placeholder="Selecione a cor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Azul">Azul</SelectItem>
-                  <SelectItem value="Verde">Verde</SelectItem>
-                  <SelectItem value="Laranja">Laranja</SelectItem>
-                  <SelectItem value="Marrom">Marrom</SelectItem>
-                  <SelectItem value="Cinza">Cinza</SelectItem>
-                  <SelectItem value="Branco">Branco</SelectItem>
-                  <SelectItem value="Vermelho">Vermelho</SelectItem>
-                  <SelectItem value="Preto">Preto</SelectItem>
-                  <SelectItem value="Amarelo">Amarelo</SelectItem>
-                  <SelectItem value="Violeta">Violeta</SelectItem>
-                  <SelectItem value="Rosa">Rosa</SelectItem>
-                  <SelectItem value="Aqua">Aqua</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="posicaoFusao">Posição da Fusão</Label>
+              <Input
+                id="posicaoFusao"
+                type="number"
+                placeholder="Ex: 1"
+                value={formulario.posicaoFusao}
+                onChange={(e) => setFormulario({ ...formulario, posicaoFusao: e.target.value })}
+              />
             </div>
 
             <div className="space-y-2">

@@ -31,6 +31,7 @@ model Usuario {
   incidentes            Incidente[]
   equipamentos          Equipamento[]
   Arquivo               Arquivo[]
+  fusoesCriadas         Fusao[]               // Fusões criadas pelo usuário
 }
 
 model Cidade {
@@ -71,7 +72,6 @@ model Rota {
   arquivos     Arquivo[]
   comentarios  Comentario[]
   eventos      Evento[]
-  fusoes       Fusao[]
   manutencoes  Manutencao[]
   notificacoes Notificacao[]
   relatorios   Relatorio[]
@@ -155,22 +155,35 @@ model Bandeja {
 }
 
 model Fusao {
-  id           String   @id @default(cuid())
-  fibraOrigem  Int
-  fibraDestino Int
-  tuboOrigem   String?
-  tuboDestino  String?
-  status       String
-  cor          String?
-  observacoes  String?
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-  rotaOrigemId String
-  caixaId      String
-  bandejaId    String?
-  bandeja      Bandeja? @relation(fields: [bandejaId], references: [id])
-  caixa        Caixa    @relation(fields: [caixaId], references: [id])
-  rotaOrigem   Rota     @relation(fields: [rotaOrigemId], references: [id])
+  id                String   @id @default(cuid())
+  // Relacionamentos diretos com capilares
+  capilarOrigemId   String
+  capilarDestinoId  String
+  // Informações da fusão
+  tipoFusao        String   // "capilar_capilar", "capilar_splitter", "splitter_cliente"
+  status           String   // "Ativa", "Inativa", "Manutencao"
+  qualidadeSinal   Float?   // dB - qualidade do sinal da fusão
+  perdaInsercao    Float?   // dB - perda de inserção
+  cor              String?  // cor da fibra para identificação visual
+  observacoes      String?
+  // Localização da fusão
+  caixaId          String
+  bandejaId        String?
+  posicaoFusao     Int?     // posição na bandeja de fusão
+  // Metadados
+  criadoEm         DateTime @default(now())
+  atualizadoEm     DateTime @updatedAt
+  criadoPorId      String?  // usuário que criou a fusão
+  // Relacionamentos
+  capilarOrigem    Capilar  @relation("FusaoOrigem", fields: [capilarOrigemId], references: [id], onDelete: Cascade)
+  capilarDestino   Capilar  @relation("FusaoDestino", fields: [capilarDestinoId], references: [id], onDelete: Cascade)
+  caixa            Caixa    @relation(fields: [caixaId], references: [id])
+  bandeja          Bandeja? @relation(fields: [bandejaId], references: [id])
+  criadoPor        Usuario? @relation(fields: [criadoPorId], references: [id])
+
+  @@unique([capilarOrigemId, capilarDestinoId]) // Evita fusões duplicadas
+  @@index([caixaId]) // Índice para consultas por caixa
+  @@index([status]) // Índice para consultas por status
 }
 
 model Manutencao {
@@ -428,6 +441,9 @@ model Capilar {
   spliter         Spliter?     @relation(fields: [spliterId], references: [id])
   tuboId          String?
   tubo            Tubo?        @relation(fields: [tuboId], references: [id])
+  // Relacionamentos com fusões
+  fusoesOrigem    Fusao[]     @relation("FusaoOrigem")
+  fusoesDestino   Fusao[]     @relation("FusaoDestino")
 }
 
 model Emenda {

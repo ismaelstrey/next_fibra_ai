@@ -177,18 +177,45 @@ export interface BandejaAPI {
 
 export interface FusaoAPI {
     id: string;
-    fibraOrigem: number;
-    fibraDestino: number;
-    tuboOrigem?: string;
-    tuboDestino?: string;
-    status: string;
+    capilarOrigemId: string;
+    capilarDestinoId: string;
+    tipoFusao: 'capilar_capilar' | 'capilar_splitter' | 'splitter_cliente';
+    status: 'Ativa' | 'Inativa' | 'Manutencao';
+    qualidadeSinal?: number;
+    perdaInsercao?: number;
     cor?: string;
     observacoes?: string;
     caixaId: string;
     bandejaId?: string;
-    rotaOrigemId: string;
+    posicaoFusao?: number;
+    criadoPorId?: string;
     criadoEm: string;
     atualizadoEm: string;
+    capilarOrigem?: {
+        id: string;
+        numero: number;
+        tipo: string;
+        status: string;
+        tubo?: {
+            numero: number;
+            tipo: string;
+        };
+    };
+    capilarDestino?: {
+        id: string;
+        numero: number;
+        tipo: string;
+        status: string;
+        tubo?: {
+            numero: number;
+            tipo: string;
+        };
+    };
+    criadoPor?: {
+        id: string;
+        nome: string;
+        cargo: string;
+    };
 }
 
 export interface ComentarioAPI {
