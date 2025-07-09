@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getColor } from '@/functions/color';
-import { CapilarAPI } from '@/types/capilar';
 import { TuboAPI } from '@/hooks/useTubo';
+import { motion, AnimatePresence } from "framer-motion";
 
 // Interfaces para os dados formatados vindos da API
 interface Cabo {
@@ -338,21 +338,39 @@ export function AreaFusao({ cabos = [], splitters = [], fusoes = [], carregandoF
                                       key={fibra.id}
                                       variant={selecionada ? "default" : "ghost"}
                                       size="sm"
-                                      className={`flex flex-col items-center p-1 rounded h-auto ${conectada ? 'bg-gray-100 opacity-75' : ''
-                                        } ${selecionada ? 'ring-2 ring-primary' : ''
-                                        } ${modoSelecao && !selecionada && !conectada ? 'hover:ring-1 hover:ring-blue-300' : ''
-                                        }`}
+                                      className={`flex flex-col items-center p-1 rounded h-auto transition-all duration-200 shadow-sm
+                                        ${conectada ? 'bg-gray-200 dark:bg-gray-700 opacity-70' : 'bg-white dark:bg-neutral-900'}
+                                        ${selecionada ? 'ring-4 ring-primary scale-110 z-10' : ''}
+                                        ${modoSelecao && !selecionada && !conectada ? 'hover:ring-2 hover:ring-blue-400' : ''}
+                                      `}
                                       onClick={() => selecionarFibra(fibra.id)}
                                       disabled={conectada && !selecionada}
+                                      style={{
+                                        boxShadow: selecionada ? '0 0 0 4px rgba(59,130,246,0.3)' : undefined,
+                                        transition: 'box-shadow 0.2s, transform 0.2s',
+                                      }}
                                     >
+                                      <AnimatePresence>
+                                        {selecionada && (
+                                          <motion.div
+                                            layoutId="active-fibra"
+                                            initial={{ scale: 0.8, opacity: 0.7 }}
+                                            animate={{ scale: 1.2, opacity: 1 }}
+                                            exit={{ scale: 0.8, opacity: 0.7 }}
+                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                                            className="absolute w-8 h-8 rounded-full bg-blue-200 dark:bg-blue-900 opacity-30 -z-10"
+                                            style={{ left: -8, top: -8 }}
+                                          />
+                                        )}
+                                      </AnimatePresence>
                                       <div
-                                        className="w-4 h-4 rounded-full mb-1"
+                                        className="w-4 h-4 rounded-full mb-1 border-2 border-white dark:border-neutral-800 shadow"
                                         style={{ backgroundColor: getColor(fibra.numero) }}
                                       />
-                                      <span className="text-xs">{fibra.numero}</span>
+                                      <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 drop-shadow-sm">{fibra.numero}</span>
                                       {conectada && (
                                         <div
-                                          className="w-2 h-2 rounded-full mt-1"
+                                          className="w-2 h-2 rounded-full mt-1 border border-gray-400 dark:border-gray-600"
                                           style={{ backgroundColor: fusaoCor }}
                                         />
                                       )}
