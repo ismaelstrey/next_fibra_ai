@@ -5,6 +5,8 @@ import { Caixa, useMapContext } from '@/context/MapContext';
 import { Badge } from '@/components/ui/badge';
 import { MapPinIcon, BoxIcon, CableIcon, InfoIcon } from 'lucide-react';
 import Link from 'next/link';
+import { DialogDescription } from '@radix-ui/react-dialog';
+import { Span } from 'next/dist/trace';
 
 interface DetalhesMarcadorModalProps {
   /**
@@ -32,6 +34,7 @@ export function DetalhesMarcadorModal({ aberto, aoFechar, marcador }: DetalhesMa
   return (
     <Dialog open={aberto} onOpenChange={aoFechar}>
       <DialogContent className="sm:max-w-md text-primary">
+        <DialogDescription>Detalhes {marcador.tipo}</DialogDescription>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {marcador.tipo === 'CTO' ? (
@@ -76,12 +79,12 @@ export function DetalhesMarcadorModal({ aberto, aoFechar, marcador }: DetalhesMa
             </span>
           </div>
 
-          {marcador.rotaAssociada && (
+          {marcador.rotasAssociadas && (
             <div className="grid grid-cols-4 items-center gap-4">
               <span className="col-span-1 text-muted-foreground text-sm flex items-center gap-1">
                 <CableIcon className="h-3 w-3" /> Rota:
               </span>
-              <span className="col-span-3">{marcador.rotaAssociada}</span>
+              <span className="col-span-3">{marcador.rotasAssociadas}</span>
             </div>
           )}
 

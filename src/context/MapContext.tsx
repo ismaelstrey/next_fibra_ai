@@ -391,7 +391,7 @@ export function MapProvider({ children }: { children: ReactNode }) {
    * Adiciona uma nova rota ao estado e na API
    */
   const adicionarRota = async (rota: Omit<Rota, 'id'>): Promise<Rota | null> => {
-    console.log(rota)
+    // console.log(rota)
     try {
       // Prepara os dados para a API
       const rotaParaApi = {

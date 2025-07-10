@@ -125,6 +125,7 @@ export default function ParteInternaCTO({
             });
 
             const cabosData = await Promise.all(cabosPromises);
+            console.log(cabosAS)
             setCabosFormatados(cabosData);
 
             // Definir capilares e tubos do primeiro cabo para compatibilidade
@@ -168,7 +169,8 @@ export default function ParteInternaCTO({
             const response = await listarFusoesPorCaixa(caixaId, filtros);
             if (response.data && response.data.fusoes) {
                 setFusoes(response.data.fusoes);
-                console.log('Fusões carregadas:', response.data.fusoes.length);
+                // console.log('Fusões carregadas:', response.data.fusoes.length);
+                // console.log({response})
             } else {
                 setFusoes([]);
             }
@@ -188,7 +190,7 @@ export default function ParteInternaCTO({
 
     useEffect(() => {
         carregarFusoes();
-    }, [caixaId, bandejaId, fusoes]);
+    }, [caixaId, bandejaId]);
     return (
         <>
             <CardHeader className="border-b pb-4">

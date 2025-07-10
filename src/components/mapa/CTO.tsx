@@ -112,11 +112,12 @@ export function CTO({
         loadSpliter()
     }, [id])
 
-    console.log(splitersPorcaixa)
+    // console.log(splitersPorcaixa)
 
 
     return (
         <Card className={`border-2 border-primary shadow-lg transition-all duration-300 ${expandida ? 'fixed top-0 left-0 w-full h-full' : 'w-full max-w-full mx-auto'}`}>
+
             <div className="relative">
                 <Button
                     variant="ghost"

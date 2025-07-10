@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     // Obtém parâmetros de consulta
     const { searchParams } = new URL(req.url);
     const pagina = parseInt(searchParams.get("pagina") || "1");
-    const limite = parseInt(searchParams.get("limite") || "20");
+    const limite = parseInt(searchParams.get("limite") || "100");
     const busca = searchParams.get("busca") || "";
     const tipo = searchParams.get("tipo");
     const status = searchParams.get("status");

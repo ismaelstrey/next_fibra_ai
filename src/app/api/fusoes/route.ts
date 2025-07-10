@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
     // Obtém parâmetros de consulta
     const { searchParams } = new URL(req.url);
     const pagina = parseInt(searchParams.get("pagina") || "1");
-    const limite = parseInt(searchParams.get("limite") || "10");
+    const limite = parseInt(searchParams.get("limite") || "100");
     const busca = searchParams.get("busca") || "";
     const cidadeId = searchParams.get("cidadeId");
     const caixaId = searchParams.get("caixaId");
@@ -406,6 +406,7 @@ export async function POST(req: NextRequest) {
               comprimento: 0,
               status: 'Ativo',
               potencia: 0,
+              cidadeId: acesso.caixa?.cidadeId || null,
             }
           });
           capilarOrigemIdFinal = capilarVirtual.id;
@@ -419,6 +420,7 @@ export async function POST(req: NextRequest) {
               comprimento: 0,
               status: 'Ativo',
               potencia: 0,
+              cidadeId: acesso.caixa?.cidadeId || null,
             }
           });
           capilarDestinoIdFinal = capilarVirtual.id;
@@ -582,17 +584,6 @@ export async function POST(req: NextRequest) {
       let capilarOrigemIdFinal = capilarOrigemId;
       let capilarDestinoIdFinal = capilarDestinoId;
       
-      // Debug: verificar se cidadeId está disponível
-      console.log('Debug - acesso.caixa:', acesso.caixa);
-      console.log('Debug - cidadeId:', acesso.caixa?.cidadeId);
-      
-      if (!acesso.caixa?.cidadeId) {
-        return NextResponse.json(
-          { erro: "Cidade da caixa não encontrada. Não é possível criar capilares virtuais." },
-          { status: 400 }
-        );
-      }
-      
       // Se for ID sintético de entrada de splitter, criar um capilar virtual
       if (isCapilarOrigemSintetico) {
         const capilarVirtual = await prisma.capilar.create({
@@ -602,7 +593,7 @@ export async function POST(req: NextRequest) {
             comprimento: 0,
             status: 'Ativo',
             potencia: 0,
-            cidadeId: acesso.caixa.cidadeId, // Usar a cidade da caixa
+            cidadeId: acesso.caixa?.cidadeId || null, // Usar a cidade da caixa se disponível
           }
         });
         capilarOrigemIdFinal = capilarVirtual.id;
@@ -616,7 +607,7 @@ export async function POST(req: NextRequest) {
             comprimento: 0,
             status: 'Ativo',
             potencia: 0,
-            cidadeId: acesso.caixa.cidadeId, // Usar a cidade da caixa
+            cidadeId: acesso.caixa?.cidadeId || null, // Usar a cidade da caixa se disponível
           }
         });
         capilarDestinoIdFinal = capilarVirtual.id;
