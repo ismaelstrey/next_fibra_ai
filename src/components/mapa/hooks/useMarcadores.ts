@@ -15,8 +15,8 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
   const [posicaoClicada, setPosicaoClicada] = useState<google.maps.LatLngLiteral | null>(null);
   const [rotaAssociada, setRotaAssociada] = useState<string | undefined>(undefined);
 
-  // Referência para armazenar os marcadores avançados criados
-  const advancedMarkersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
+  // Referência para armazenar os marcadores padrão criados
+  const markersRef = useRef<google.maps.Marker[]>([]);
 
   // Obtém o estado do mapa do hook useMapa
   const {
@@ -62,7 +62,7 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
         // Atualiza o estado dos marcadores
         setMarcadores(marcadoresDaAPI);
 
-        // Recria os marcadores avançados no mapa
+        // Recria os marcadores no mapa
         criarMarcadoresAvancados(true);
       } catch (error) {
         console.error('Erro ao carregar marcadores da API:', error);
@@ -183,94 +183,81 @@ export const useMarcadores = (mapRef: React.RefObject<google.maps.Map | null>) =
   }, [marcadores]);
 
   /**
-   * Cria os marcadores avançados no mapa
+   * Cria os marcadores padrão no mapa
    */
   const criarMarcadoresAvancados = useCallback(async (isLoaded: boolean) => {
     if (!isLoaded || !mapRef.current) return;
 
-    // Remove todos os marcadores avançados existentes
-    advancedMarkersRef.current.forEach(marker => {
-      marker.map = null;
+    // Remove todos os marcadores existentes
+    markersRef.current.forEach(marker => {
+      marker.setMap(null);
     });
-    advancedMarkersRef.current = [];
+    markersRef.current = [];
 
     // Obtém os marcadores visíveis
     const marcadoresVisiveis = marcadoresFiltrados();
 
-    // Importa a biblioteca de marcadores
-    try {
-      const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
-
-      // Cria cada marcador
-      marcadoresVisiveis.forEach(marcador => {
-        // Cria o elemento para o ícone
-        const iconElement = document.createElement('img');
-        iconElement.src = marcador.icon;
-        iconElement.style.width = '32px';
-        iconElement.style.height = '32px';
-
-        // Cria o marcador avançado diretamente no mapa
-        const advancedMarker = new AdvancedMarkerElement({
-
-          position: marcador.position,
-          map: mapRef.current,
-          title: marcador.title,
-          content: iconElement,
-          gmpDraggable: modoEdicao === 'editar',
-          gmpClickable: true,
-
-
-        });
-
-        // Adiciona evento de clique ao marcador (usando gmp-click conforme recomendado para AdvancedMarkerElement)
-        advancedMarker.addListener('gmp-click', () => {
-          console.log('Clicou no marcador:', { ...marcador });
-
-          // Encontra a caixa correspondente ao marcador clicado
-          const caixaClicada = caixas?.find(caixa => {
-            // Compara as coordenadas para identificar a caixa correta
-            return (
-              caixa.posicao.lat === marcador.position.lat() &&
-              caixa.posicao.lng === marcador.position.lng() &&
-              caixa.tipo === marcador.tipo
-            );
-          });
-
-          if (caixaClicada) {
-            // Emite evento para abrir o modal de detalhes
-            const event = new CustomEvent('marcador-clicado', { detail: caixaClicada });
-            window.dispatchEvent(event);
-          }
-
-          // Se estiver no modo de edição, abre o modal de edição
-          if (modoEdicao === 'editar') {
-            setPosicaoClicada({
-              lat: marcador.position.lat(),
-              lng: marcador.position.lng()
-            });
-            // Extrai o ID da rota associada do título do marcador, se existir
-            const rotaMatch = marcador.title.match(/Vinculada à rota (.+)$/);
-            setRotaAssociada(rotaMatch ? rotaMatch[1] : undefined);
-            setModalAberto(true);
-          }
-        });
-
-        // Armazena o marcador na referência
-        advancedMarkersRef.current.push(advancedMarker);
+    // Cria cada marcador usando a API padrão do Google Maps
+    marcadoresVisiveis.forEach(marcador => {
+      const marker = new google.maps.Marker({
+        position: marcador.position,
+        map: mapRef.current,
+        title: marcador.title,
+        icon: {
+          url: marcador.icon,
+          scaledSize: new google.maps.Size(32, 32),
+          anchor: new google.maps.Point(16, 16)
+        },
+        draggable: modoEdicao === 'editar',
+        clickable: true
       });
-    } catch (error) {
-      console.error('Erro ao carregar a biblioteca de marcadores:', error);
-    }
-  }, [marcadoresFiltrados, modoEdicao, mapRef]);
+
+      // Adiciona evento de clique ao marcador
+      marker.addListener('click', () => {
+        console.log('Clicou no marcador:', { ...marcador });
+
+        // Encontra a caixa correspondente ao marcador clicado
+        const caixaClicada = caixas?.find(caixa => {
+          // Compara as coordenadas para identificar a caixa correta
+          return (
+            caixa.posicao.lat === marcador.position.lat() &&
+            caixa.posicao.lng === marcador.position.lng() &&
+            caixa.tipo === marcador.tipo
+          );
+        });
+
+        if (caixaClicada) {
+          // Emite evento para abrir o modal de detalhes
+          const event = new CustomEvent('marcador-clicado', { detail: caixaClicada });
+          window.dispatchEvent(event);
+        }
+
+        // Se estiver no modo de edição, abre o modal de edição
+        if (modoEdicao === 'editar') {
+          setPosicaoClicada({
+            lat: marcador.position.lat(),
+            lng: marcador.position.lng()
+          });
+          // Extrai o ID da rota associada do título do marcador, se existir
+          const rotaMatch = marcador.title.match(/Vinculada à rota (.+)$/);
+          setRotaAssociada(rotaMatch ? rotaMatch[1] : undefined);
+          setModalAberto(true);
+        }
+      });
+
+      // Armazena o marcador na referência
+      markersRef.current.push(marker);
+    });
+  }, [marcadoresFiltrados, modoEdicao, mapRef, caixas]);
 
   /**
-   * Limpa os marcadores avançados
+   * Limpa os marcadores
    */
   const limparMarcadoresAvancados = useCallback(() => {
-    advancedMarkersRef.current.forEach(marker => {
-      marker.map = null;
+    markersRef.current.forEach(marker => {
+      marker.setMap(null);
     });
-    advancedMarkersRef.current = [];
+    markersRef.current = [];
   }, []);
 
   return {
