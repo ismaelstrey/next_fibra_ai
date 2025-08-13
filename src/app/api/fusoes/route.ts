@@ -2,16 +2,237 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma/prisma";
-import { verificarPermissao, tratarErro, verificarAutenticacao, registrarLog } from "../utils";
+import { tratarErro } from "@/utils/erros";
+import { registrarLog } from "@/utils/logs";
+import { verificarPermissao } from "@/utils/permissoes";
+import { extrairTokenJWT } from "@/middlewares/auth";
 import { fusaoSchema, criarFusoesEmLoteSchema } from "./schema";
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Fusao:
+ *       type: object
+ *       required:
+ *         - capilarOrigemId
+ *         - capilarDestinoId
+ *         - tipoFusao
+ *         - status
+ *         - caixaId
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: ID único da fusão
+ *         capilarOrigemId:
+ *           type: string
+ *           description: ID do capilar de origem
+ *         capilarDestinoId:
+ *           type: string
+ *           description: ID do capilar de destino
+ *         tipoFusao:
+ *           type: string
+ *           enum: [capilar_capilar, capilar_splitter, splitter_cliente]
+ *           description: Tipo da fusão
+ *         status:
+ *           type: string
+ *           enum: [Ativa, Inativa, Manutencao]
+ *           description: Status atual da fusão
+ *         qualidadeSinal:
+ *           type: number
+ *           description: Qualidade do sinal (opcional)
+ *         perdaInsercao:
+ *           type: number
+ *           description: Perda de inserção (opcional)
+ *         cor:
+ *           type: string
+ *           description: Cor da fusão (opcional)
+ *         observacoes:
+ *           type: string
+ *           description: Observações sobre a fusão (opcional)
+ *         caixaId:
+ *           type: string
+ *           description: ID da caixa onde a fusão está localizada
+ *         bandejaId:
+ *           type: string
+ *           description: ID da bandeja onde a fusão está localizada (opcional)
+ *         posicaoFusao:
+ *           type: integer
+ *           description: Posição da fusão na bandeja (opcional)
+ *         criadoPorId:
+ *           type: string
+ *           description: ID do usuário que criou a fusão (opcional)
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Data de criação
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Data da última atualização
+ */
+
+/**
+ * @swagger
+ * /api/fusoes:
+ *   get:
+ *     summary: Lista todas as fusões
+ *     description: Retorna uma lista de todas as fusões com opções de filtragem
+ *     tags: [Fusões]
+ *     parameters:
+ *       - in: query
+ *         name: caixaId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por ID da caixa
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: Filtrar por status da fusão
+ *       - in: query
+ *         name: tipoFusao
+ *         schema:
+ *           type: string
+ *         description: Filtrar por tipo de fusão
+ *     responses:
+ *       200:
+ *         description: Lista de fusões
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Fusao'
+ *       401:
+ *         description: Não autorizado
+ *       500:
+ *         description: Erro interno do servidor
+ *
+ *   post:
+ *     summary: Cria uma nova fusão
+ *     description: Cria uma nova fusão com os dados fornecidos
+ *     tags: [Fusões]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Fusao'
+ *     responses:
+ *       201:
+ *         description: Fusão criada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fusao'
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Sem permissão
+ *       500:
+ *         description: Erro interno do servidor
+ */
+
+/**
+ * @swagger
+ * /api/fusoes/{id}:
+ *   get:
+ *     summary: Obtém uma fusão específica
+ *     description: Retorna os detalhes de uma fusão específica pelo ID
+ *     tags: [Fusões]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da fusão
+ *     responses:
+ *       200:
+ *         description: Detalhes da fusão
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fusao'
+ *       401:
+ *         description: Não autorizado
+ *       404:
+ *         description: Fusão não encontrada
+ *       500:
+ *         description: Erro interno do servidor
+ *
+ *   put:
+ *     summary: Atualiza uma fusão
+ *     description: Atualiza os dados de uma fusão existente
+ *     tags: [Fusões]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da fusão
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Fusao'
+ *     responses:
+ *       200:
+ *         description: Fusão atualizada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Fusao'
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Fusão não encontrada
+ *       500:
+ *         description: Erro interno do servidor
+ *
+ *   delete:
+ *     summary: Remove uma fusão
+ *     description: Remove uma fusão existente pelo ID
+ *     tags: [Fusões]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID da fusão
+ *     responses:
+ *       200:
+ *         description: Fusão removida com sucesso
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Sem permissão
+ *       404:
+ *         description: Fusão não encontrada
+ *       500:
+ *         description: Erro interno do servidor
+ */
 
 /**
  * Função auxiliar para verificar se o usuário tem acesso à caixa
  */
 async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
-  const token = await verificarAutenticacao(req);
-  if (!token) {
-    return { erro: NextResponse.json({ erro: "Não autorizado" }, { status: 401 }) };
+  // Extrai o token do cabeçalho de autorização
+  const authHeader = req.headers.get("authorization");
+  const usuario = await extrairTokenJWT(authHeader);
+  
+  if (!usuario) {
+    return { erro: NextResponse.json({ mensagem: "Não autorizado" }, { status: 401 }) };
   }
 
   // Busca os dados da caixa primeiro
@@ -22,34 +243,36 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
       tipo: true,
       cidade: {
         select: {
-          usuarios: {
-            where: {
-              id: token.id as string,
-            },
-            select: {
-              id: true,
-            },
-          },
+          id: true,
+          nome: true,
         },
       },
     },
   });
 
   if (!caixa) {
-    return { erro: NextResponse.json({ erro: "Caixa não encontrada" }, { status: 404 }) };
+    return { erro: NextResponse.json({ mensagem: "Caixa não encontrada" }, { status: 404 }) };
   }
 
   // Gerentes têm acesso a todas as caixas
-  if (token.cargo === "Gerente") {
-    return { temAcesso: true, token, caixa };
+  if (usuario.cargo === "Gerente") {
+    return { temAcesso: true, usuario, caixa };
   }
 
   // Verifica se o usuário tem acesso à cidade da caixa
-  if (caixa.cidade.usuarios.length === 0) {
-    return { erro: NextResponse.json({ erro: "Você não tem acesso a esta caixa" }, { status: 403 }) };
+  const temAcessoCidade = usuario.cidadesIds?.includes(caixa.cidadeId);
+  if (!temAcessoCidade) {
+    await registrarLog(
+      usuario,
+      "caixas",
+      "consultar",
+      `Tentativa de acesso não autorizado à caixa ${caixaId} na cidade ${caixa.cidade.nome}`,
+      caixaId
+    );
+    return { erro: NextResponse.json({ mensagem: "Você não tem acesso a esta caixa" }, { status: 403 }) };
   }
 
-  return { temAcesso: true, token, caixa };
+  return { temAcesso: true, usuario, caixa };
 }
 
 /**
@@ -57,13 +280,10 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
  */
 export async function GET(req: NextRequest) {
   try {
-    // Verifica se o usuário está autenticado
-    const token = await verificarAutenticacao(req);
-    if (!token) {
-      return NextResponse.json(
-        { erro: "Não autorizado" },
-        { status: 401 }
-      );
+    // Verifica permissão para listar fusões
+    const { autorizado, usuario, mensagem } = await verificarPermissao(req, "fusoes", "ler");
+    if (!autorizado) {
+      return NextResponse.json({ mensagem }, { status: 401 });
     }
 
     // Obtém parâmetros de consulta
