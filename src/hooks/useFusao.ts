@@ -126,6 +126,7 @@ export const useFusao = () => {
     headers: {
       'Content-Type': 'application/json',
     },
+    withCredentials: true, // Importante para enviar cookies de autenticação
   });
 
   // Interceptor para tratamento de erros

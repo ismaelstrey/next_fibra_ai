@@ -11,6 +11,8 @@ import { atualizarFusaoSchema } from "../schema";
  */
 async function verificarAcessoFusao(req: NextRequest, fusaoId: string) {
   const token = await verificarAutenticacao(req);
+
+  console.log(token)
   if (!token) {
     return { erro: NextResponse.json({ erro: "Não autorizado" }, { status: 401 }) };
   }
@@ -167,7 +169,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
         { status: 400 }
       );
     }
-    
+
     // Se estiver alterando a bandeja, verifica se a nova bandeja existe e pertence à mesma caixa
     if (dadosAtualizacao.bandejaId && dadosAtualizacao.bandejaId !== acesso.fusao?.bandejaId) {
       const bandeja = await prisma.bandeja.findUnique({
@@ -235,7 +237,7 @@ export async function PATCH(req: NextRequest, props: { params: Promise<{ id: str
           { status: 400 }
         );
       }
-      
+
       // Verifica se a caixa é do tipo CTO e se foi especificada uma bandeja
       if (caixa.tipo === "CTO" && dadosAtualizacao.bandejaId) {
         return NextResponse.json(
@@ -316,7 +318,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     if (acesso.erro) return acesso.erro;
 
     // Exclui a fusão do banco de dados
-    const fusaoExcluida = await prisma.fusao.delete({
+    await prisma.fusao.delete({
       where: { id },
     });
 

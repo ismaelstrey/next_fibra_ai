@@ -5,7 +5,7 @@ import { prisma } from "@/prisma/prisma";
 import { tratarErro } from "@/utils/erros";
 import { registrarLog } from "@/utils/logs";
 import { verificarPermissao } from "@/utils/permissoes";
-import { extrairTokenJWT } from "@/middlewares/auth";
+import { verificarAutenticacao } from "../utils";
 import { fusaoSchema, criarFusoesEmLoteSchema } from "./schema";
 
 /**
@@ -227,10 +227,11 @@ import { fusaoSchema, criarFusoesEmLoteSchema } from "./schema";
  * Função auxiliar para verificar se o usuário tem acesso à caixa
  */
 async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
-  // Extrai o token do cabeçalho de autorização
-  const authHeader = req.headers.get("authorization");
-  const usuario = await extrairTokenJWT(authHeader);
-  
+  // Obtém o token da sessão NextAuth
+  const usuario = await verificarAutenticacao(req);
+
+  console.log(usuario, "usuarioLogado")
+
   if (!usuario) {
     return { erro: NextResponse.json({ mensagem: "Não autorizado" }, { status: 401 }) };
   }
@@ -260,17 +261,17 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
   }
 
   // Verifica se o usuário tem acesso à cidade da caixa
-  const temAcessoCidade = usuario.cidadesIds?.includes(caixa.cidadeId);
-  if (!temAcessoCidade) {
-    await registrarLog(
-      usuario,
-      "caixas",
-      "consultar",
-      `Tentativa de acesso não autorizado à caixa ${caixaId} na cidade ${caixa.cidade.nome}`,
-      caixaId
-    );
-    return { erro: NextResponse.json({ mensagem: "Você não tem acesso a esta caixa" }, { status: 403 }) };
-  }
+  // const temAcessoCidade = usuario.cidadesIds?.includes(caixa.cidadeId);
+  // if (!temAcessoCidade) {
+  //   await registrarLog(
+  //     usuario,
+  //     "caixas",
+  //     "consultar",
+  //     `Tentativa de acesso não autorizado à caixa ${caixaId} na cidade ${caixa.cidade.nome}`,
+  //     caixaId
+  //   );
+  //   return { erro: NextResponse.json({ mensagem: "Você não tem acesso a esta caixa" }, { status: 403 }) };
+  // }
 
   return { temAcesso: true, usuario, caixa };
 }
@@ -281,10 +282,14 @@ async function verificarAcessoCaixa(req: NextRequest, caixaId: string) {
 export async function GET(req: NextRequest) {
   try {
     // Verifica permissão para listar fusões
-    const { autorizado, usuario, mensagem } = await verificarPermissao(req, "fusoes", "ler");
-    if (!autorizado) {
-      return NextResponse.json({ mensagem }, { status: 401 });
+    const token = await verificarAutenticacao(req);
+    if (!token) {
+      return NextResponse.json(
+        { erro: "Não autorizado" },
+        { status: 401 }
+      );
     }
+
 
     // Obtém parâmetros de consulta
     const { searchParams } = new URL(req.url);
@@ -304,19 +309,19 @@ export async function GET(req: NextRequest) {
     // Adiciona filtro de busca por capilares
     if (busca) {
       where.OR = [
-        { 
-          capilarOrigem: { 
-            numero: { 
-              equals: parseInt(busca) || undefined 
-            } 
-          } 
+        {
+          capilarOrigem: {
+            numero: {
+              equals: parseInt(busca) || undefined
+            }
+          }
         },
-        { 
-          capilarDestino: { 
-            numero: { 
-              equals: parseInt(busca) || undefined 
-            } 
-          } 
+        {
+          capilarDestino: {
+            numero: {
+              equals: parseInt(busca) || undefined
+            }
+          }
         },
         { observacoes: { contains: busca } },
       ];
@@ -328,12 +333,12 @@ export async function GET(req: NextRequest) {
     } else {
       // Se não for especificada uma caixa, filtra pelas cidades que o usuário tem acesso
       // Gerentes podem ver todas as cidades
-      if (token.cargo !== "Gerente") {
+      if (token?.cargo !== "Gerente") {
         where.caixa = {
           cidade: {
             usuarios: {
               some: {
-                id: token.id as string,
+                id: token?.id as string,
               },
             },
           },
@@ -461,11 +466,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // Verifica se o usuário tem permissão (Técnicos, Engenheiros e Gerentes podem criar fusões)
-    const permissaoErro = await verificarPermissao(req, ["Técnico", "Engenheiro", "Gerente"]);
+    const permissaoErro = await verificarPermissao(req, "fusoes", "criar");
+
+
+
     if (permissaoErro) return permissaoErro;
 
     // Extrai os dados do corpo da requisição
     const body = await req.json();
+
 
     // Verifica se é uma criação em lote ou individual
     const isLote = body.fusoes && Array.isArray(body.fusoes);
@@ -502,7 +511,7 @@ export async function POST(req: NextRequest) {
       ])];
 
       // Filtrar apenas IDs que não são sintéticos (não começam com 'entrada-' ou 'saida-')
-      const capilaresReais = capilarIds.filter(id => 
+      const capilaresReais = capilarIds.filter(id =>
         !id.startsWith('entrada-') && !id.startsWith('saida-')
       );
 
@@ -517,9 +526,9 @@ export async function POST(req: NextRequest) {
 
         if (capilaresNaoEncontrados.length > 0) {
           return NextResponse.json(
-            { 
-              erro: "Alguns capilares não foram encontrados", 
-              capilaresNaoEncontrados 
+            {
+              erro: "Alguns capilares não foram encontrados",
+              capilaresNaoEncontrados
             },
             { status: 404 }
           );
@@ -612,11 +621,11 @@ export async function POST(req: NextRequest) {
       for (const fusaoData of fusoes) {
         let capilarOrigemIdFinal = fusaoData.capilarOrigemId;
         let capilarDestinoIdFinal = fusaoData.capilarDestinoId;
-        
+
         // Verificar se são IDs sintéticos
         const isOrigemSintetico = fusaoData.capilarOrigemId.startsWith('entrada-') || fusaoData.capilarOrigemId.startsWith('saida-');
         const isDestinoSintetico = fusaoData.capilarDestinoId.startsWith('entrada-') || fusaoData.capilarDestinoId.startsWith('saida-');
-        
+
         // Criar capilares virtuais se necessário
         if (isOrigemSintetico) {
           const capilarVirtual = await prisma.capilar.create({
@@ -631,7 +640,7 @@ export async function POST(req: NextRequest) {
           });
           capilarOrigemIdFinal = capilarVirtual.id;
         }
-        
+
         if (isDestinoSintetico) {
           const capilarVirtual = await prisma.capilar.create({
             data: {
@@ -645,7 +654,7 @@ export async function POST(req: NextRequest) {
           });
           capilarDestinoIdFinal = capilarVirtual.id;
         }
-        
+
         // Criar a fusão individual
         const novaFusao = await prisma.fusao.create({
           data: {
@@ -653,23 +662,28 @@ export async function POST(req: NextRequest) {
             capilarOrigemId: capilarOrigemIdFinal,
             capilarDestinoId: capilarDestinoIdFinal,
             observacoes: `${fusaoData.observacoes || ''} [IDs originais: ${fusaoData.capilarOrigemId} -> ${fusaoData.capilarDestinoId}]`,
-            criadoPorId: acesso.token.id as string,
+            criadoPorId: acesso.usuario.id as string,
           }
         });
-        
+
         novasFusoes.push(novaFusao);
       }
 
       // Registra a ação no log de auditoria
-      if (acesso.token) {
-        await registrarLog({
-          prisma,
-          usuarioId: acesso.token.id as string,
-          acao: "Criação em Lote",
-          entidade: "Fusões",
-          entidadeId: caixaId, // ID da caixa
-          detalhes: { quantidade: fusoes.length },
-        });
+      if (acesso.temAcesso) {
+        await registrarLog(
+          {
+            id: acesso.usuario.id,
+            cargo: acesso.usuario.cargo,
+            email: acesso.usuario.email || '',
+            nome: acesso.usuario.name || 'Sistema',
+            permissoes: [],
+          },
+          "fusao",
+          "criar",
+          `Criada fusão entre ${novasFusoes[0].capilarOrigemId} e ${novasFusoes[0].capilarDestinoId}`,
+        );
+
       }
 
       return NextResponse.json(
@@ -718,7 +732,7 @@ export async function POST(req: NextRequest) {
       // IDs que começam com 'entrada-' ou 'saida-' são IDs sintéticos de splitters
       const isCapilarOrigemSintetico = capilarOrigemId.startsWith('entrada-') || capilarOrigemId.startsWith('saida-');
       const isCapilarDestinoSintetico = capilarDestinoId.startsWith('entrada-') || capilarDestinoId.startsWith('saida-');
-      
+
       if (!isCapilarOrigemSintetico) {
         const capilarOrigem = await prisma.capilar.findUnique({
           where: { id: capilarOrigemId },
@@ -803,7 +817,7 @@ export async function POST(req: NextRequest) {
       // ou usar uma abordagem diferente para armazenar essas fusões
       let capilarOrigemIdFinal = capilarOrigemId;
       let capilarDestinoIdFinal = capilarDestinoId;
-      
+
       // Se for ID sintético de entrada de splitter, criar um capilar virtual
       if (isCapilarOrigemSintetico) {
         const capilarVirtual = await prisma.capilar.create({
@@ -818,7 +832,7 @@ export async function POST(req: NextRequest) {
         });
         capilarOrigemIdFinal = capilarVirtual.id;
       }
-      
+
       if (isCapilarDestinoSintetico) {
         const capilarVirtual = await prisma.capilar.create({
           data: {
@@ -832,7 +846,7 @@ export async function POST(req: NextRequest) {
         });
         capilarDestinoIdFinal = capilarVirtual.id;
       }
-console.log({capilarOrigemIdFinal,capilarDestinoIdFinal})
+      console.log({ capilarOrigemIdFinal, capilarDestinoIdFinal })
 
       // Cria a fusão no banco de dados
       const novaFusao = await prisma.fusao.create({
@@ -848,7 +862,7 @@ console.log({capilarOrigemIdFinal,capilarDestinoIdFinal})
           caixaId,
           bandejaId,
           posicaoFusao: result.data.posicaoFusao,
-          criadoPorId: acesso.token.id as string,
+          criadoPorId: acesso.usuario.id as string,
         },
         include: {
           capilarOrigem: {
@@ -902,15 +916,21 @@ console.log({capilarOrigemIdFinal,capilarDestinoIdFinal})
       });
 
       // Registra a ação no log de auditoria
-      if (acesso.token) {
-        await registrarLog({
-          prisma,
-          usuarioId: acesso.token.id as string,
-          acao: "Criação",
-          entidade: "Fusão",
-          entidadeId: novaFusao.id,
-          detalhes: { capilarOrigemId, capilarDestinoId, caixaId, bandejaId },
-        });
+      if (acesso.temAcesso) {
+
+        await registrarLog(
+          {
+            id: acesso.usuario.id,
+            cargo: acesso.usuario.cargo,
+            email: acesso.usuario.email || '',
+            nome: acesso.usuario.name || 'Sistema',
+            permissoes: [],
+          },
+          "fusao",
+          "criar",
+          `Criada fusão entre ${capilarOrigemId} e ${capilarDestinoId}`,
+
+        );
       }
 
       // Serializa BigInt para string

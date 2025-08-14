@@ -6,14 +6,14 @@ import { UsuarioToken } from "../middlewares/auth";
 const prisma = new PrismaClient();
 
 // Tipos de ações para logs
-export type TipoAcao = 
-  | "criar" 
-  | "atualizar" 
-  | "excluir" 
-  | "consultar" 
-  | "login" 
-  | "logout" 
-  | "erro" 
+export type TipoAcao =
+  | "criar"
+  | "atualizar"
+  | "excluir"
+  | "consultar"
+  | "login"
+  | "logout"
+  | "erro"
   | "outro";
 
 /**
@@ -30,19 +30,17 @@ export async function registrarLog(
   recurso: string,
   acao: TipoAcao,
   detalhes: string,
-  entidadeId?: string
+  entidadeId?: string,
 ) {
   try {
     return await prisma.log.create({
       data: {
-        usuarioId: usuario?.id,
-        usuarioNome: usuario?.nome || "Sistema",
-        recurso,
+        usuarioId: usuario?.id || "N/A",
         acao,
         detalhes,
-        entidadeId,
-        ip: "0.0.0.0", // Em um ambiente real, capturar o IP da requisição
-        dataHora: new Date(),
+        entidadeId: entidadeId || "N/A",
+        entidade: recurso,
+        criadoEm: new Date(),
       },
     });
   } catch (error) {
@@ -65,7 +63,7 @@ export async function registrarErro(
 ) {
   const mensagem = erro instanceof Error ? erro.message : String(erro);
   const stack = erro instanceof Error ? erro.stack : undefined;
-  
+
   return registrarLog(
     usuario,
     recurso,
